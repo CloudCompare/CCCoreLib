@@ -1,0 +1,71 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }} SCALAR_DOUBLE=${{ matrix.scalar_double }}
+    runs-on: ${{ matrix.config.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scalar_double: ["ON", "OFF"]
+        config:
+          - {
+              name: "Windows Latest MSVC",
+              os: windows-latest,
+              generator: "Visual Studio 16 2019",
+              conda_library_dir: "Library"
+           }
+          - {
+              name: "macOS Latest Clang",
+              os: macos-latest,
+              generator: "Ninja",
+              conda_library_dir: "."
+            }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      - uses: goanpeca/setup-miniconda@v1
+        with:
+          miniconda-version: 'latest'
+          activate-environment: ccenv
+          auto-update-conda: true
+
+      - name: Install dependencies
+        shell: pwsh
+        run: conda install -y -c conda-forge `
+          cgal=5.* `
+          qt=5.12.* `
+          tbb=2020.* `
+
+      - name: Install additional dependencies on macos
+        if: matrix.config.os == 'macos-latest'
+        run: brew install cmake ninja
+
+      - name: Configure msvc dev console
+        if:  matrix.config.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          mkdir build
+          # Base dir where libs are installed (cmake, dlls, include files, etc)
+          $CONDA_LIB_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
+
+          cmake `
+            -B build `
+            -G "${{ matrix.config.generator }}" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DOPTION_SCALAR_DOUBLE=${{ matrix.scalar_double }} `
+            .
+
+      - name: Build
+        run: cmake --build build --parallel --config Release
