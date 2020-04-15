@@ -58,13 +58,13 @@ jobs:
         run: |
           mkdir cccorelib-build
 
-          cmake `
-            -B cccorelib-build `
-            -G "${{ matrix.config.generator }}" `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCC-CORE-LIB_USE_CGAL=TRUE `
-            -DCC-CORE-LIB_USE_TBB=TRUE `
-            -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} `
+          cmake
+            -B cccorelib-build
+            -G "${{ matrix.config.generator }}"
+            -DCMAKE_BUILD_TYPE=Release
+            -DCC-CORE-LIB_USE_CGAL=TRUE
+            -DCC-CORE-LIB_USE_TBB=TRUE
+            -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
             .
 
       - name: Build
