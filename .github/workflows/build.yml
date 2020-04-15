@@ -53,8 +53,11 @@ jobs:
         shell: pwsh
         run: |
           mkdir cccorelib-build
-          # Base dir where libs are installed (cmake, dlls, include files, etc)
+
           $CONDA_LIB_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
+
+          echo "Conda dir: $CONDA_LIB_DIR"
+          ls -l $CONDA_LIB_DIR
 
           cmake `
             -B cccorelib-build `
