@@ -13,11 +13,11 @@ jobs:
       matrix:
         scalar_double: ["OFF"]
         config:
-          - {
-              name: "Windows Latest MSVC",
-              os: windows-latest,
-              generator: "Visual Studio 16 2019",
-           }
+          # - {
+          #     name: "Windows Latest MSVC",
+          #     os: windows-latest,
+          #     generator: "Visual Studio 16 2019",
+          #  }
           - {
               name: "macOS Latest Clang",
               os: macos-latest,
@@ -50,13 +50,17 @@ jobs:
 
           export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
 
-      - name: Configure dev console (Windows)
+          ls -l ${Qt5_DIR}
+
+      - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure
         run: >
           mkdir cccorelib-build
+
+          echo ${Qt5_DIR}
 
           cmake
           -B cccorelib-build

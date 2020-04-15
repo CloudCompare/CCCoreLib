@@ -140,21 +140,6 @@ if ( WIN32 )
 	)
 endif()
 
-# TBB (optional)
-if ( CC-CORE-LIB_USE_TBB )
-	find_package( TBB REQUIRED )
-
-	target_link_libraries( CCCoreLib
-		PUBLIC
-			${TBB_IMPORTED_TARGETS}
-	)
-
-	target_compile_definitions( CCCoreLib
-		PUBLIC
-			USE_TBB
-	)
-endif()
-
 # CGAL (optional)
 if ( CC-CORE-LIB_USE_CGAL )
 	find_package( CGAL REQUIRED )
@@ -171,6 +156,21 @@ if ( CC-CORE-LIB_USE_CGAL )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
 			USE_CGAL_LIB
+	)
+endif()
+
+# TBB (optional)
+if ( CC-CORE-LIB_USE_TBB )
+	find_package( TBB REQUIRED )
+
+	target_link_libraries( CCCoreLib
+		PUBLIC
+			${TBB_IMPORTED_TARGETS}
+	)
+
+	target_compile_definitions( CCCoreLib
+		PUBLIC
+			USE_TBB
 	)
 endif()
 
