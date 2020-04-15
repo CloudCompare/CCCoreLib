@@ -29,8 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-        with:
-          submodules: true
 
       - uses: goanpeca/setup-miniconda@v1
         with:
@@ -61,6 +59,7 @@ jobs:
           cmake `
             -B cccorelib-build `
             -G "${{ matrix.config.generator }}" `
+            -DCMAKE_LIBRARY_PATH=$CONDA_LIB_DIR `
             -DCMAKE_BUILD_TYPE=Release `
             -DCC-CORE-LIB_USE_CGAL=TRUE `
             -DCC-CORE-LIB_USE_TBB=TRUE `
