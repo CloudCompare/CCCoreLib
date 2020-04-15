@@ -54,7 +54,13 @@ jobs:
         run: |
           mkdir cccorelib-build
 
-          $env:CMAKE_PREFIX_PATH = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
+          $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
+
+          $env:CMAKE_PREFIX_PATH = "${CONDA_INSTALL_DIR}"
+          
+          echo "${CMAKE_PREFIX_PATH}"
+          ls -l "${CMAKE_PREFIX_PATH}"
+          ls -l "${CMAKE_PREFIX_PATH}"/lib/cmake
 
           cmake `
             -B cccorelib-build `
