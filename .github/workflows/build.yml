@@ -31,9 +31,9 @@ jobs:
       - name: Install (Windows)
         if: matrix.config.os == 'windows-latest'
         uses: goanpeca/setup-miniconda@v1
-          with:
-            miniconda-version: 'latest'
-            auto-update-conda: true
+        with:
+          miniconda-version: 'latest'
+          auto-update-conda: true
         shell: pwsh
         run: conda install -y -c conda-forge `
           cgal=5.* `
