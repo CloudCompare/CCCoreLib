@@ -196,13 +196,6 @@ if ( CC-CORE-LIB_USE_QT )
 		REQUIRED
 	)
 
-	if ( WIN32 )
-		target_sources( CCCoreLib
-			PUBLIC
-				${CMAKE_CURRENT_SOURCE_DIR}/platform/windows/qt5.natvis
-		)
-	endif()
-
 	target_link_libraries( CCCoreLib
 		PUBLIC
 			Qt5::Concurrent
