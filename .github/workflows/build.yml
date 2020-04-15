@@ -43,7 +43,7 @@ jobs:
           cmake `
           ninja=1.10.* `
           qt=5.12.* `
-          tbb=2020.*
+          tbb-devel=2020.*
 
       - name: Configure msvc dev console
         if:  matrix.config.os == 'windows-latest'
@@ -56,10 +56,13 @@ jobs:
 
           $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
 
+          ls -l $CONDA_INSTALL_DIR
+          ls -l $CONDA_INSTALL_DIR/include
+          ls -l $CONDA_INSTALL_DIR/lib
+
           cmake `
             -B cccorelib-build `
             -G "${{ matrix.config.generator }}" `
-            -DTBB_DIR= "${CONDA_INSTALL_DIR}" `
             -DCMAKE_BUILD_TYPE=Release `
             -DCC-CORE-LIB_USE_CGAL=TRUE `
             -DCC-CORE-LIB_USE_TBB=TRUE `
