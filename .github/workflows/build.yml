@@ -28,14 +28,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-      - name: miniconda (Windows)
+      - name: Install miniconda (Windows)
         if: matrix.config.os == 'windows-latest'
         uses: goanpeca/setup-miniconda@v1
         with:
           miniconda-version: 'latest'
           auto-update-conda: true
 
-      - name: Install (Windows)
+      - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
         shell: pwsh
         run: conda install -y -c conda-forge `
@@ -43,17 +43,18 @@ jobs:
           qt=5.12.* `
           tbb-devel=2020.*
 
-      - name: Install (macOS)
+      - name: Install Dependencies (macOS)
         if: matrix.config.os == 'macos-latest'
         run: |
           brew install cgal ninja qt5 tbb
 
-      - name: Configure msvc dev console
+          export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
+
+      - name: Configure dev console (Windows)
         if:  matrix.config.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure
-        shell: pwsh
         run: |
           mkdir cccorelib-build
 
