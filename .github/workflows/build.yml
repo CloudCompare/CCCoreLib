@@ -56,7 +56,7 @@ jobs:
 
           $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
 
-          $env:CMAKE_PREFIX_PATH = "${CONDA_INSTALL_DIR}"
+          echo "::set-env name=CMAKE_PREFIX_PATH::$CONDA_INSTALL_DIR"
           
           echo "${CMAKE_PREFIX_PATH}"
           ls -l "${CMAKE_PREFIX_PATH}"
