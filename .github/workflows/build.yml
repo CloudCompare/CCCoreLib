@@ -56,8 +56,9 @@ jobs:
 
           $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
 
-          export PATH="${CONDA_INSTALL_DIR}:${PATH}"
-
+          $PATH="${CONDA_INSTALL_DIR}:${PATH}"
+          echo "${PATH}"
+          
           cmake `
             -B cccorelib-build `
             -G "${{ matrix.config.generator }}" `
