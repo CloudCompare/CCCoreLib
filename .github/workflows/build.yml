@@ -56,16 +56,14 @@ jobs:
 
           $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
 
-          $env:CMAKE_PREFIX_PATH = "${CONDA_INSTALL_DIR}"
-          echo "::set-env name=CMAKE_PREFIX_PATH::$CONDA_INSTALL_DIR"
           echo "${CONDA_INSTALL_DIR}"
           ls -l "${CONDA_INSTALL_DIR}"
-          ls -l "${CONDA_INSTALL_DIR}"/lib/cmake
+          ls -l "${CONDA_INSTALL_DIR}/lib/cmake"
 
           cmake `
             -B cccorelib-build `
             -G "${{ matrix.config.generator }}" `
-            -DCMAKE_PREFIX_PATH= "${CONDA_INSTALL_DIR}"/lib `
+            -DCMAKE_PREFIX_PATH= "${CONDA_INSTALL_DIR}/lib" `
             -DCMAKE_BUILD_TYPE=Release `
             -DCC-CORE-LIB_USE_CGAL=TRUE `
             -DCC-CORE-LIB_USE_TBB=TRUE `
