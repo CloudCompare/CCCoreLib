@@ -17,13 +17,11 @@ jobs:
               name: "Windows Latest MSVC",
               os: windows-latest,
               generator: "Visual Studio 16 2019",
-              conda_library_dir: "Library"
            }
           - {
               name: "macOS Latest Clang",
               os: macos-latest,
               generator: "Ninja",
-              conda_library_dir: "."
             }
 
     steps:
@@ -33,14 +31,12 @@ jobs:
       - uses: goanpeca/setup-miniconda@v1
         with:
           miniconda-version: 'latest'
-          activate-environment: ccenv
           auto-update-conda: true
 
       - name: Install dependencies
         shell: pwsh
         run: conda install -y -c conda-forge `
           cgal=5.* `
-          cmake `
           ninja=1.10.* `
           qt=5.12.* `
           tbb-devel=2020.*
@@ -53,12 +49,6 @@ jobs:
         shell: pwsh
         run: |
           mkdir cccorelib-build
-
-          $CONDA_INSTALL_DIR = Join-Path -Resolve $env:CONDA_PREFIX ${{ matrix.config.conda_library_dir }}
-
-          ls -l $CONDA_INSTALL_DIR
-          ls -l $CONDA_INSTALL_DIR/include
-          ls -l $CONDA_INSTALL_DIR/lib
 
           cmake `
             -B cccorelib-build `
