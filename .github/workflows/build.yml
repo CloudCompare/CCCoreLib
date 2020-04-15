@@ -64,7 +64,9 @@ jobs:
             -B build `
             -G "${{ matrix.config.generator }}" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DOPTION_SCALAR_DOUBLE=${{ matrix.scalar_double }} `
+            -DCC-CORE-LIB_USE_CGAL `
+            -DCC-CORE-LIB_USE_TBB `
+            -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} `
             .
 
       - name: Build
