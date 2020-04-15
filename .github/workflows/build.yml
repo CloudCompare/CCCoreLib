@@ -43,7 +43,7 @@ jobs:
         run: conda install -y -c conda-forge `
           cgal=5.* `
           qt=5.12.* `
-          tbb=2020.* `
+          tbb=2020.*
 
       - name: Install additional dependencies on macos
         if: matrix.config.os == 'macos-latest'
