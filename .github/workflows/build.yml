@@ -55,17 +55,17 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure
-        run: |
+        run: >
           mkdir cccorelib-build
 
           cmake
-            -B cccorelib-build
-            -G "${{ matrix.config.generator }}"
-            -DCMAKE_BUILD_TYPE=Release
-            -DCC-CORE-LIB_USE_CGAL=TRUE
-            -DCC-CORE-LIB_USE_TBB=TRUE
-            -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
-            .
+          -B cccorelib-build
+          -G "${{ matrix.config.generator }}"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCC-CORE-LIB_USE_CGAL=TRUE
+          -DCC-CORE-LIB_USE_TBB=TRUE
+          -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
+          .
 
       - name: Build
         run: cmake --build cccorelib-build --parallel --config Release
