@@ -173,7 +173,7 @@ if ( CC-CORE-LIB_USE_CGAL )
                     NOMINMAX
             )
         else()
-            message( WARNING "CGAL cannot compile with TBB ()TBB not found)" )
+            message( WARNING "CGAL cannot compile with TBB (TBB not found)" )
         endif()
     endif()
     

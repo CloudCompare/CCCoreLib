@@ -11,18 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scalar_double: ["OFF"]
+        scalar_double: ["OFF", "ON"]
         config:
-          # - {
-          #     name: "Windows Latest MSVC",
-          #     os: windows-latest,
-          #     generator: "Visual Studio 16 2019",
-          #  }
-          # - {
-          #     name: "macOS Latest Clang",
-          #     os: macos-latest,
-          #     generator: "Ninja",
-          #   }
+          - {
+              name: "Windows Latest MSVC",
+              os: windows-latest,
+              generator: "Visual Studio 16 2019",
+           }
+          - {
+              name: "macOS Latest Clang",
+              os: macos-latest,
+              generator: "Ninja",
+            }
           - {
               name: "Ubuntu Latest GCC",
               os: ubuntu-latest,
