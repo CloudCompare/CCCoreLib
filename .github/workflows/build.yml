@@ -28,6 +28,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
+      - name: Install Dependencies (macOS)
+        if: matrix.config.os == 'macos-latest'
+        run: |
+          brew install cgal ninja qt5 tbb
+
+          export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
+          echo ::set-env Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
+
+          ls -l ${Qt5_DIR}
+
       - name: Install miniconda (Windows)
         if: matrix.config.os == 'windows-latest'
         uses: goanpeca/setup-miniconda@v1
@@ -42,15 +52,6 @@ jobs:
           cgal=5.* `
           qt=5.12.* `
           tbb-devel=2020.*
-
-      - name: Install Dependencies (macOS)
-        if: matrix.config.os == 'macos-latest'
-        run: |
-          brew install cgal ninja qt5 tbb
-
-          export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
-
-          ls -l ${Qt5_DIR}
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
