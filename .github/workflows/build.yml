@@ -1,0 +1,85 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }} SCALAR_DOUBLE=${{ matrix.scalar_double }}
+    runs-on: ${{ matrix.config.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scalar_double: ["OFF", "ON"]
+        config:
+          - {
+              name: "Windows MSVC",
+              os: windows-latest,
+              generator: "Visual Studio 16 2019",
+           }
+          - {
+              name: "macOS Clang",
+              os: macos-latest,
+              generator: "Ninja",
+            }
+          - {
+              name: "Ubuntu GCC",
+              os: ubuntu-latest,
+              generator: "Ninja",
+            }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Dependencies (macOS)
+        if: matrix.config.os == 'macos-latest'
+        run: |
+          brew install cgal ninja qt5 tbb
+
+          echo "::set-env name=Qt5_DIR::/usr/local/opt/qt5/lib/cmake/Qt5"
+
+      - name: Install Dependencies (Ubuntu)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y libcgal-dev libtbb-dev ninja-build qtbase5-dev
+
+      - name: Install miniconda (Windows)
+        if: matrix.config.os == 'windows-latest'
+        uses: goanpeca/setup-miniconda@v1
+        with:
+          miniconda-version: 'latest'
+          auto-update-conda: true
+
+      - name: Install Dependencies (Windows)
+        if: matrix.config.os == 'windows-latest'
+        shell: pwsh
+        run: conda install -y -c conda-forge `
+          cgal=5.* `
+          qt=5.12.* `
+          tbb-devel=2020.*
+
+      - name: Configure MSVC console (Windows)
+        if:  matrix.config.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: >
+          mkdir cccorelib-build
+
+          echo ${Qt5_DIR}
+
+          cmake
+          -B cccorelib-build
+          -G "${{ matrix.config.generator }}"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCC-CORE-LIB_USE_CGAL=TRUE
+          -DCC-CORE-LIB_USE_TBB=TRUE
+          -DCC-CORE-LIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
+          .
+
+      - name: Build
+        run: cmake --build cccorelib-build --parallel --config Release

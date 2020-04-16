@@ -140,12 +140,41 @@ if ( WIN32 )
 	)
 endif()
 
+# TBB (optional)
+# Must come before CGAL so it can use TBB properly
+if ( CC-CORE-LIB_USE_TBB )
+	find_package( TBB )
+
+    if ( TBB_FOUND )
+        target_link_libraries( CCCoreLib
+            PUBLIC
+                ${TBB_IMPORTED_TARGETS}
+        )
+    
+        target_compile_definitions( CCCoreLib
+            PUBLIC
+                USE_TBB
+        )
+    endif()
+endif()
+
 # CGAL (optional)
 if ( CC-CORE-LIB_USE_CGAL )
 	find_package( CGAL REQUIRED )
 
     if ( CC-CORE-LIB_USE_TBB )
-        CGAL_target_use_TBB( CCCoreLib )
+        if ( TBB_FOUND )
+            # Once Linux libcgal-dev >= 5.0, target_compile_definitions replaced by:
+            #  CGAL_target_use_TBB( CCCoreLib )
+    
+            target_compile_definitions( CCCoreLib
+                PRIVATE
+                    CGAL_LINKED_WITH_TBB
+                    NOMINMAX
+            )
+        else()
+            message( WARNING "CGAL cannot compile with TBB (TBB not found)" )
+        endif()
     endif()
     
 	target_link_libraries( CCCoreLib
@@ -156,21 +185,6 @@ if ( CC-CORE-LIB_USE_CGAL )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
 			USE_CGAL_LIB
-	)
-endif()
-
-# TBB (optional)
-if ( CC-CORE-LIB_USE_TBB )
-	find_package( TBB REQUIRED )
-
-	target_link_libraries( CCCoreLib
-		PUBLIC
-			${TBB_IMPORTED_TARGETS}
-	)
-
-	target_compile_definitions( CCCoreLib
-		PUBLIC
-			USE_TBB
 	)
 endif()
 
@@ -195,13 +209,6 @@ if ( CC-CORE-LIB_USE_QT )
 			Widgets
 		REQUIRED
 	)
-
-	if ( WIN32 )
-		target_sources( CCCoreLib
-			PUBLIC
-				${CMAKE_CURRENT_SOURCE_DIR}/platform/windows/qt5.natvis
-		)
-	endif()
 
 	target_link_libraries( CCCoreLib
 		PUBLIC
