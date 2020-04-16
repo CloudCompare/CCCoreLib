@@ -140,26 +140,8 @@ if ( WIN32 )
 	)
 endif()
 
-# CGAL (optional)
-if ( CC-CORE-LIB_USE_CGAL )
-	find_package( CGAL REQUIRED )
-
-    if ( CC-CORE-LIB_USE_TBB )
-        CGAL_target_use_TBB( CCCoreLib )
-    endif()
-    
-	target_link_libraries( CCCoreLib
-		PUBLIC
-			CGAL::CGAL
-	)
-
-	target_compile_definitions( CCCoreLib
-		PUBLIC
-			USE_CGAL_LIB
-	)
-endif()
-
 # TBB (optional)
+# Must come before CGAL so it can use TBB properly
 if ( CC-CORE-LIB_USE_TBB )
 	find_package( TBB REQUIRED )
 
@@ -171,6 +153,29 @@ if ( CC-CORE-LIB_USE_TBB )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
 			USE_TBB
+	)
+endif()
+
+# CGAL (optional)
+if ( CC-CORE-LIB_USE_CGAL )
+	find_package( CGAL REQUIRED )
+
+    if ( CC-CORE-LIB_USE_TBB )
+        target_compile_definitions( CCCoreLib
+            PRIVATE
+                CGAL_LINKED_WITH_TBB
+                NOMINMAX
+        )
+    endif()
+    
+	target_link_libraries( CCCoreLib
+		PUBLIC
+			CGAL::CGAL
+	)
+
+	target_compile_definitions( CCCoreLib
+		PUBLIC
+			USE_CGAL_LIB
 	)
 endif()
 
