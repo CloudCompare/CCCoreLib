@@ -128,6 +128,6 @@ install(
 target_include_directories( ${PROJECT_NAME}
 	PUBLIC
 		$<INSTALL_INTERFACE:include/CCCoreLib>
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/CCCoreLib>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/CCCoreLib>
 )
 
