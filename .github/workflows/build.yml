@@ -18,9 +18,14 @@ jobs:
           #     os: windows-latest,
           #     generator: "Visual Studio 16 2019",
           #  }
+          # - {
+          #     name: "macOS Latest Clang",
+          #     os: macos-latest,
+          #     generator: "Ninja",
+          #   }
           - {
-              name: "macOS Latest Clang",
-              os: macos-latest,
+              name: "Ubuntu Latest GCC",
+              os: ubuntu-latest,
               generator: "Ninja",
             }
 
@@ -33,10 +38,14 @@ jobs:
         run: |
           brew install cgal ninja qt5 tbb
 
-          export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
           echo "::set-env name=Qt5_DIR::/usr/local/opt/qt5/lib/cmake/Qt5"
 
-          ls -l ${Qt5_DIR}
+      - name: Install Dependencies (Ubuntu)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y libcgal-dev libtbb-dev ninja-build qtbase5-dev
 
       - name: Install miniconda (Windows)
         if: matrix.config.os == 'windows-latest'

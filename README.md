@@ -20,10 +20,8 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 
 ## Things We Have Yet To Do
 
-- get CI (either GitHub Actions or Travis) up and running
 - contribution guidelines (including coding style)
 - documentation
-- set up
 
 ## How You Can Help
 
