@@ -32,7 +32,7 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 - [contribute improvements](https://github.com/CloudCompare/CCCoreLib/pulls)
 
 ## License
-This project as a whole is licensed under the **LGPL 2.0+** license - see the [LICENSE-LGPL-2.0](LICENSE-LGPL-2.0.txt) file for details.
+This project as a whole is licensed under the **LGPL 2.0+** license - see the [LICENSE](LICENSE.txt) file for details.
 
 Individual source files contain the following tag instead of the full license text:
 
