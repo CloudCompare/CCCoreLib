@@ -1,5 +1,7 @@
 # CCCoreLib
 
+[![Actions Status](https://github.com/CloudCompare/CCCoreLib/workflows/Build/badge.svg)](https://github.com/CloudCompare/CCCoreLib/actions)
+
 This library provides data structures and algorithms for working with 3D point cloud data.
 
 It was originally part of the [CloudCompare repository](https://github.com/CloudCompare/CloudCompare) (as "CCLib").

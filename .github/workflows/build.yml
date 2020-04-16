@@ -14,17 +14,17 @@ jobs:
         scalar_double: ["OFF", "ON"]
         config:
           - {
-              name: "Windows Latest MSVC",
+              name: "Windows MSVC",
               os: windows-latest,
               generator: "Visual Studio 16 2019",
            }
           - {
-              name: "macOS Latest Clang",
+              name: "macOS Clang",
               os: macos-latest,
               generator: "Ninja",
             }
           - {
-              name: "Ubuntu Latest GCC",
+              name: "Ubuntu GCC",
               os: ubuntu-latest,
               generator: "Ninja",
             }
