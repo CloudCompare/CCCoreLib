@@ -34,7 +34,7 @@ jobs:
           brew install cgal ninja qt5 tbb
 
           export Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
-          echo ::set-env Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5
+          echo "::set-env name=Qt5_DIR::/usr/local/opt/qt5/lib/cmake/Qt5"
 
           ls -l ${Qt5_DIR}
 
