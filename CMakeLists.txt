@@ -230,8 +230,9 @@ if ( CC-CORE-LIB_USE_QT )
 
 	target_compile_definitions( CCCoreLib
 		PUBLIC
-			QT_USE_QSTRINGBUILDER
 			USE_QT
+        PRIVATE
+            QT_USE_QSTRINGBUILDER
 	)
 endif()
 
