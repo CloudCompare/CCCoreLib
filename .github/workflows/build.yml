@@ -70,8 +70,6 @@ jobs:
         run: >
           mkdir cccorelib-build
 
-          echo ${Qt5_DIR}
-
           cmake
           -B cccorelib-build
           -G "${{ matrix.config.generator }}"
