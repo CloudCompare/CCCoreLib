@@ -20,6 +20,12 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 | CC-CORE-LIB_SHARED | Compile as a shared library | ON |
 | CC-CORE-LIB_SCALAR_DOUBLE | Define _ScalarType_ as double (instead of float) | OFF |
 
+### Qt Option (Qt5_DIR)
+
+If `CC-CORE-LIB_USE_QT` is on (it is by default), then you may need to set `Qt5_DIR` to point to your Qt inatallation directory. This is the directory containing the `bin`, `doc`, `include`, `lib`, [etc.] directories.
+
+From this, cmake will determine `Qt5Concurrent_DIR`, `Qt5Core_DIR`, and `Qt5Widgets_DIR`, so there's no need to set those explicitly.
+
 ## Things We Have Yet To Do
 
 - contribution guidelines (including coding style)
