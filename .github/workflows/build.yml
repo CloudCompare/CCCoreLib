@@ -47,6 +47,13 @@ jobs:
 
           sudo apt-get install -y libcgal-dev libtbb-dev ninja-build qtbase5-dev
 
+      - name: Cache Conda (Windows)
+        if: matrix.config.os == 'windows-latest'
+        uses: actions/cache@v1
+        with:
+          path: C:\Miniconda3\envs\CCCoreLib
+          key: conda-cache-${{ runner.os }}-${{ hashFiles('.ci/conda.yml') }}
+
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
         uses: goanpeca/setup-miniconda@v1
