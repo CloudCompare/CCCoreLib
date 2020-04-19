@@ -60,9 +60,13 @@ jobs:
         run: |
           env
 
-          ls -l ${CONDA_EXE}
-
           ${CONDA_EXE} install -y --file "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
+
+          ls -l ${CONDA_PREFIX}
+
+          echo "## And just the libs:"
+
+          ls -l ${CONDA_PREFIX}/lib
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
