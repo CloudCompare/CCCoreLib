@@ -57,10 +57,12 @@ jobs:
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
         shell: pwsh
-        run: conda install -y -c conda-forge `
-          cgal=5.* `
-          qt=5.12.* `
-          tbb-devel=2020.*
+        run: |
+          conda install -y -c conda-forge `
+            cgal=5.* `
+            qt=5.12.* `
+            tbb-devel=2020.*
+          conda env export
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
