@@ -56,10 +56,11 @@ jobs:
 
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
+        shell: sh
         run: |
           env
 
-          type "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
+          cat "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
         # conda install -y -c conda-forge `
         #   --file /github/workspace/.github/workflows/conda_packages.txt
