@@ -59,10 +59,10 @@ jobs:
         shell: pwsh
         run: |
           pwd
-          ls -l
-          cat /github/workspace/.github/workflows/conda_packages.txt
-          conda install -y -c conda-forge `
-            --file /github/workspace/.github/workflows/conda_packages.txt
+          ls -la
+          # cat /github/workspace/.github/workflows/conda_packages.txt
+          # conda install -y -c conda-forge `
+          #   --file /github/workspace/.github/workflows/conda_packages.txt
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
