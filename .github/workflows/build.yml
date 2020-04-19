@@ -58,6 +58,8 @@ jobs:
         if: matrix.config.os == 'windows-latest'
         shell: pwsh
         run: |
+          pwd
+          ls -l
           cat /github/workspace/.github/workflows/conda_packages.txt
           conda install -y -c conda-forge `
             --file /github/workspace/.github/workflows/conda_packages.txt
