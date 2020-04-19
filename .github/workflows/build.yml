@@ -59,7 +59,7 @@ jobs:
         run: |
           env
 
-          cat "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
+          type "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
         # conda install -y -c conda-forge `
         #   --file /github/workspace/.github/workflows/conda_packages.txt
