@@ -59,10 +59,7 @@ jobs:
         shell: pwsh
         run: |
           conda install -y -c conda-forge `
-            cgal=5.* `
-            qt=5.12.* `
-            tbb-devel=2020.*
-          conda env export
+            --file /github/workspace/.github/conda_packages.txt
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
