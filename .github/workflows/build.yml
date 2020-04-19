@@ -52,16 +52,21 @@ jobs:
         uses: goanpeca/setup-miniconda@v1
         with:
           miniconda-version: 'latest'
-          auto-update-conda: true
+          channels: conda-forge
 
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
         shell: sh
-        run: >
+        run: |
           env
 
-          ${CONDA_EXE} install -y -c conda-forge
-          --file "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
+          ls -l ${CONDA}
+
+          which conda
+
+          ls -l /c/Miniconda3/condabin
+
+          conda install -y --file "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
