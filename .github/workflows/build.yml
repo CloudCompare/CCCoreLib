@@ -56,7 +56,7 @@ jobs:
 
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
-        shell: sh
+        shell: sh -l {0}
         run: |
           env
 
@@ -64,7 +64,7 @@ jobs:
 
           which conda
 
-          ls -l /c/Miniconda3/condabin
+          ls -l ${CONDA}/condabin
 
           conda install -y --file "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
