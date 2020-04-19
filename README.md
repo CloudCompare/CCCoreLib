@@ -22,7 +22,9 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 
 ### Qt Option (Qt5_DIR)
 
-If `CC-CORE-LIB_USE_QT` is on (it is by default), then you may need to set `Qt5_DIR` to point to your Qt inatallation directory. This is the directory containing the `bin`, `doc`, `include`, `lib`, [etc.] directories.
+If `CC-CORE-LIB_USE_QT` is on (it is by default), then you may need to tell CMake where to find the Qt cmake files. The [official docs from Qt](https://doc.qt.io/qt-5/cmake-get-started.html) show two ways to do so:
+- setting `CMAKE_PREFIX_PATH` to point to your Qt installation (where 'bin', 'doc', 'include', lib', etc. live)
+- setting `Qt5_DIR` to point at the cmake directory within your Qt installation (this would be something like `<Qt installation>/cmake/Qt5`)
 
 From this, cmake will determine `Qt5Concurrent_DIR`, `Qt5Core_DIR`, and `Qt5Widgets_DIR`, so there's no need to set those explicitly.
 

@@ -1,0 +1,7 @@
+name: CCCoreLib
+channels:
+  - conda-forge
+dependencies:
+  - cgal=5.*
+  - qt=5.12.*
+  - tbb-devel=2020.*
