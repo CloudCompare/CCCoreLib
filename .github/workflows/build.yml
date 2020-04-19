@@ -55,6 +55,7 @@ jobs:
           auto-activate-base: false
           environment-file: build/conda.yml
           channels: conda-forge
+          miniconda-version: 'latest'
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
