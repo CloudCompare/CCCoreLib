@@ -59,14 +59,10 @@ jobs:
         run: |
           env
 
-          pwd
-
-          ls -la
-
           cat "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
-          # conda install -y -c conda-forge `
-          #   --file /github/workspace/.github/workflows/conda_packages.txt
+        # conda install -y -c conda-forge `
+        #   --file /github/workspace/.github/workflows/conda_packages.txt
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
