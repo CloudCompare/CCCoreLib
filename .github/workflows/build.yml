@@ -58,7 +58,9 @@ jobs:
         if: matrix.config.os == 'windows-latest'
         shell: sh
         run: >
-          conda install -y -c conda-forge
+          env
+
+          ${CONDA_EXE} install -y -c conda-forge
           --file "${GITHUB_WORKSPACE}/.github/workflows/conda_packages.txt"
 
       - name: Configure MSVC console (Windows)
