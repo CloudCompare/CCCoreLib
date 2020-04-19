@@ -49,14 +49,13 @@ jobs:
 
       - name: Conda Cache (Windows)
         if: matrix.config.os == 'windows-latest'
-        id: conda-cache
         uses: actions/cache@v1
         with:
           path: C:\Miniconda3\envs\CCCoreLib
           key: conda-cache-${{ runner.os }}-${{ hashFiles('.ci/conda.yml') }}
 
       - name: Install Dependencies (Windows)
-        if: (matrix.config.os == 'windows-latest') && (steps.conda-cache.outputs.cache-hit != 'true')
+        if: matrix.config.os == 'windows-latest'
         uses: goanpeca/setup-miniconda@v1
         with:
           activate-environment: CCCoreLib
