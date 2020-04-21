@@ -224,7 +224,6 @@ if ( CC-CORE-LIB_USE_QT )
 	target_link_libraries( CCCoreLib
 		PUBLIC
 			Qt5::Concurrent
-			Qt5::Core
 			Qt5::Widgets
 	)
 
