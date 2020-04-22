@@ -67,7 +67,6 @@ jobs:
 
       - name: Set number of cores (Windows)
         if:  matrix.config.os == 'windows-latest'
-        shell: sh -l {0}
         run: |
           # Docs tell us that the VM has 2 cores, so mimic ninja with its +2
           echo "::set-env name=CMAKE_BUILD_PARALLEL_LEVEL::4"
