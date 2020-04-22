@@ -11,18 +11,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scalar_double: ["OFF", "ON"]
+        # scalar_double: ["OFF", "ON"]
+        scalar_double: ["OFF"]
         config:
-          - {
-              name: "macOS Clang",
-              os: macos-latest,
-              generator: "Ninja",
-            }
-          - {
-              name: "Ubuntu GCC",
-              os: ubuntu-latest,
-              generator: "Ninja",
-            }
+          # - {
+          #     name: "macOS Clang",
+          #     os: macos-latest,
+          #     generator: "Ninja",
+          #   }
+          # - {
+          #     name: "Ubuntu GCC",
+          #     os: ubuntu-latest,
+          #     generator: "Ninja",
+          #   }
           - {
               name: "Windows MSVC",
               os: windows-latest,
@@ -71,8 +72,6 @@ jobs:
           # Docs tell us that the VM has 2 cores, so mimic ninja with its +2
           echo "::set-env name=CMAKE_BUILD_PARALLEL_LEVEL::4"
 
-          env
-
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
@@ -81,9 +80,7 @@ jobs:
         run: >
           mkdir cccorelib-build
 
-          echo "Number of cores: ${CMAKE_BUILD_PARALLEL_LEVEL}"
-
-          env
+          echo "Number of cores: ${{ env.CMAKE_BUILD_PARALLEL_LEVEL }}"
 
           cmake
           -B cccorelib-build
