@@ -11,19 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # scalar_double: ["OFF", "ON"]
-        scalar_double: ["OFF"]
+        scalar_double: ["OFF", "ON"]
         config:
-          # - {
-          #     name: "macOS Clang",
-          #     os: macos-latest,
-          #     generator: "Ninja",
-          #   }
-          # - {
-          #     name: "Ubuntu GCC",
-          #     os: ubuntu-latest,
-          #     generator: "Ninja",
-          #   }
+          - {
+              name: "macOS Clang",
+              os: macos-latest,
+              generator: "Ninja",
+            }
+          - {
+              name: "Ubuntu GCC",
+              os: ubuntu-latest,
+              generator: "Ninja",
+            }
           - {
               name: "Windows MSVC",
               os: windows-latest,
@@ -79,8 +78,6 @@ jobs:
         run: >
           mkdir cccorelib-build
 
-          echo "Number of cores: ${{ env.CMAKE_BUILD_PARALLEL_LEVEL }}"
-
           cmake
           -B cccorelib-build
           -G "${{ matrix.config.generator }}"
@@ -92,5 +89,4 @@ jobs:
 
       - name: Build
         run: |
-          env | sort
           cmake --build cccorelib-build --parallel --config Release
