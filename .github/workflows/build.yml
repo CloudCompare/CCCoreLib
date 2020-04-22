@@ -26,7 +26,7 @@ jobs:
           - {
               name: "Windows MSVC",
               os: windows-latest,
-              generator: "Visual Studio 16 2019",
+              generator: "Ninja",
            }
 
     steps:
@@ -63,12 +63,6 @@ jobs:
           environment-file: .ci/conda.yml
           channels: conda-forge
           miniconda-version: 'latest'
-
-      - name: Set number of cores (Windows)
-        if:  matrix.config.os == 'windows-latest'
-        run: |
-          # Docs tell us that the VM has 2 cores, so mimic ninja with its +2
-          echo "::set-env name=CMAKE_BUILD_PARALLEL_LEVEL::4"
 
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
