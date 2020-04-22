@@ -26,7 +26,7 @@ jobs:
           - {
               name: "Windows MSVC",
               os: windows-latest,
-              generator: "Visual Studio 16 2019",
+              generator: "Ninja",
            }
 
     steps:
@@ -64,15 +64,16 @@ jobs:
           channels: conda-forge
           miniconda-version: 'latest'
 
-      - name: Set number of cores (Windows)
-        if:  matrix.config.os == 'windows-latest'
-        run: |
-          # Docs tell us that the VM has 2 cores, so mimic ninja with its +2
-          echo "::set-env name=CMAKE_BUILD_PARALLEL_LEVEL::4"
-
       - name: Configure MSVC console (Windows)
         if:  matrix.config.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set environment for MSVC (Windows)
+        if:  matrix.config.os == 'windows-latest'
+        run: |
+          # Set these env vars so cmake picks the correct compiler
+          echo "::set-env name=CXX::cl.exe"
+          echo "::set-env name=CC::cl.exe"
 
       - name: Configure
         run: >
@@ -89,4 +90,4 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build cccorelib-build --parallel --config Release
+          cmake --build cccorelib-build --config Release
