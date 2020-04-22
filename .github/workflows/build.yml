@@ -71,14 +71,13 @@ jobs:
       - name: Set environment for MSVC (Windows)
         if:  matrix.config.os == 'windows-latest'
         run: |
+          # Set these env vars so cmake picks the correct compiler
           echo "::set-env name=CXX::cl.exe"
           echo "::set-env name=CC::cl.exe"
 
       - name: Configure
         run: >
           mkdir cccorelib-build
-
-          env | sort
 
           cmake
           -B cccorelib-build
@@ -91,4 +90,4 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build cccorelib-build --parallel --config Release
+          cmake --build cccorelib-build --config Release
