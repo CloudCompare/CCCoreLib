@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef STATISTICAL_TESTING_TOOLS_HEADER
-#define STATISTICAL_TESTING_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCToolbox.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	class GenericCloud;
 	class GenericDistribution;
 	class GenericIndexedCloud;
@@ -115,7 +113,4 @@ namespace CCLib
 												void** additionalParameters,
 												NormalizedProgress* nProgress = nullptr);
 	};
-
 }
-
-#endif //STATISTICAL_TESTING_TOOLS_HEADER

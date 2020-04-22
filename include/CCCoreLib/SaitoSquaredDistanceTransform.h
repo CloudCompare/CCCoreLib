@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © CloudCompare Project
 
-#ifndef SAITO_SQUARED_DISTANCE_TRANSFORM_HEADER
-#define SAITO_SQUARED_DISTANCE_TRANSFORM_HEADER
+#pragma once
 
 // Inspired from bil_edt.cxx (VXL) by Ricardo Fabbri (rfabbri), Brown University  (rfabbri@lems.brown.edu)
 
@@ -12,7 +11,6 @@
 
 namespace CCLib
 {
-
 	class GenericProgressCallback;
 	class NormalizedProgress;
 	class GenericIndexedMesh;
@@ -80,7 +78,4 @@ namespace CCLib
 		//! 3D Exact Squared Distance Transform
 		static bool SDT_3D(Grid3D<GridElement>& image, GenericProgressCallback* progressCb = nullptr);
 	};
-
 }
-
-#endif //SIGNED_SAITO_DISTANCE_TRANSFORM_HEADER

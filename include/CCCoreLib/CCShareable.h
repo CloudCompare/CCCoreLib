@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_SHAREABLE_HEADER
-#define CC_SHAREABLE_HEADER
+#pragma once
 
 //Local
 #include "CCCoreLib.h"
@@ -53,5 +52,3 @@ protected:
 	//! Links counter
 	unsigned m_linkCount;
 };
-
-#endif //CC_SHAREABLE_HEADER

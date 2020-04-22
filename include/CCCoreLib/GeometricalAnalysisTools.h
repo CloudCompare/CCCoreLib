@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GEOMETRICAL_ANALYSIS_TOOLS_HEADER
-#define GEOMETRICAL_ANALYSIS_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "DgmOctree.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	class GenericProgressCallback;
 	class GenericCloud;
 	class ScalarField;
@@ -219,7 +217,4 @@ namespace CCLib
 									PointCoordinateType& radius,
 									double minReltaiveCenterShift = 1.0e-3);
 	};
-
-} //namespace CCLib
-
-#endif //GEOMETRICAL_ANALYSIS_TOOLS_HEADER
+}

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef NORMAL_DISTRIBUTION_HEADER
-#define NORMAL_DISTRIBUTION_HEADER
+#pragma once
 
 //Local
 #include "GenericDistribution.h"
 
 namespace CCLib
 {
-
 	//! The Normal/Gaussian statistical distribution
 	/** Implements the GenericDistribution interface.
 	**/
@@ -97,7 +95,4 @@ namespace CCLib
 		//! Structure used during the Chi2 distance computation
 		std::vector<ScalarType> m_Pi;
 	};
-
 }
-
-#endif //NORMAL_DISTRIBUTION_HEADER

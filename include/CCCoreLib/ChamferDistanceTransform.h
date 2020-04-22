@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CHAMFER_DISTANCE_TRANSFORM_HEADER
-#define CHAMFER_DISTANCE_TRANSFORM_HEADER
+#pragma once
 
 //Local
 #include "Grid3D.h"
@@ -50,5 +49,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //CHAMFER_DISTANCE_TRANSFORM_HEADER

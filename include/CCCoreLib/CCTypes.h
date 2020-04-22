@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_TYPES_HEADER
-#define CC_TYPES_HEADER
+#pragma once
 
 //! Type of the coordinates of a (N-D) point
 using PointCoordinateType = float;
@@ -15,5 +14,3 @@ using ScalarType = float;
 #else
 static_assert(false, "type for ScalarType has not been declared");
 #endif //SCALAR_TYPE_DOUBLE
-
-#endif //CC_TYPES_HEADER

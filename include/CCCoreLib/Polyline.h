@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_POLYLINE_HEADER
-#define CC_POLYLINE_HEADER
+#pragma once
 
 //Local
 #include "ReferenceCloud.h"
 
 namespace CCLib
 {
-
 	//! A simple polyline class
 	/** The polyline is considered as a cloud of points
 		(in a specific order) with a open/closed state
@@ -36,7 +34,4 @@ namespace CCLib
 		//! Closing state
 		bool m_isClosed;
 	};
-
 }
-
-#endif //CC_POLYLINE_HEADER

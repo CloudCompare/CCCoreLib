@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef LOCAL_MODEL_HEADER
-#define LOCAL_MODEL_HEADER
+#pragma once
 
 #include "Neighbourhood.h"
 
 namespace CCLib
 {
-
 	//! Local modelization (generic interface)
 	/** Local surface approximation of a point cloud
-**/
+	**/
 	class LocalModel
 	{
 	public:
@@ -60,7 +58,4 @@ namespace CCLib
 		//! Max radius (squared)
 		PointCoordinateType m_squaredRadius;
 	};
-
 }
-
-#endif //LOCAL_MODEL_HEADER

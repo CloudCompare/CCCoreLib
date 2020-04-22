@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef SIMPLE_MESH_HEADER
-#define SIMPLE_MESH_HEADER
+#pragma once
 
 //Local
 #include "BoundingBox.h"
@@ -14,7 +13,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedCloud;
 
 	//! A simple mesh structure, with index-based vertex access
@@ -101,5 +99,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //SIMPLE_MESH_HEADER

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_SCALAR_FIELD_HEADER
-#define CC_SCALAR_FIELD_HEADER
+#pragma once
 
 //Local
 #include "CCConst.h"
@@ -13,7 +12,6 @@
 
 namespace CCLib
 {
-
 	//! A simple scalar field (to be associated to a point cloud)
 	/** A monodimensional array of scalar values. It has also specific
 		parameters for display purposes.
@@ -130,7 +128,4 @@ namespace CCLib
 			m_minVal = m_maxVal = 0;
 		}
 	}
-
 }
-
-#endif //CC_SCALAR_FIELD_HEADER

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef SIMPLE_TRIANGLE_HEADER
-#define SIMPLE_TRIANGLE_HEADER
+#pragma once
 
 //Local
 #include "GenericTriangle.h"
 
 namespace CCLib
 {
-
 	//! A simple triangle class
 	/** Implements the GenericTriangle class with references to 3D points.
 		WARNING: make sure that references don't point to temporary objects!
@@ -88,6 +86,4 @@ namespace CCLib
 		//! C vertex
 		CCVector3 C;
 	};
-
 }
-#endif //SIMPLE_TRIANGLE_HEADER

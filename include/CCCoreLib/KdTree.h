@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef KD_TREE_HEADER
-#define KD_TREE_HEADER
+#pragma once
 
 //Local
 #include "PointProjectionTools.h"
 
 namespace CCLib
 {
-
 	class GenericIndexedCloud;
 	class GenericProgressCallback;
 
@@ -210,7 +208,4 @@ namespace CCLib
 								KdCell* cell,
 								std::vector<unsigned>& localArray);
 	};
-
 }
-
-#endif //KD_TREE_HEADER

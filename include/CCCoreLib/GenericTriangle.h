@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_TRIANGLE_HEADER
-#define GENERIC_TRIANGLE_HEADER
+#pragma once
 
 //Local
 #include "CCGeom.h"
 
 namespace CCLib
 {
-
 	//! A generic triangle interface
 	/** Returns (temporary) references to each vertex.
 	**/
@@ -29,7 +27,4 @@ namespace CCLib
 		//! Returns the third vertex (C)
 		virtual const CCVector3* _getC() const = 0;
 	};
-
 }
-
-#endif //GENERIC_TRIANGLE_HEADER

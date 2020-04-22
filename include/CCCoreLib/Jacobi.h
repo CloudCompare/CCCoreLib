@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © CloudCompare Project
 
-#ifndef JACOBI_EIGEN_HEADER
-#define JACOBI_EIGEN_HEADER
+#pragma once
 
 //Local
 #include "SquareMatrix.h"
@@ -451,5 +450,3 @@ public:
 		return GetEigenVector(eigenVectors, minIndex, minEigenVector);
 	}
 };
-
-#endif //JACOBI_EIGEN_HEADER

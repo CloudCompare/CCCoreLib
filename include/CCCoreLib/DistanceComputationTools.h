@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef DISTANCE_COMPUTATION_TOOLS_HEADER
-#define DISTANCE_COMPUTATION_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCConst.h"
@@ -12,7 +11,6 @@
 
 namespace CCLib
 {
-
 	class GenericTriangle;
 	class GenericIndexedMesh;
 	class GenericCloud;
@@ -531,7 +529,4 @@ namespace CCLib
 																void** additionalParameters,
 																NormalizedProgress* nProgress = nullptr);
 	};
-
 }
-
-#endif //DISTANCE_COMPUTATION_TOOLS_HEADER

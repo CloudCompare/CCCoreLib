@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef MESH_SAMPLING_TOOLS_HEADER
-#define MESH_SAMPLING_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCToolbox.h"
@@ -13,7 +12,6 @@
 
 namespace CCLib
 {
-
 	class GenericProgressCallback;
 	class GenericMesh;
 	class GenericIndexedMesh;
@@ -154,7 +152,4 @@ namespace CCLib
 		//! Creates a map to count the number of triangles using each edge
 		static bool buildMeshEdgeUsageMap(GenericIndexedMesh* mesh, EdgeUsageMap& edgeMap);
 	};
-
 }
-
-#endif //MESH_SAMPLING_TOOLS_HEADER

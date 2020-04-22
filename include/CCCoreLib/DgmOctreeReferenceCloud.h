@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef DGM_OCTREE_REFERENCE_CLOUD_HEADER
-#define DGM_OCTREE_REFERENCE_CLOUD_HEADER
+#pragma once
 
 //Local
 #include "DgmOctree.h"
@@ -11,7 +10,6 @@
 
 namespace CCLib
 {
-
 	//! A kind of ReferenceCloud based on the DgmOctree::NeighboursSet structure
 	class CC_CORE_LIB_API DgmOctreeReferenceCloud : public GenericIndexedCloudPersist
 	{
@@ -64,7 +62,4 @@ namespace CCLib
 		//! Number of points
 		unsigned m_size;
 	};
-
 }
-
-#endif //DGM_OCTREE_REFERENCE_CLOUD_HEADER

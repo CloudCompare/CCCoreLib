@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright © CloudCompare Project
 
-#ifndef RAY_AND_BOX_HEADER
-#define RAY_AND_BOX_HEADER
+#pragma once
 
 #include "CCGeom.h"
 
@@ -100,5 +99,3 @@ template <typename T > struct AABB
 
 	Vector3Tpl<T> corners[2];
 };
-
-#endif //RAY_AND_BOX_HEADER

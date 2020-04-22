@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CLOUD_SAMPLING_TOOLS_HEADER
-#define CLOUD_SAMPLING_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCToolbox.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;
 	class GenericIndexedMesh;
@@ -240,7 +238,4 @@ namespace CCLib
 											void** additionalParameters,
 											NormalizedProgress* nProgress = nullptr);
 	};
-
 }
-
-#endif //CLOUD_SAMPLING_TOOLS_HEADER

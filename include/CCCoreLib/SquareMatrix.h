@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef SQUARE_MATRIX_HEADER
-#define SQUARE_MATRIX_HEADER
+#pragma once
 
 //local
 #include "CCGeom.h"
@@ -717,7 +716,4 @@ namespace CCLib
 
 	//! Double square matrix type
 	using SquareMatrixd = SquareMatrixTpl<double>;
-
-} //namespace CCLib
-
-#endif //SQUARE_MATRIX_HEADER
+}

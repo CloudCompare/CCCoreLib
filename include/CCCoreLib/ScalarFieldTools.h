@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef SCALAR_FIELD_TOOLS_HEADER
-#define SCALAR_FIELD_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCToolbox.h"
@@ -11,7 +10,6 @@
 
 namespace CCLib
 {
-
 	class GenericCloud;
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;
@@ -196,5 +194,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //SCALAR_FIELD_TOOLS_HEADER

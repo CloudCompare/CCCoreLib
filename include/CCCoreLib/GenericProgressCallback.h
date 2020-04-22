@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_PROGRESS_CALLBACK_HEADER
-#define GENERIC_PROGRESS_CALLBACK_HEADER
+#pragma once
 
 //Local
 #include "CCConst.h"
@@ -12,7 +11,6 @@ class AtomicCounter;
 
 namespace CCLib
 {
-
 	//! A generic progress indicator interface to notify algorithms progress to the client application
 	class CC_CORE_LIB_API GenericProgressCallback
 	{
@@ -114,7 +112,4 @@ namespace CCLib
 		//! associated GenericProgressCallback
 		GenericProgressCallback* progressCallback;
 	};
-
 }
-
-#endif //GENERIC_PROGRESS_CALLBACK_HEADER

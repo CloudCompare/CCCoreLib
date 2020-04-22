@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_CLOUD_HEADER
-#define GENERIC_CLOUD_HEADER
+#pragma once
 
 #include <functional>
 
@@ -12,7 +11,6 @@
 
 namespace CCLib
 {
-
 	//! A generic 3D point cloud interface for data communication between library and client applications
 	class CC_CORE_LIB_API GenericCloud
 	{
@@ -96,5 +94,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //GENERIC_CLOUD_HEADER

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_GEOM_HEADER
-#define CC_GEOM_HEADER
+#pragma once
 
 //Local
 #include "CCCoreLib.h"
@@ -354,5 +353,3 @@ using CCVector3 = Vector3Tpl<PointCoordinateType>;
 using CCVector3f = Vector3Tpl<float>;
 //! Double 3D Vector
 using CCVector3d = Vector3Tpl<double>;
-
-#endif //CC_GEOM_HEADER

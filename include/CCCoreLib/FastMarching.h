@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef FAST_MARCHING_HEADER
-#define FAST_MARCHING_HEADER
+#pragma once
 
 //Local
 #include "CCConst.h"
@@ -17,7 +16,6 @@
 
 namespace CCLib
 {
-
 	class DgmOctree;
 
 	// Maximum number of neighbors
@@ -273,7 +271,4 @@ namespace CCLib
 		float m_neighboursDistance[CC_FM_MAX_NUMBER_OF_NEIGHBOURS];
 
 	};
-
 }
-
-#endif //FAST_MARCHING_HEADER

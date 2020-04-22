@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef MANUAL_SEGMENTATION_TOOLS_HEADER
-#define MANUAL_SEGMENTATION_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "Neighbourhood.h"
 
 namespace CCLib
 {
-
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;
 	class GenericIndexedMesh;
@@ -133,7 +131,4 @@ namespace CCLib
 										 MeshCutterParams& ioParams,
 										 GenericProgressCallback* progressCb = nullptr);
 	};
-
 }
-
-#endif //MANUAL_SEGMENTATION_TOOLS_HEADER

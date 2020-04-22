@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_INDEXED_CLOUD_HEADER
-#define GENERIC_INDEXED_CLOUD_HEADER
+#pragma once
 
 //Local
 #include "GenericCloud.h"
 
 namespace CCLib
 {
-
 	//! A generic 3D point cloud with index-based point access
 	/** Implements the GenericCloud interface.
 	**/
@@ -42,7 +40,4 @@ namespace CCLib
 		**/
 		virtual void getPoint(unsigned index, CCVector3& P) const = 0;
 	};
-
 }
-
-#endif //GENERIC_INDEXED_CLOUD_HEADER

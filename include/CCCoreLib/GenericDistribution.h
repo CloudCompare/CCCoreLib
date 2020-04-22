@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_DISTRIBUTION_HEADER
-#define GENERIC_DISTRIBUTION_HEADER
+#pragma once
 
 //Local
 #include "CCCoreLib.h"
@@ -13,7 +12,6 @@
 
 namespace CCLib
 {
-
 	class GenericCloud;
 
 	//! A generic class to handle a probability distribution
@@ -95,5 +93,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //GENERIC_DISTRIBUTION_HEADER

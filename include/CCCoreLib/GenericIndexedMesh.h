@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_INDEXED_MESH_HEADER
-#define GENERIC_INDEXED_MESH_HEADER
+#pragma once
 
 //Local
 #include "GenericMesh.h"
 
 namespace CCLib
 {
-
 	//! Triangle described by the indexes of its 3 vertices
 	struct VerticesIndexes
 	{
@@ -74,7 +72,4 @@ namespace CCLib
 		**/
 		virtual VerticesIndexes* getNextTriangleVertIndexes() = 0;
 	};
-
 }
-
-#endif //GENERIC_INDEXED_MESH_HEADER
