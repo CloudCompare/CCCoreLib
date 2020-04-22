@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_MESH_HEADER
-#define GENERIC_MESH_HEADER
+#pragma once
 
 #include <functional>
 
@@ -11,7 +10,6 @@
 
 namespace CCLib
 {
-
 	class GenericTriangle;
 
 	//! A generic mesh interface for data communication between library and client applications
@@ -58,7 +56,4 @@ namespace CCLib
 		**/
 		virtual GenericTriangle* _getNextTriangle() = 0; //temporary
 	};
-
 }
-
-#endif //GENERIC_MESH_HEADER

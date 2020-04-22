@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_PLATFORM_HEADER
-#define CC_PLATFORM_HEADER
+#pragma once
 
 //Defines the following macros (depending on the compilation platform/settings)
 //	- CC_WINDOWS / CC_MAC_OS / CC_LINUX
@@ -26,5 +25,3 @@
 	#define CC_ENV_32
 #endif
 #endif
-
-#endif //CC_PLATFORM_HEADER

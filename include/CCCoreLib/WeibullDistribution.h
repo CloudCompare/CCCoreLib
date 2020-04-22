@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef WEIBULL_DISTRIBUTION_HEADER
-#define WEIBULL_DISTRIBUTION_HEADER
+#pragma once
 
 //Local
 #include "GenericDistribution.h"
 
 namespace CCLib
 {
-
 	//! The Weibull statistical parametric distribution
 	/** Implements the GenericDistribution interface.
 	**/
@@ -108,7 +106,4 @@ namespace CCLib
 		//! internal function for parameters evaluation from sample points
 		static double FindGRoot(const ScalarContainer& values, ScalarType valueShift, double valueRange);
 	};
-
 }
-
-#endif //WEIBULL_DISTRIBUTION_HEADER

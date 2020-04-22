@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef ERROR_FUNCTION_HEADER
-#define ERROR_FUNCTION_HEADER
+#pragma once
 
 //Local
 #include "CCCoreLib.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	//! Relative error for Error Function computation
 	/** You can adjust it to trade off between accuracy and speed
 		but don't ask for more than 15 figures (assuming usual 52 bit mantissa
@@ -47,7 +45,4 @@ namespace CCLib
 		**/
 		static double erf(double x);
 	};
-
 }
-
-#endif //ERROR_FUNCTION_HEADER

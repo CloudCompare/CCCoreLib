@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef POINT_PROJECTION_TOOLS_HEADER
-#define POINT_PROJECTION_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCConst.h"
@@ -20,7 +19,6 @@ enum CC_TRIANGULATION_TYPES {	DELAUNAY_2D_AXIS_ALIGNED  = 1,		/**< Delaunay 2D t
 
 namespace CCLib
 {
-
 	class GenericIndexedMesh;
 	class GenericProgressCallback;
 
@@ -173,7 +171,4 @@ namespace CCLib
 		//! Returns true if the AB and CD segments intersect each other
 		static bool segmentIntersect(const CCVector2& A, const CCVector2& B, const CCVector2& C, const CCVector2& D);
 	};
-
 }
-
-#endif //POINT_PROJECTION_TOOLS_HEADER

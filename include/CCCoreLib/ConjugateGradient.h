@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CONJUGATE_GRADIENT_HEADER
-#define CONJUGATE_GRADIENT_HEADER
+#pragma once
 
 //Local
 #include "MathTools.h"
@@ -11,7 +10,6 @@
 
 namespace CCLib
 {
-
 	//! A class to perform a conjugate gradient optimization
 	/**	Inspired from the "Numerical Recipes".
 		Template parameter 'N' is the dimension of the linear system.
@@ -122,7 +120,4 @@ namespace CCLib
 		**/
 		CCLib::SquareMatrixTpl<Scalar> cg_A;
 	};
-
 }
-
-#endif //CONJUGATE_GRADIENT_HEADER

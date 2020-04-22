@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GRID_3D_HEADER
-#define GRID_3D_HEADER
+#pragma once
 
 //Local
 #include "CCMiscTools.h"
@@ -18,7 +17,6 @@
 
 namespace CCLib
 {
-
 	//! Simple 3D grid structure
 	/** The grid data is contiguous in memory.
 	**/
@@ -470,7 +468,4 @@ namespace CCLib
 		//! First index of real data (i.e. after marin)
 		unsigned m_marginShift;
 	};
-
 }
-
-#endif //GRID_3D_HEADER

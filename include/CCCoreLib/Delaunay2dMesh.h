@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef DELAUNAY2D_MESH_HEADER
-#define DELAUNAY2D_MESH_HEADER
+#pragma once
 
 //Local
 #include "GenericIndexedMesh.h"
@@ -13,7 +12,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;
 	class Polyline;
@@ -135,7 +133,4 @@ namespace CCLib
 		//! Dump triangle index structure to transmit temporary data
 		VerticesIndexes m_dumpTriangleIndexes;
 	};
-
 }
-
-#endif //DELAUNAY2D_MESH_HEADER

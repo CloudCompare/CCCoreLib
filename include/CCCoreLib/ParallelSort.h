@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © CloudCompare Project
 
-#ifndef PARALLEL_SORT_HEADER
-#define PARALLEL_SORT_HEADER
+#pragma once
 
 #ifdef ParallelSort
 #undef ParallelSort
@@ -27,7 +26,5 @@
    #include <algorithm>
 
    #define ParallelSort std::sort
-
-#endif
 
 #endif

@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef GENERIC_INDEXED_PERSIST_CLOUD_HEADER
-#define GENERIC_INDEXED_PERSIST_CLOUD_HEADER
+#pragma once
 
 //Local
 #include "GenericIndexedCloud.h"
 
 namespace CCLib
 {
-
 	//! A generic 3D point cloud with index-based and presistent access to points
 	/** Implements the GenericIndexedCloud interface.
-**/
+	**/
 	class CC_CORE_LIB_API GenericIndexedCloudPersist : virtual public GenericIndexedCloud
 	{
 	public:
@@ -39,7 +37,4 @@ namespace CCLib
 		**/
 		virtual const CCVector3* getPointPersistentPtr(unsigned index) const = 0;
 	};
-
 }
-
-#endif //GENERIC_INDEXED_PERSIST_CLOUD_HEADER

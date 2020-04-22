@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef REFERENCE_CLOUD_HEADER
-#define REFERENCE_CLOUD_HEADER
+#pragma once
 
 //Local
 #include "GenericIndexedCloudPersist.h"
@@ -16,7 +15,6 @@
 
 namespace CCLib
 {
-
 	//! A very simple point cloud (no point duplication)
 	/** Implements the GenericIndexedCloudPersist interface. A simple point cloud
 		that stores references to Generic3dPoint instances in a vector.
@@ -185,5 +183,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //REFERENCE_CLOUD_HEADER

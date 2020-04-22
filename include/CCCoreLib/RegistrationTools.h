@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef REGISTRATION_TOOLS_HEADER
-#define REGISTRATION_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "PointProjectionTools.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	class GenericProgressCallback;
 	class GenericCloud;
 	class GenericIndexedMesh;
@@ -336,7 +334,4 @@ namespace CCLib
 										unsigned nbMaxCandidates,
 										std::vector<ScaledTransformation>& transforms);
 	};
-
 }
-
-#endif //REGISTRATION_TOOLS_HEADER

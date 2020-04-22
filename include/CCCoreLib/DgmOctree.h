@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef DGM_OCTREE_HEADER
-#define DGM_OCTREE_HEADER
+#pragma once
 
 //Local
 #include "GenericOctree.h"
@@ -23,7 +22,6 @@
 
 namespace CCLib
 {
-
 	class ReferenceCloud;
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
@@ -1255,5 +1253,3 @@ namespace CCLib
 	};
 
 }
-
-#endif //DGM_OCTREE_HEADER

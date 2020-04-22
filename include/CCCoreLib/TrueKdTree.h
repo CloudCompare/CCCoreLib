@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef TRUE_KD_TREE_HEADER
-#define TRUE_KD_TREE_HEADER
+#pragma once
 
 //Local
 #include "DistanceComputationTools.h"
@@ -13,7 +12,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
 
@@ -173,7 +171,4 @@ namespace CCLib
 		**/
 		unsigned m_maxPointCountPerCell;
 	};
-
-} //namespace CCLib
-
-#endif //TRUE_KD_TREE_HEADER
+}

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_NEIGHBOURHOOD_HEADER
-#define CC_NEIGHBOURHOOD_HEADER
+#pragma once
 
 //Local
 #include "CCMiscTools.h"
@@ -12,7 +11,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedMesh;
 
 	//! A specific point could structure to handle subsets of points, provided with several geometric processings
@@ -316,7 +314,4 @@ namespace CCLib
 		//! Associated cloud
 		GenericIndexedCloudPersist* m_associatedCloud;
 	};
-
 }
-
-#endif //CC_NEIGHBOURHOOD_HEADER

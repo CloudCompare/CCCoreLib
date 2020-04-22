@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_GARBAGE_HEADER
-#define CC_GARBAGE_HEADER
+#pragma once
 
 //local
 #include "ScalarField.h"
@@ -105,5 +104,3 @@ public:
 	//! Items to delete
 	std::unordered_set<CCLib::ScalarField*> m_items;
 };
-
-#endif //CC_GARBAGE_HEADER

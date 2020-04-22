@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_BOUNDING_BOX_HEADER
-#define CC_BOUNDING_BOX_HEADER
+#pragma once
 
 //Local
 #include "SquareMatrix.h"
@@ -95,7 +94,4 @@ namespace CCLib
 		//! Validity
 		bool m_valid;
 	};
-
-} //namespace
-
-#endif //CC_BOUNDING_BOX_HEADER
+}

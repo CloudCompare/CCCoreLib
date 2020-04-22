@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_LIB_POINT_CLOUD_TPL_HEADER
-#define CC_LIB_POINT_CLOUD_TPL_HEADER
+#pragma once
 
 //Local
 #include "BoundingBox.h"
@@ -14,7 +13,6 @@
 
 namespace CCLib
 {
-
 	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar fields
 	template<class T, typename StringType = const char*> class PointCloudTpl : public T
 	{
@@ -509,7 +507,4 @@ namespace CCLib
 		//! Index of current scalar field used for output
 		int m_currentOutScalarFieldIndex;
 	};
-
 }
-
-#endif //CC_LIB_POINT_CLOUD_TPL_HEADER

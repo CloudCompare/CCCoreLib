@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_CONST_HEADER
-#define CC_CONST_HEADER
+#pragma once
 
 #include "CCTypes.h"
 
@@ -71,5 +70,3 @@ constexpr unsigned CC_LOCAL_MODEL_MIN_SIZE[] = {	1,				/**< for single point mod
 													3,				/**< for Delaunay triangulation (2.5D) **/
 													6,				/**< for Quadratic 'height' function **/
 											   };
-
-#endif //CC_CONST_HEADER

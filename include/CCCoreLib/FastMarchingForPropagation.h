@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef FAST_MARCHING_PROP_HEADER
-#define FAST_MARCHING_PROP_HEADER
+#pragma once
 
 //local
 #include "DgmOctree.h"
@@ -10,7 +9,6 @@
 
 namespace CCLib
 {
-
 	class ReferenceCloud;
 	class GenericCloud;
 
@@ -113,7 +111,4 @@ namespace CCLib
 		//! Threshold for propagation stop
 		float m_detectionThreshold;
 	};
-
 }
-
-#endif //FAST_MARCHING_PROP_HEADER

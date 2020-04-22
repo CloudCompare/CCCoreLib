@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_LIB_POINT_CLOUD_HEADER
-#define CC_LIB_POINT_CLOUD_HEADER
+#pragma once
 
 //Local
 #include "GenericIndexedCloudPersist.h"
@@ -21,5 +20,3 @@ namespace CCLib
 		~PointCloud() override = default;
 	};
 }
-
-#endif //CC_LIB_POINT_CLOUD_HEADER

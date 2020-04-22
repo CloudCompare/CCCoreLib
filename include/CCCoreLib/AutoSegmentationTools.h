@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef AUTO_SEGMENTATION_TOOLS_HEADER
-#define AUTO_SEGMENTATION_TOOLS_HEADER
+#pragma once
 
 #include <vector>
 
@@ -12,7 +11,6 @@
 
 namespace CCLib
 {
-
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
 	class DgmOctree;
@@ -97,9 +95,5 @@ namespace CCLib
 														CCLib::DgmOctree* inputOctree = nullptr,
 														bool applyGaussianFilter = false,
 														float alpha = 2.0f);
-
 	};
-
 }
-
-#endif //AUTO_SEGMENTATION_TOOLS_HEADER

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
-#ifndef CC_MISC_TOOLS_HEADER
-#define CC_MISC_TOOLS_HEADER
+#pragma once
 
 //Local
 #include "CCGeom.h"
@@ -73,7 +72,4 @@ namespace CCLib
 								   const CCVector3d& boxhalfsize,
 								   const CCVector3d triverts[3]);
 	};
-
 }
-
-#endif //CC_MISC_TOOLS_HEADER
