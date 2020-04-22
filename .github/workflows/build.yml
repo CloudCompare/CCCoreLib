@@ -92,4 +92,6 @@ jobs:
           .
 
       - name: Build
-        run: cmake --build cccorelib-build --parallel --config Release
+        run: |
+          env | sort
+          cmake --build cccorelib-build --parallel --config Release
