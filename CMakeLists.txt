@@ -13,29 +13,29 @@ project( CCCoreLib
 )
 
 # Options
-option( CC-CORE-LIB_USE_CGAL
+option( CCCORELIB_USE_CGAL
 	"Compile CCCoreLib with CGAL (to enable Delaunay 2.5D triangulation with a GPL-compliant licence)"
 	OFF
 )
-option( CC-CORE-LIB_USE_TBB
+option( CCCORELIB_USE_TBB
 	"Compile CCCoreLib with Intel Threading Building Blocks lib (enables some parallel processing )"
 	OFF
 )
-option( CC-CORE-LIB_USE_QT
+option( CCCORELIB_USE_QT
 	"Compile CCCoreLib with Qt (to enable parallel processing)"
 	ON
 )
-option( CC-CORE-LIB_SHARED
+option( CCCORELIB_SHARED
 	"Compile CCCoreLib as a shared library"
 	ON
 )
-option( CC-CORE-LIB_SCALAR_DOUBLE
+option( CCCORELIB_SCALAR_DOUBLE
 	"Define ScalarType as double (instead of float)"
 	OFF
 )
 
 # Add the library (shared or static)
-if ( CC-CORE-LIB_SHARED )
+if ( CCCORELIB_SHARED )
 	add_library( CCCoreLib SHARED )
 
 	set_target_properties( CCCoreLib
@@ -79,7 +79,7 @@ install(
 		include/CCCoreLib
 )
 
-target_include_directories( CCCoreLib 
+target_include_directories( CCCoreLib
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
 		$<INSTALL_INTERFACE:include/CCCoreLib>
@@ -117,7 +117,7 @@ target_compile_definitions( CCCoreLib
 		"$<$<CONFIG:DEBUG>:CC_DEBUG>"
 )
 
-if ( CC-CORE-LIB_SCALAR_DOUBLE )
+if ( CCCORELIB_SCALAR_DOUBLE )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
 			SCALAR_TYPE_DOUBLE
@@ -132,12 +132,12 @@ endif()
 # Windows-specific flags
 if ( WIN32 )
 	# VLD for mem leak checking
-	option( CC-CORE-LIB_USE_VISUAL_LEAK_DETECTOR
+	option( CCCORELIB_USE_VISUAL_LEAK_DETECTOR
 		"Check to activate compilation (in debug) with Visual Leak Detector"
 		OFF
 	)
 
-	if ( CC-CORE-LIB_USE_VISUAL_LEAK_DETECTOR )
+	if ( CCCORELIB_USE_VISUAL_LEAK_DETECTOR )
 		target_compile_definitions( CCCoreLib
 			PRIVATE
 				USE_VLD
@@ -161,7 +161,7 @@ endif()
 
 # TBB (optional)
 # Must come before CGAL so it can use TBB properly
-if ( CC-CORE-LIB_USE_TBB )
+if ( CCCORELIB_USE_TBB )
 	find_package( TBB COMPONENTS tbb )
 
 	if ( TBB_FOUND )
@@ -169,7 +169,7 @@ if ( CC-CORE-LIB_USE_TBB )
 			PUBLIC
 				${TBB_IMPORTED_TARGETS}
 		)
-	
+
 		target_compile_definitions( CCCoreLib
 			PUBLIC
 				USE_TBB
@@ -178,14 +178,14 @@ if ( CC-CORE-LIB_USE_TBB )
 endif()
 
 # CGAL (optional)
-if ( CC-CORE-LIB_USE_CGAL )
+if ( CCCORELIB_USE_CGAL )
 	find_package( CGAL REQUIRED )
 
-	if ( CC-CORE-LIB_USE_TBB )
+	if ( CCCORELIB_USE_TBB )
 		if ( TBB_FOUND )
 			# Once Linux libcgal-dev >= 5.0, target_compile_definitions replaced by:
 			#  CGAL_target_use_TBB( CCCoreLib )
-	
+
 			target_compile_definitions( CCCoreLib
 				PRIVATE
 					CGAL_LINKED_WITH_TBB
@@ -195,7 +195,7 @@ if ( CC-CORE-LIB_USE_CGAL )
 			message( WARNING "CGAL cannot compile with TBB (TBB not found)" )
 		endif()
 	endif()
-	
+
 	target_link_libraries( CCCoreLib
 		PUBLIC
 			CGAL::CGAL
@@ -208,7 +208,7 @@ if ( CC-CORE-LIB_USE_CGAL )
 endif()
 
 # QT (optional)
-if ( CC-CORE-LIB_USE_QT )
+if ( CCCORELIB_USE_QT )
 	find_package( Qt5
 		COMPONENTS
 			Concurrent

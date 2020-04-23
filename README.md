@@ -14,15 +14,15 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 
 | Option        | Description | Default  |
 | ------------- |-------------| ---------|
-| CC-CORE-LIB_USE_CGAL | Use CGAL to enable Delaunay 2.5D triangulation with a GPL compliant licence | OFF |
-| CC-CORE-LIB_USE_TBB | Use Intel Threading Building Blocks lib to enable some parallel processing | OFF |
-| CC-CORE-LIB_USE_QT | Use Qt to enable parallel processing using QtConcurrent | ON |
-| CC-CORE-LIB_SHARED | Compile as a shared library | ON |
-| CC-CORE-LIB_SCALAR_DOUBLE | Define _ScalarType_ as double (instead of float) | OFF |
+| CCCORELIB_USE_CGAL | Use CGAL to enable Delaunay 2.5D triangulation with a GPL compliant licence | OFF |
+| CCCORELIB_USE_TBB | Use Intel Threading Building Blocks lib to enable some parallel processing | OFF |
+| CCCORELIB_USE_QT | Use Qt to enable parallel processing using QtConcurrent | ON |
+| CCCORELIB_SHARED | Compile as a shared library | ON |
+| CCCORELIB_SCALAR_DOUBLE | Define _ScalarType_ as double (instead of float) | OFF |
 
 ### Qt Option (Qt5_DIR)
 
-If `CC-CORE-LIB_USE_QT` is on (it is by default), then you may need to tell CMake where to find the Qt cmake files. The [official docs from Qt](https://doc.qt.io/qt-5/cmake-get-started.html) show two ways to do so:
+If `CCCORELIB_USE_QT` is on (it is by default), then you may need to tell CMake where to find the Qt cmake files. The [official docs from Qt](https://doc.qt.io/qt-5/cmake-get-started.html) show two ways to do so:
 - setting `CMAKE_PREFIX_PATH` to point to your Qt installation (where 'bin', 'doc', 'include', lib', etc. live)
 - setting `Qt5_DIR` to point at the cmake directory within your Qt installation (this would be something like `<Qt installation>/cmake/Qt5`)
 
