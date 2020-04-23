@@ -4,37 +4,13 @@
 #include "GenericProgressCallback.h"
 
 //system
+#include <atomic>
 #include <cassert>
 
-#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-
-//we use Qt for the atomic counter
-#include <QAtomicInt>
-
-class AtomicCounter : public QAtomicInt
-{
-};
-
-#else
-
-//we use a fake QAtomicInt
-
-//! Fake QAtomicInt
-/** \warning Not thread safe!
-**/
-class AtomicCounter
-{
-public:
-	AtomicCounter() : m_value(0) {}
-	inline int load() { return m_value; }
-	inline void store(int value) { m_value = value; }
-	inline int fetchAndAddRelaxed(int add) { int original = m_value; m_value += add; return original; }
-	int m_value;
-};
-
-#endif
-
 using namespace CCCoreLib;
+
+// Use a class "wrapper" to avoid having to include <atomic> in header
+class CCCoreLib::AtomicCounter : public std::atomic_uint {};
 
 NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 										unsigned totalSteps,
@@ -42,7 +18,7 @@ NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 	: m_percent(0)
 	, m_step(1)
 	, m_percentAdd(1.0f)
-	, m_counter(new AtomicCounter)
+	, m_counter( new AtomicCounter{} )
 	, progressCallback(callback)
 {
 	scale(totalSteps, totalPercentage);
@@ -50,10 +26,7 @@ NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 
 NormalizedProgress::~NormalizedProgress()
 {
-	if (m_counter)
-	{
-		delete m_counter;
-	}
+	delete m_counter;
 }
 
 void NormalizedProgress::scale(	unsigned totalSteps,
@@ -109,7 +82,7 @@ bool NormalizedProgress::oneStep()
 		return true;
 	}
 
-	unsigned currentCount = static_cast<unsigned>(m_counter->fetchAndAddRelaxed(1)) + 1;
+	unsigned currentCount = m_counter->fetch_add( 1 ) + 1;
 	if ((currentCount % m_step) == 0)
 	{
 		m_percent += m_percentAdd;
@@ -126,7 +99,7 @@ bool NormalizedProgress::steps(unsigned n)
 		return true;
 	}
 
-	unsigned currentCount = static_cast<unsigned>(m_counter->fetchAndAddRelaxed(n)) + n;
+	unsigned currentCount = m_counter->fetch_add( n ) + n;
 	unsigned d1 = currentCount / m_step;
 	unsigned d2 = (currentCount + n) / m_step;
 
