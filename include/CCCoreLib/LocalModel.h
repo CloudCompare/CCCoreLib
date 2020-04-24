@@ -20,7 +20,7 @@ namespace CCLib
 			\param center model "center"
 			\param squaredRadius model max radius (squared)
 		**/
-		static LocalModel* New(	CC_LOCAL_MODEL_TYPES type,
+		static LocalModel* New(	LOCAL_MODEL_TYPES type,
 								Neighbourhood& subset,
 								const CCVector3 &center,
 								PointCoordinateType squaredRadius);
@@ -29,7 +29,7 @@ namespace CCLib
 		virtual ~LocalModel() = default;
 
 		//! Returns the model type
-		virtual CC_LOCAL_MODEL_TYPES getType() const = 0;
+		virtual LOCAL_MODEL_TYPES getType() const = 0;
 
 		//! Returns the model center
 		inline const CCVector3& getCenter() const { return m_modelCenter; }
@@ -40,7 +40,7 @@ namespace CCLib
 		//! Compute the (unsigned) distance between a 3D point and this model
 		/** \param[in] P the query point
 			\param[out] nearestPoint returns the nearest point (optional)
-			\return the (unsigned) distance (or NAN_VALUE if the computation failed)
+			\return the (unsigned) distance (or CCLib::NAN_VALUE if the computation failed)
 		**/
 		virtual ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const = 0;
 

@@ -146,7 +146,7 @@ const signed char BackwardNeighbours111[14*4] = {
 //	return maxDist;
 //}
 
-int ChamferDistanceTransform::propagateDistance(CC_CHAMFER_DISTANCE_TYPE type, GenericProgressCallback* progressCb)
+int ChamferDistanceTransform::propagateDistance(CHAMFER_DISTANCE_TYPE type, GenericProgressCallback* progressCb)
 {
 	if (m_grid.empty())
 	{

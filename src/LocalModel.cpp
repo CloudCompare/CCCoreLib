@@ -25,7 +25,7 @@ public:
 	}
 
 	//inherited from LocalModel
-	CC_LOCAL_MODEL_TYPES getType() const override { return LS; }
+	LOCAL_MODEL_TYPES getType() const override { return LS; }
 
 	//inherited from LocalModel
 	ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const override
@@ -63,7 +63,7 @@ public:
 	~DelaunayLocalModel() override {  delete m_tri; }
 
 	//inherited from LocalModel
-	CC_LOCAL_MODEL_TYPES getType() const override { return TRI; }
+	LOCAL_MODEL_TYPES getType() const override { return TRI; }
 
 	//inherited from LocalModel
 	ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const override
@@ -125,7 +125,7 @@ public:
 	}
 
 	//inherited from LocalModel
-	CC_LOCAL_MODEL_TYPES getType() const override { return QUADRIC; }
+	LOCAL_MODEL_TYPES getType() const override { return QUADRIC; }
 
 	//inherited from LocalModel
 	ScalarType computeDistanceFromModelToPoint(const CCVector3* _P, CCVector3* nearestPoint = nullptr) const override
@@ -165,7 +165,7 @@ LocalModel::LocalModel(const CCVector3 &center, PointCoordinateType squaredRadiu
 	, m_squaredRadius(squaredRadius)
 {}
 
-LocalModel* LocalModel::New(CC_LOCAL_MODEL_TYPES type,
+LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 							Neighbourhood& subset,
 							const CCVector3 &center,
 							PointCoordinateType squaredRadius)

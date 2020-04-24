@@ -52,7 +52,7 @@ namespace CCLib
 			//! Type of local 3D modeling to use
 			/** Default: NO_MODEL. Otherwise see CC_LOCAL_MODEL_TYPES.
 			**/
-			CC_LOCAL_MODEL_TYPES localModel;
+			LOCAL_MODEL_TYPES localModel;
 
 			//! Whether to use a fixed number of neighbors or a (sphere) radius for nearest neighbours search
 			/** For local models only (i.e. ignored if localModel = NO_MODEL).
