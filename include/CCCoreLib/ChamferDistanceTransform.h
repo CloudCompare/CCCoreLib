@@ -45,7 +45,7 @@ namespace CCLib
 				progress through this callback mechanism (see GenericProgressCallback)
 			\return max distance (or -1 if an error occurred)
 		**/
-		int propagateDistance(CC_CHAMFER_DISTANCE_TYPE type, GenericProgressCallback* progressCb = nullptr);
+		int propagateDistance(CHAMFER_DISTANCE_TYPE type, GenericProgressCallback* progressCb = nullptr);
 	};
 
 }
