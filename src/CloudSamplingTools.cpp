@@ -794,7 +794,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 					for (unsigned j = 0; j < realNeighborCount; ++j)
 					{
 						const CCVector3* P = neighboursCloud.getPoint(j);
-						double d = CCLib::DistanceComputationTools::computePoint2PlaneDistance(P, lsPlane);
+						double d = DistanceComputationTools::computePoint2PlaneDistance(P, lsPlane);
 						sum_d += d;
 						sum_d2 += d*d;
 					}
@@ -804,7 +804,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 				}
 
 				//distance from the query point to the plane
-				double d = std::abs(CCLib::DistanceComputationTools::computePoint2PlaneDistance(&nNSS.queryPoint, lsPlane));
+				double d = std::abs(DistanceComputationTools::computePoint2PlaneDistance(&nNSS.queryPoint, lsPlane));
 
 				if (d <= maxD)
 				{

@@ -235,7 +235,7 @@ bool Delaunay2dMesh::removeOuterTriangles(	const std::vector<CCVector2>& vertice
 			CCVector2 G = (A + B + C) / 3.0;
 
 			//if G is inside the 'polygon'
-			bool isInside = CCLib::ManualSegmentationTools::isPointInsidePoly(G, polygon2D);
+			bool isInside = ManualSegmentationTools::isPointInsidePoly(G, polygon2D);
 			if ((removeOutside && isInside) || (!removeOutside && !isInside))
 			{
 				//we keep the corresponding triangle
@@ -317,7 +317,7 @@ void Delaunay2dMesh::forEach(genericTriangleAction action)
 	if (!m_associatedCloud)
 		return;
 
-	CCLib::SimpleTriangle tri;
+	SimpleTriangle tri;
 
 	const int* _triIndexes = m_triIndexes;
 	for (unsigned i = 0; i < m_numberOfTriangles; ++i, _triIndexes += 3)
@@ -483,6 +483,6 @@ Delaunay2dMesh* Delaunay2dMesh::TesselateContour(GenericIndexedCloudPersist* con
 		}
 	}
 
-	CCLib::Delaunay2dMesh* dMesh = CCLib::Delaunay2dMesh::TesselateContour(contourPoints2D);
+	Delaunay2dMesh* dMesh = Delaunay2dMesh::TesselateContour(contourPoints2D);
 	return dMesh;
 }

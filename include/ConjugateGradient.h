@@ -36,7 +36,7 @@ namespace CCLib
 		virtual ~ConjugateGradient() = default;
 
 		//! Returns A matrix
-		inline CCLib::SquareMatrixTpl<Scalar>& A() { return cg_A; }
+		inline SquareMatrixTpl<Scalar>& A() { return cg_A; }
 
 		//! Returns b vector
 		inline Scalar* b() { return cg_b; }
@@ -118,6 +118,6 @@ namespace CCLib
 		//! 'A' matrix
 		/** Equation solved: "A.X=b"
 		**/
-		CCLib::SquareMatrixTpl<Scalar> cg_A;
+		SquareMatrixTpl<Scalar> cg_A;
 	};
 }

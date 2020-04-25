@@ -1005,12 +1005,12 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 //! Method used by computeCloud2MeshDistanceWithOctree
 void ComparePointsAndTriangles( ReferenceCloud& Yk,
 								unsigned& remainingPoints,
-								CCLib::GenericIndexedMesh* mesh,
+								GenericIndexedMesh* mesh,
 								std::vector<unsigned>& trianglesToTest,
 								std::size_t& trianglesToTestCount,
 								std::vector<ScalarType>& minDists,
 								ScalarType maxRadius,
-								CCLib::DistanceComputationTools::Cloud2MeshDistanceComputationParams& params)
+								DistanceComputationTools::Cloud2MeshDistanceComputationParams& params)
 {
 	assert(mesh);
 	assert(remainingPoints <= Yk.size());
@@ -1025,7 +1025,7 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 	while (trianglesToTestCount != 0)
 	{
 		//we query the vertex coordinates
-		CCLib::SimpleTriangle tri;
+		SimpleTriangle tri;
 		mesh->getTriangleVertices(trianglesToTest[--trianglesToTestCount], tri.A, tri.B, tri.C);
 
 		//for each point inside the current cell
@@ -1122,7 +1122,7 @@ static NormalizedProgress* s_normProgressCb_MT = nullptr;
 static OctreeAndMeshIntersection* s_intersection_MT = nullptr;
 static bool s_cellFunc_MT_success = true;
 static int s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-static CCLib::DistanceComputationTools::Cloud2MeshDistanceComputationParams s_params_MT;
+static DistanceComputationTools::Cloud2MeshDistanceComputationParams s_params_MT;
 
 //'processTriangles' mechanism (based on bit mask)
 static std::vector<std::vector<bool>*> s_bitArrayPool_MT;
@@ -3066,24 +3066,24 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	return static_cast<ScalarType>(maxDist);
 }
 
-ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(CCLib::GenericCloud* cloud,
+ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(GenericCloud* cloud,
 																const PointCoordinateType* planeEquation,
 																ERROR_MEASURES measureType)
 {
 	switch (measureType)
 	{
 		case RMS:
-			return CCLib::DistanceComputationTools::computeCloud2PlaneDistanceRMS(cloud,planeEquation);
+			return DistanceComputationTools::computeCloud2PlaneDistanceRMS(cloud,planeEquation);
 
 		case MAX_DIST_68_PERCENT:
-			return CCLib::DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.32f);
+			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.32f);
 		case MAX_DIST_95_PERCENT:
-			return CCLib::DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.05f);
+			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.05f);
 		case MAX_DIST_99_PERCENT:
-			return CCLib::DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.01f);
+			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.01f);
 
 		case MAX_DIST:
-			return CCLib::DistanceComputationTools::ComputeCloud2PlaneMaxDistance(cloud,planeEquation);
+			return DistanceComputationTools::ComputeCloud2PlaneMaxDistance(cloud,planeEquation);
 
 		default:
 			assert(false);

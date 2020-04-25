@@ -127,8 +127,8 @@ namespace CCLib
 			\param _gravityCenter if available, its gravity center
 			\return covariance matrix
 		**/
-		static CCLib::SquareMatrixd ComputeCovarianceMatrix(GenericCloud* theCloud,
-															const PointCoordinateType* _gravityCenter = nullptr);
+		static SquareMatrixd ComputeCovarianceMatrix(GenericCloud* theCloud,
+													 const PointCoordinateType* _gravityCenter = nullptr);
 
 		//! Flag duplicate points
 		/** This method only requires an output scalar field. Duplicate points will be
