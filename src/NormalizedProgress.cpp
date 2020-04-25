@@ -6,7 +6,7 @@
 //system
 #include <cassert>
 
-#ifdef USE_QT
+#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 
 //we use Qt for the atomic counter
 #include <QAtomicInt>

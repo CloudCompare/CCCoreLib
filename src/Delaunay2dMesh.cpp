@@ -7,7 +7,7 @@
 #include <GenericIndexedCloudPersist.h>
 #include <ManualSegmentationTools.h>
 
-#if defined(USE_CGAL_LIB)
+#if defined(CC_CORE_LIB_USES_CGAL_LIB)
 //CGAL Lib
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Delaunay_triangulation_2.h>
@@ -37,7 +37,7 @@ Delaunay2dMesh::~Delaunay2dMesh()
 
 bool Delaunay2dMesh::Available()
 {
-#if defined(USE_CGAL_LIB)
+#if defined(CC_CORE_LIB_USES_CGAL_LIB)
 	return true;
 #else
 	return false;
@@ -61,7 +61,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 								const std::vector<int>& segments2D,
 								char* outputErrorStr/*=0*/)
 {
-#if defined(USE_CGAL_LIB)
+#if defined(CC_CORE_LIB_USES_CGAL_LIB)
 
 	//CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
@@ -129,7 +129,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 								std::size_t pointCountToUse/*=0*/,
 								char* outputErrorStr/*=0*/)
 {
-#if defined(USE_CGAL_LIB)
+#if defined(CC_CORE_LIB_USES_CGAL_LIB)
 
 	//CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;

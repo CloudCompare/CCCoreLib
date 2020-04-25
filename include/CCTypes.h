@@ -7,10 +7,10 @@
 using PointCoordinateType = float;
 
 //! Type of a single scalar field value
-#if defined SCALAR_TYPE_DOUBLE
+#if defined CC_CORE_LIB_USES_DOUBLE
 using ScalarType = double;
-#elif defined SCALAR_TYPE_FLOAT
+#elif defined CC_CORE_LIB_USES_FLOAT
 using ScalarType = float;
 #else
 static_assert(false, "type for ScalarType has not been declared");
-#endif //SCALAR_TYPE_DOUBLE
+#endif

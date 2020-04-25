@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cstring>
 
-#ifdef USE_VLD
+#ifdef CC_CORE_LIB_USES_VLD
 //VLD
 #include <vld.h>
 #endif
