@@ -20,10 +20,13 @@
 #include <algorithm>
 #include <cassert>
 
-#ifdef USE_QT
+#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 #ifndef CC_DEBUG
 //enables multi-threading handling
 #define ENABLE_CLOUD2MESH_DIST_MT
+
+#include <QtConcurrentMap>
+#include <QtCore>
 #endif
 #endif
 
@@ -1111,10 +1114,6 @@ int ComputeMaxNeighborhoodLength(ScalarType maxSearchDist, PointCoordinateType c
 }
 
 #ifdef ENABLE_CLOUD2MESH_DIST_MT
-
-#include <QtCore>
-#include <QApplication>
-#include <QtConcurrentMap>
 
 /*** MULTI THREADING WRAPPER ***/
 static DgmOctree* s_octree_MT = nullptr;

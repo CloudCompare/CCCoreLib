@@ -16,7 +16,7 @@ It uses CMake, requires C++14, and compiles & runs on Linux, macOS, and Windows.
 | ------------- |-------------| ---------|
 | CCCORELIB_USE_CGAL | Use CGAL to enable Delaunay 2.5D triangulation with a GPL compliant licence | OFF |
 | CCCORELIB_USE_TBB | Use Intel Threading Building Blocks lib to enable some parallel processing | OFF |
-| CCCORELIB_USE_QT | Use Qt to enable parallel processing using QtConcurrent | ON |
+| CCCORELIB_USE_QT_CONCURRENT | Use Qt to enable parallel processing using QtConcurrent | ON |
 | CCCORELIB_SHARED | Compile as a shared library | ON |
 | CCCORELIB_SCALAR_DOUBLE | Define _ScalarType_ as double (instead of float) | OFF |
 

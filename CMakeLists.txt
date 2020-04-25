@@ -21,8 +21,8 @@ option( CCCORELIB_USE_TBB
 	"Compile CCCoreLib with Intel Threading Building Blocks lib (enables some parallel processing )"
 	OFF
 )
-option( CCCORELIB_USE_QT
-	"Compile CCCoreLib with Qt (to enable parallel processing)"
+option( CCCORELIB_USE_QT_CONCURRENT
+	"Compile CCCoreLib with QtConcurrent (to enable parallel processing)"
 	ON
 )
 option( CCCORELIB_SHARED
@@ -120,12 +120,12 @@ target_compile_definitions( CCCoreLib
 if ( CCCORELIB_SCALAR_DOUBLE )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
-			SCALAR_TYPE_DOUBLE
+			CC_CORE_LIB_USES_DOUBLE
 	)
 else()
 	target_compile_definitions( CCCoreLib
 		PUBLIC
-			SCALAR_TYPE_FLOAT
+			CC_CORE_LIB_USES_FLOAT
 	)
 endif()
 
@@ -140,7 +140,7 @@ if ( WIN32 )
 	if ( CCCORELIB_USE_VISUAL_LEAK_DETECTOR )
 		target_compile_definitions( CCCoreLib
 			PRIVATE
-				USE_VLD
+				CC_CORE_LIB_USES_VLD
 		)
 	endif()
 
@@ -172,7 +172,7 @@ if ( CCCORELIB_USE_TBB )
 
 		target_compile_definitions( CCCoreLib
 			PUBLIC
-				USE_TBB
+				CC_CORE_LIB_USES_TBB
 		)
 	endif()
 endif()
@@ -203,35 +203,26 @@ if ( CCCORELIB_USE_CGAL )
 
 	target_compile_definitions( CCCoreLib
 		PUBLIC
-			USE_CGAL_LIB
+			CC_CORE_LIB_USES_CGAL_LIB
 	)
 endif()
 
 # QT (optional)
-if ( CCCORELIB_USE_QT )
+if ( CCCORELIB_USE_QT_CONCURRENT )
 	find_package( Qt5
 		COMPONENTS
 			Concurrent
-			Core
-			Widgets
 		REQUIRED
 	)
 
-	set( CMAKE_AUTOMOC ON )
-	set( CMAKE_AUTORCC ON )
-	set( CMAKE_AUTOUIC ON )
-
 	target_link_libraries( CCCoreLib
 		PUBLIC
-			Qt5::Concurrent
-			Qt5::Widgets
+            Qt5::Concurrent
 	)
 
 	target_compile_definitions( CCCoreLib
 		PUBLIC
-			USE_QT
-		PRIVATE
-			QT_USE_QSTRINGBUILDER
+			CC_CORE_LIB_USES_QT_CONCURRENT
 	)
 endif()
 

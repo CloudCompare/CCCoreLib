@@ -15,7 +15,7 @@
 
    #define ParallelSort Concurrency::parallel_sort
 
-#elif USE_TBB
+#elif CC_CORE_LIB_USES_TBB
 
    #include <tbb/parallel_sort.h>
 
