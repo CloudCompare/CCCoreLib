@@ -215,6 +215,12 @@ if ( CCCORELIB_USE_QT_CONCURRENT )
 		REQUIRED
 	)
 
+    set_target_properties( CCCoreLib PROPERTIES
+        AUTOMOC OFF
+        AUTORCC OFF
+        AUTOUIC OFF
+    )
+
 	target_link_libraries( CCCoreLib
 		PUBLIC
             Qt5::Concurrent
