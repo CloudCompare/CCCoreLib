@@ -38,7 +38,7 @@
 #define AXISTEST_Z12(a, b, fa, fb) minV = a*v1[0] - b*v1[1]; maxV = a*v2[0] - b*v2[1]; if (maxV<minV) std::swap(minV,maxV); rad = fa * boxhalfSize.x + fb * boxhalfSize.y; if (minV>rad || maxV<-rad) return 0;
 #define AXISTEST_Z0(a, b, fa, fb) minV = a*v0[0] - b*v0[1]; maxV = a*v1[0] - b*v1[1]; if (maxV<minV) std::swap(minV,maxV); rad = fa * boxhalfSize.x + fb * boxhalfSize.y; if (minV>rad || maxV<-rad) return 0;
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 /******** Geometry *********/
 

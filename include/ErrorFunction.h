@@ -7,7 +7,7 @@
 #include "CCCoreLib.h"
 #include "MathTools.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Relative error for Error Function computation
 	/** You can adjust it to trade off between accuracy and speed

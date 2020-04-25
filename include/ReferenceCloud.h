@@ -13,7 +13,7 @@
 #include <mutex>
 #include <atomic>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A very simple point cloud (no point duplication)
 	/** Implements the GenericIndexedCloudPersist interface. A simple point cloud

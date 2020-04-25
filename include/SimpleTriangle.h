@@ -6,7 +6,7 @@
 //Local
 #include "GenericTriangle.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A simple triangle class
 	/** Implements the GenericTriangle class with references to 3D points.

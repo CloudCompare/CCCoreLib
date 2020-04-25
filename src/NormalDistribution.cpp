@@ -16,7 +16,7 @@
 #include <ScalarFieldTools.h>
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 NormalDistribution::NormalDistribution()
 	: GenericDistribution()

@@ -8,7 +8,7 @@
 //Local
 #include "CCGeom.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericTriangle;
 

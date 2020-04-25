@@ -9,7 +9,7 @@
 #include "CCToolbox.h"
 #include "CCTypes.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;

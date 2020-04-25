@@ -26,7 +26,7 @@
 #endif
 #endif
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 /**********************************/
 /* PRE COMPUTED VALUES AND TABLES */

@@ -10,7 +10,7 @@
 //System
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A simple scalar field (to be associated to a point cloud)
 	/** A monodimensional array of scalar values. It has also specific

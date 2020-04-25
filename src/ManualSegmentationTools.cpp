@@ -14,7 +14,7 @@
 #include <map>
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCloud, const Polyline* poly, bool keepInside, const float* viewMat)
 {

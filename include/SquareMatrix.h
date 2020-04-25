@@ -12,7 +12,7 @@
 #include <cstring>
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Square matrix
 	/** Row-major ordered matrix (i.e. elements are accessed with 'values[row][column]')

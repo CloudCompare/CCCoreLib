@@ -6,7 +6,7 @@
 //Local
 #include "SquareMatrix.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Bounding box structure
 	class CC_CORE_LIB_API BoundingBox

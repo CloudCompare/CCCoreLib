@@ -20,7 +20,7 @@
 //DGM: tests in progress
 //#define TEST_CELLS_FOR_SPHERICAL_NN
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class ReferenceCloud;
 	class GenericIndexedCloudPersist;

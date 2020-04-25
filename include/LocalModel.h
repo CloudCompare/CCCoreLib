@@ -5,7 +5,7 @@
 
 #include "Neighbourhood.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Local modelization (generic interface)
 	/** Local surface approximation of a point cloud

@@ -13,7 +13,7 @@ template <typename Scalar> class Jacobi
 {
 public:
 
-	using SquareMatrix = CCLib::SquareMatrixTpl<Scalar>;
+	using SquareMatrix = CCCoreLib::SquareMatrixTpl<Scalar>;
 	using EigenValues = std::vector<Scalar>;
 
 	//! Computes the eigenvalues and eigenvectors of a given square matrix

@@ -7,7 +7,7 @@
 #include <cassert>
 #include <cstring>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 ScalarField::ScalarField(const char* name/*=0*/)
 {

@@ -8,7 +8,7 @@
 #include "SquareMatrix.h"
 
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A class to perform a conjugate gradient optimization
 	/**	Inspired from the "Numerical Recipes".

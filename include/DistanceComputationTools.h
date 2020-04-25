@@ -9,7 +9,7 @@
 #include "DgmOctree.h"
 #include "SquareMatrix.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericTriangle;
 	class GenericIndexedMesh;

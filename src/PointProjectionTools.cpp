@@ -15,7 +15,7 @@
 //system
 #include <set>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 															PointCoordinateType radius,

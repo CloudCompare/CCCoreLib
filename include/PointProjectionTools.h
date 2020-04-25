@@ -17,7 +17,7 @@ enum CC_TRIANGULATION_TYPES {	DELAUNAY_2D_AXIS_ALIGNED  = 1,		/**< Delaunay 2D t
 								DELAUNAY_2D_BEST_LS_PLANE = 2,		/**< Delaunay 2D with points projected on the best least square fitting plane **/
 							};
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedMesh;
 	class GenericProgressCallback;

@@ -6,7 +6,7 @@
 //Local
 #include "PointProjectionTools.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedCloud;
 	class GenericProgressCallback;

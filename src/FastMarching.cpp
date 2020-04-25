@@ -7,7 +7,7 @@
 #include "DgmOctree.h"
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 FastMarching::FastMarching()
 	: m_initialized(false)

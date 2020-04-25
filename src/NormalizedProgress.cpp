@@ -34,7 +34,7 @@ public:
 
 #endif
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 										unsigned totalSteps,

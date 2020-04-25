@@ -11,7 +11,7 @@
 //STL
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar fields
 	template<class T, typename StringType = const char*> class PointCloudTpl : public T

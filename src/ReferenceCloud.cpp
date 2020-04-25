@@ -6,7 +6,7 @@
 //system
 #include <algorithm>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 ReferenceCloud::ReferenceCloud(GenericIndexedCloudPersist* associatedCloud)
 	: m_globalIterator(0)

@@ -16,7 +16,7 @@
 #endif
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 Delaunay2dMesh::Delaunay2dMesh()
 	: m_associatedCloud(nullptr)

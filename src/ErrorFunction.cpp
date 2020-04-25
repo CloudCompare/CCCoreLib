@@ -7,7 +7,7 @@
 #include "CCConst.h"
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 /**************************
 * erf.cpp

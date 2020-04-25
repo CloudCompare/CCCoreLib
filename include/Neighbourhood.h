@@ -9,7 +9,7 @@
 #include "SquareMatrix.h"
 
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedMesh;
 

@@ -10,7 +10,7 @@
 #include <map>
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericProgressCallback;
 	class GenericMesh;

@@ -9,7 +9,7 @@
 //system
 #include <algorithm>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 KDTree::KDTree()
 	: m_root(nullptr)

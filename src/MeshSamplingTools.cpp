@@ -13,7 +13,7 @@
 //system
 #include <random>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 double MeshSamplingTools::computeMeshArea(GenericMesh* mesh)
 {

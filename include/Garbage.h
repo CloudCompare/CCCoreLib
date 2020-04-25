@@ -57,11 +57,11 @@ public:
 };
 
 //! Speciailization for ScalarFields
-template <> class Garbage<CCLib::ScalarField>
+template <> class Garbage<CCCoreLib::ScalarField>
 {
 public:
 	//! Puts an item in the trash
-	inline void add(CCLib::ScalarField* item)
+	inline void add(CCCoreLib::ScalarField* item)
 	{
 		try
 		{
@@ -76,13 +76,13 @@ public:
 	//! Removes an item from the trash
 	/** \warning The item won't be destroyed!
 	**/
-	inline void remove(CCLib::ScalarField* item)
+	inline void remove(CCCoreLib::ScalarField* item)
 	{
 		m_items.erase(item);
 	}
 
 	//! Manually deltes an item already in the trash
-	inline void destroy(CCLib::ScalarField* item)
+	inline void destroy(CCCoreLib::ScalarField* item)
 	{
 		m_items.erase(item);
 		item->release();
@@ -102,5 +102,5 @@ public:
 	}
 
 	//! Items to delete
-	std::unordered_set<CCLib::ScalarField*> m_items;
+	std::unordered_set<CCCoreLib::ScalarField*> m_items;
 };

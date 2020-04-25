@@ -6,7 +6,7 @@
 //Local
 #include "GenericDistribution.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! The Weibull statistical parametric distribution
 	/** Implements the GenericDistribution interface.
