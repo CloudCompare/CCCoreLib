@@ -23,6 +23,10 @@
 #ifndef CC_DEBUG
 //enables multi-threading handling
 #define ENABLE_MT_OCTREE
+
+#include <QtConcurrentMap>
+#include <QtCore>
+#include <QThreadPool>
 #endif
 #endif
 
@@ -3242,11 +3246,6 @@ DgmOctree::octreeCell::~octreeCell()
 }
 
 #ifdef ENABLE_MT_OCTREE
-
-#include <QtCore>
-#include <QApplication>
-#include <QtConcurrentMap>
-#include <QThreadPool>
 
 /*** FOR THE MULTI THREADING WRAPPER ***/
 struct octreeCellDesc
