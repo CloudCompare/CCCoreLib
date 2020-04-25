@@ -84,8 +84,8 @@ struct MonoDimensionalCellCodes
 		}
 
 		//we compute all possible masks as well! (all dimensions)
-		//CCLib::DgmOctree::CellCode baseMask = (1 << (3 * CCLib::DgmOctree::MAX_OCTREE_LEVEL));
-		//for (int level = CCLib::DgmOctree::MAX_OCTREE_LEVEL; level >= 0; --level)
+		//DgmOctree::CellCode baseMask = (1 << (3 * DgmOctree::MAX_OCTREE_LEVEL));
+		//for (int level = DgmOctree::MAX_OCTREE_LEVEL; level >= 0; --level)
 		//{
 		//	masks[level] = baseMask - 1;
 		//	baseMask >>= 3;
@@ -96,7 +96,7 @@ struct MonoDimensionalCellCodes
 	DgmOctree::CellCode values[VALUE_COUNT];
 
 	//! Mono-dimensional cell masks
-	//CCLib::DgmOctree::CellCode masks[CCLib::DgmOctree::MAX_OCTREE_LEVEL + 1];
+	//DgmOctree::CellCode masks[DgmOctree::MAX_OCTREE_LEVEL + 1];
 };
 static MonoDimensionalCellCodes PRE_COMPUTED_POS_CODES;
 
@@ -106,7 +106,7 @@ static MonoDimensionalCellCodes PRE_COMPUTED_POS_CODES;
 
 unsigned char DgmOctree::GET_BIT_SHIFT(unsigned char level)
 {
-	//return (3 * (CCLib::DgmOctree::MAX_OCTREE_LEVEL - level));
+	//return (3 * (DgmOctree::MAX_OCTREE_LEVEL - level));
 	return PRE_COMPUTED_BIT_SHIFT_VALUES.values[level];
 }
 

@@ -102,7 +102,7 @@ namespace CCCoreLib
 			}
 		}
 	};
-} //namespace CCLib
+}
 
 using namespace CCCoreLib;
 
