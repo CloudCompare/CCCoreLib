@@ -476,7 +476,7 @@ enum HullPointFlags {	POINT_NOT_USED	= 0,
 						POINT_FROZEN	= 3,
 					};
 
-using Vertex2D = CCLib::PointProjectionTools::IndexedCCVector2;
+using Vertex2D = PointProjectionTools::IndexedCCVector2;
 using VertexIterator = std::list<Vertex2D *>::iterator;
 using ConstVertexIterator = std::list<Vertex2D *>::const_iterator;
 
@@ -723,8 +723,8 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 						if (itJ == hullPoints.end())
 							itJ = hullPoints.begin();
 
-						if (	((*itI)->index != (*itA)->index && (*itJ)->index != (*itA)->index && CCLib::PointProjectionTools::segmentIntersect(**itI,**itJ,**itA,P))
-								||	((*itI)->index != (*itB)->index && (*itJ)->index != (*itB)->index && CCLib::PointProjectionTools::segmentIntersect(**itI,**itJ,P,**itB)) )
+						if (	((*itI)->index != (*itA)->index && (*itJ)->index != (*itA)->index && PointProjectionTools::segmentIntersect(**itI,**itJ,**itA,P))
+								||	((*itI)->index != (*itB)->index && (*itJ)->index != (*itB)->index && PointProjectionTools::segmentIntersect(**itI,**itJ,P,**itB)) )
 						{
 							intersect = true;
 							break;

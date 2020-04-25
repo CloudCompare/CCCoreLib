@@ -265,7 +265,7 @@ namespace CCLib
 		bool compute3DQuadric(double quadricEquation[10]);
 
 		//! Computes the covariance matrix
-		CCLib::SquareMatrixd computeCovarianceMatrix();
+		SquareMatrixd computeCovarianceMatrix();
 
 		//! Returns the set 'radius' (i.e. the distance between the gravity center and the its farthest point)
 		PointCoordinateType computeLargestRadius();

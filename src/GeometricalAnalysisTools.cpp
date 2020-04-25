@@ -318,7 +318,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoint
 
 	cloud->enableScalarField();
 	//set all flags to 0 by default
-	cloud->forEach(CCLib::ScalarFieldTools::SetScalarValueToZero);
+	cloud->forEach(ScalarFieldTools::SetScalarValueToZero);
 
 	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(static_cast<PointCoordinateType>(minDistanceBetweenPoints));
 
@@ -575,14 +575,14 @@ CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* c
 	return CCVector3::fromArray(sum.u);
 }
 
-CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const PointCoordinateType* _gravityCenter)
+SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const PointCoordinateType* _gravityCenter)
 {
 	assert(cloud);
 	unsigned n = (cloud ? cloud->size() : 0);
 	if (n==0)
-		return CCLib::SquareMatrixd();
+		return SquareMatrixd();
 
-	CCLib::SquareMatrixd covMat(3);
+	SquareMatrixd covMat(3);
 	covMat.clear();
 
 	//gravity center
@@ -620,7 +620,7 @@ CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCl
 	return covMat;
 }
 
-CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(GenericCloud* P,
+SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(GenericCloud* P,
 																			GenericCloud* Q,
 																			const CCVector3& Gp,
 																			const CCVector3& Gq)
@@ -629,7 +629,7 @@ CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(Gene
 	assert(Q->size() == P->size());
 
 	//shortcuts to output matrix lines
-	CCLib::SquareMatrixd covMat(3);
+	SquareMatrixd covMat(3);
 	double* l1 = covMat.row(0);
 	double* l2 = covMat.row(1);
 	double* l3 = covMat.row(2);
@@ -660,7 +660,7 @@ CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(Gene
 	return covMat;
 }
 
-CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(GenericCloud* P, //data
+SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(GenericCloud* P, //data
 																					GenericCloud* Q, //model
 																					const CCVector3& Gp,
 																					const CCVector3& Gq,
@@ -672,7 +672,7 @@ CCLib::SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMat
 	assert(coupleWeights->currentSize() == P->size());
 
 	//shortcuts to output matrix lines
-	CCLib::SquareMatrixd covMat(3);
+	SquareMatrixd covMat(3);
 	double* r1 = covMat.row(0);
 	double* r2 = covMat.row(1);
 	double* r3 = covMat.row(2);

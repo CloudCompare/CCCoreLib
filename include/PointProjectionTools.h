@@ -33,7 +33,7 @@ namespace CCLib
 		struct Transformation
 		{
 			//! Rotation
-			CCLib::SquareMatrix R;
+			SquareMatrix R;
 			//! Translation
 			CCVector3 T;
 			//! Scale

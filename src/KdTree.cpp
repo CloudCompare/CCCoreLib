@@ -100,7 +100,7 @@ void KDTree::deleteSubTree(KdCell *cell)
 }
 
 /*** Comparison functions used by the sort function (Strict ordering must be used) ***/
-static CCLib::GenericIndexedCloud* s_comparisonCloud = nullptr;
+static GenericIndexedCloud* s_comparisonCloud = nullptr;
 
 //! Compares X coordinates of two points designated by their index
 static bool ComparisonX(const unsigned &a, const unsigned &b)

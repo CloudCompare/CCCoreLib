@@ -153,12 +153,12 @@ void Neighbourhood::computeGravityCenter()
 					  } );
 }
 
-CCLib::SquareMatrixd Neighbourhood::computeCovarianceMatrix()
+SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 {
 	assert(m_associatedCloud);
 	unsigned count = (m_associatedCloud ? m_associatedCloud->size() : 0);
 	if (!count)
-		return CCLib::SquareMatrixd();
+		return SquareMatrixd();
 
 	//we get centroid
 	const CCVector3* G = getGravityCenter();
@@ -185,7 +185,7 @@ CCLib::SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 	}
 
 	//symmetry
-	CCLib::SquareMatrixd covMat(3);
+	SquareMatrixd covMat(3);
 	covMat.m_values[0][0] = mXX/count;
 	covMat.m_values[1][1] = mYY/count;
 	covMat.m_values[2][2] = mZZ/count;
@@ -242,7 +242,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	CCVector3 G(0, 0, 0);
 	if (pointCount > 3)
 	{
-		CCLib::SquareMatrixd covMat = computeCovarianceMatrix();
+		SquareMatrixd covMat = computeCovarianceMatrix();
 
 #ifdef USE_EIGEN
 		Eigen::Matrix3d A = ToEigen(covMat);
@@ -258,7 +258,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 		m_lsPlaneVectors[0] = CCVector3::fromArray(eVec.col(2).data()); //biggest eigenvalue
 #else
 		//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
-		CCLib::SquareMatrixd eigVectors;
+		SquareMatrixd eigVectors;
 		std::vector<double> eigValues;
 		if (!Jacobi<double>::ComputeEigenValuesAndVectors(covMat, eigVectors, eigValues, true))
 		{
@@ -432,7 +432,7 @@ bool Neighbourhood::computeQuadric()
 	//conjugate gradient initialization
 	//we solve tA.A.X=tA.b
 	ConjugateGradient<6,double> cg;
-	const CCLib::SquareMatrixd& tAA = cg.A();
+	const SquareMatrixd& tAA = cg.A();
 	double* tAb = cg.b();
 
 	//compute tA.A and tA.b
@@ -648,7 +648,7 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 		quadricEquation[i] = minEigenVec[i];
 	}
 #else
-	CCLib::SquareMatrixd eigVectors;
+	SquareMatrixd eigVectors;
 	std::vector<double> eigValues;
 	if (!Jacobi<double>::ComputeEigenValuesAndVectors(D, eigVectors, eigValues, true))
 	{
@@ -1044,7 +1044,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			}
 
 			//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
-			CCLib::SquareMatrixd covMat = computeCovarianceMatrix();
+			SquareMatrixd covMat = computeCovarianceMatrix();
 			CCVector3d e(0, 0, 0);
 #ifdef USE_EIGEN
 			Eigen::Matrix3d A = ToEigen(covMat);
@@ -1057,7 +1057,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			//compute curvature as the rate of change of the surface
 			e = CCVector3d::fromArray(eVal.data());
 #else
-			CCLib::SquareMatrixd eigVectors;
+			SquareMatrixd eigVectors;
 			std::vector<double> eigValues;
 			if (!Jacobi<double>::ComputeEigenValuesAndVectors(covMat, eigVectors, eigValues, true))
 			{

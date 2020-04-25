@@ -44,7 +44,7 @@ struct BitShiftValues
 		//we compute all possible values
 		for (unsigned char level = 0; level <= DgmOctree::MAX_OCTREE_LEVEL; ++level)
 		{
-			values[level] = (3 * (CCLib::DgmOctree::MAX_OCTREE_LEVEL - level));
+			values[level] = (3 * (DgmOctree::MAX_OCTREE_LEVEL - level));
 		}
 	}
 
@@ -60,7 +60,7 @@ struct MonoDimensionalCellCodes
 	/** There are 1024 possible values at level 10, and 2M. at level 21.
 		\warning Never pass a 'constant initializer' by reference
 	**/
-	static const int VALUE_COUNT = CCLib::DgmOctree::MAX_OCTREE_LENGTH;
+	static const int VALUE_COUNT = DgmOctree::MAX_OCTREE_LENGTH;
 
 	//! Default initialization
 	MonoDimensionalCellCodes()
@@ -70,8 +70,8 @@ struct MonoDimensionalCellCodes
 		for (int value = 0; value < VALUE_COUNT; ++value)
 		{
 			int mask = VALUE_COUNT;
-			CCLib::DgmOctree::CellCode code = 0;
-			for (unsigned char k = 0; k < CCLib::DgmOctree::MAX_OCTREE_LEVEL; k++)
+			DgmOctree::CellCode code = 0;
+			for (unsigned char k = 0; k < DgmOctree::MAX_OCTREE_LEVEL; k++)
 			{
 				mask >>= 1;
 				code <<= 3;
@@ -93,7 +93,7 @@ struct MonoDimensionalCellCodes
 	}
 
 	//! Mono-dimensional cell codes
-	CCLib::DgmOctree::CellCode values[VALUE_COUNT];
+	DgmOctree::CellCode values[VALUE_COUNT];
 
 	//! Mono-dimensional cell masks
 	//CCLib::DgmOctree::CellCode masks[CCLib::DgmOctree::MAX_OCTREE_LEVEL + 1];

@@ -43,7 +43,7 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 	//filter rotation
 	if (inTrans.R.isValid() && (filters & SKIP_ROTATION))
 	{
-		const CCLib::SquareMatrix R(inTrans.R); //copy it in case inTrans and outTrans are the same!
+		const SquareMatrix R(inTrans.R); //copy it in case inTrans and outTrans are the same!
 		outTrans.R.toIdentity();
 		if (filters & SKIP_RYZ) //keep only the rotation component around X
 		{
@@ -690,7 +690,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//single iteration of the registration procedure
 		currentTrans = ScaledTransformation();
 		if (!RegistrationTools::RegistrationProcedure(	data.cloud,
-														data.CPSetRef ? static_cast<CCLib::GenericCloud*>(data.CPSetRef) : static_cast<CCLib::GenericCloud*>(data.CPSetPlain),
+														data.CPSetRef ? static_cast<GenericCloud*>(data.CPSetRef) : static_cast<GenericCloud*>(data.CPSetPlain),
 														currentTrans,
 														params.adjustScale,
 														coupleWeights))
@@ -895,7 +895,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		CCVector3 a = Np.cross(Nx);
 		if (a.norm() < ZERO_TOLERANCE)
 		{
-			trans.R = CCLib::SquareMatrix(3);
+			trans.R = SquareMatrix(3);
 			trans.R.toIdentity();
 			if (Np.dot(Nx) < 0)
 			{
@@ -1053,7 +1053,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		QSigma.m_values[3][3] = bottomMat.m_values[2][2];
 
 		//we compute its eigenvalues and eigenvectors
-		CCLib::SquareMatrixd eigVectors;
+		SquareMatrixd eigVectors;
 		std::vector<double> eigValues;
 		if (!Jacobi<double>::ComputeEigenValuesAndVectors(QSigma, eigVectors, eigValues, false))
 		{

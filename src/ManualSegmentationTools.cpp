@@ -20,7 +20,7 @@ ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCl
 {
 	assert(poly && aCloud);
 
-	CCLib::SquareMatrix* trans = (viewMat ? new CCLib::SquareMatrix(viewMat) : nullptr);
+	SquareMatrix* trans = (viewMat ? new SquareMatrix(viewMat) : nullptr);
 
 	ReferenceCloud* Y = new ReferenceCloud(aCloud);
 

@@ -51,8 +51,8 @@ namespace CCLib
 		static int labelConnectedComponents(GenericIndexedCloudPersist* theCloud,
 											unsigned char level,
 											bool sixConnexity = false,
-											CCLib::GenericProgressCallback* progressCb = nullptr,
-											CCLib::DgmOctree* inputOctree = nullptr);
+											GenericProgressCallback* progressCb = nullptr,
+											DgmOctree* inputOctree = nullptr);
 
 		//! Extracts connected components from a point cloud
 		/** This method shloud only be called after the connected components have been
@@ -91,8 +91,8 @@ namespace CCLib
 														ScalarType minSeedDist,
 														unsigned char octreeLevel,
 														ReferenceCloudContainer& theSegmentedLists,
-														CCLib::GenericProgressCallback* progressCb = nullptr,
-														CCLib::DgmOctree* inputOctree = nullptr,
+														GenericProgressCallback* progressCb = nullptr,
+														DgmOctree* inputOctree = nullptr,
 														bool applyGaussianFilter = false,
 														float alpha = 2.0f);
 	};

@@ -370,7 +370,7 @@ namespace CCLib
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
 			\param measureType measure type
 		**/
-		static ScalarType ComputeCloud2PlaneDistance(	CCLib::GenericCloud* cloud,
+		static ScalarType ComputeCloud2PlaneDistance(	GenericCloud* cloud,
 														const PointCoordinateType* planeEquation,
 														ERROR_MEASURES measureType);
 
