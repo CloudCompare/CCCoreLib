@@ -27,7 +27,7 @@
 #endif
 #endif
 
-namespace CCLib
+namespace CCCoreLib
 {
 
 	//! List of triangles (indexes)
@@ -102,9 +102,9 @@ namespace CCLib
 			}
 		}
 	};
-} //namespace CCLib
+}
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 bool DistanceComputationTools::MultiThreadSupport()
 {

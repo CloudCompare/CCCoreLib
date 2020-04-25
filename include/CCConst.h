@@ -20,7 +20,7 @@ constexpr double M_PI = 3.14159265358979323846;
 constexpr double M_PI_2 = (M_PI/2.0);
 #endif
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Square root of 3
 	constexpr double SQRT_3 = 1.7320508075688772935274463415059;

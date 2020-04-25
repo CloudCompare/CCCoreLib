@@ -13,7 +13,7 @@
 //System
 #include <algorithm>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 int AutoSegmentationTools::labelConnectedComponents(GenericIndexedCloudPersist* theCloud,
 													unsigned char level,

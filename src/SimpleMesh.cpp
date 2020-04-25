@@ -9,7 +9,7 @@
 //System
 #include <cassert>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 SimpleMesh::SimpleMesh(GenericIndexedCloud* _theVertices, bool linkVerticesWithMesh)
 	: GenericIndexedMesh()

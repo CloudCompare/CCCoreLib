@@ -10,7 +10,7 @@
 #include "GenericTriangle.h"
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 //! Least Squares Best Fitting Plane "local modelization"
 class LSLocalModel : public LocalModel

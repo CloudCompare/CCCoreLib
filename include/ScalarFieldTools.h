@@ -8,7 +8,7 @@
 #include "DgmOctree.h"
 
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericCloud;
 	class GenericIndexedCloud;

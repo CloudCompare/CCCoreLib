@@ -6,7 +6,7 @@
 //Local
 #include "GenericDistribution.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! The Normal/Gaussian statistical distribution
 	/** Implements the GenericDistribution interface.

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <random>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 GenericIndexedCloud* CloudSamplingTools::resampleCloudWithOctree(	GenericIndexedCloudPersist* inputCloud,
 																	int newNumberOfPoints,

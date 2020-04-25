@@ -7,7 +7,7 @@
 #include "DgmOctree.h"
 #include "FastMarching.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class ReferenceCloud;
 	class GenericCloud;

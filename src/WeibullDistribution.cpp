@@ -16,7 +16,7 @@
 //System
 #include <cstring>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 //GAMMA function
 static double Gamma_cc(double x)

@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Simple 3D grid structure
 	/** The grid data is contiguous in memory.

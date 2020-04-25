@@ -3,7 +3,7 @@
 
 #include "DgmOctreeReferenceCloud.h"
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 DgmOctreeReferenceCloud::DgmOctreeReferenceCloud(DgmOctree::NeighboursSet* associatedSet, unsigned size/*=0*/)
 	: m_globalIterator(0)

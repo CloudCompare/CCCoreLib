@@ -14,7 +14,7 @@
 //system
 #include <list>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 //! Max computable Chi2 distance
 static double CHI2_MAX = 1e7;

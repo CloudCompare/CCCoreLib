@@ -21,7 +21,7 @@
 #include <Jacobi.h>
 #endif
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 #ifdef USE_EIGEN
 Eigen::MatrixXd ToEigen(const SquareMatrixd& M)

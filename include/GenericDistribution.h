@@ -10,7 +10,7 @@
 //system
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericCloud;
 

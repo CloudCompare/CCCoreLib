@@ -9,7 +9,7 @@
 #include "SquareMatrix.h"
 
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedMesh;
 
@@ -195,7 +195,7 @@ namespace CCLib
 		ScalarType computeRoughness(const CCVector3& P);
 
 		//! Computes the curvature of a set of point (by fitting a 2.5D quadric)
-		/** \return curvature value at a given position P or CCLib::NAN_VALUE if the computation failed
+		/** \return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation failed
 			\warning The curvature value is always unsigned
 		**/
 		ScalarType computeCurvature(const CCVector3& P, CurvatureType cType);

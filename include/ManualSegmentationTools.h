@@ -6,7 +6,7 @@
 //Local
 #include "Neighbourhood.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;

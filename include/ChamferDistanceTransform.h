@@ -7,7 +7,7 @@
 #include "Grid3D.h"
 #include "MathTools.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 
 	class GenericProgressCallback;

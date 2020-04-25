@@ -6,7 +6,7 @@
 //Local
 #include "CCGeom.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A generic triangle interface
 	/** Returns (temporary) references to each vertex.

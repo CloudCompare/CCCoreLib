@@ -6,7 +6,7 @@
 //Local
 #include "CCCoreLib.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Empty class - for classification purpose only
 	class CC_CORE_LIB_API CCToolbox	{};

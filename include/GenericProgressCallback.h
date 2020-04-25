@@ -9,7 +9,7 @@
 
 class AtomicCounter;
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A generic progress indicator interface to notify algorithms progress to the client application
 	class CC_CORE_LIB_API GenericProgressCallback

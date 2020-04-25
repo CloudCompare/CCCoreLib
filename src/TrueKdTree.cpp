@@ -8,7 +8,7 @@
 #include "Neighbourhood.h"
 #include "ParallelSort.h"
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 TrueKdTree::TrueKdTree(GenericIndexedCloudPersist* cloud)
 	: m_root(nullptr)

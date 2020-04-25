@@ -5,7 +5,7 @@
 
 #include "Neighbourhood.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Local modelization (generic interface)
 	/** Local surface approximation of a point cloud
@@ -40,7 +40,7 @@ namespace CCLib
 		//! Compute the (unsigned) distance between a 3D point and this model
 		/** \param[in] P the query point
 			\param[out] nearestPoint returns the nearest point (optional)
-			\return the (unsigned) distance (or CCLib::NAN_VALUE if the computation failed)
+			\return the (unsigned) distance (or CCCoreLib::NAN_VALUE if the computation failed)
 		**/
 		virtual ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const = 0;
 

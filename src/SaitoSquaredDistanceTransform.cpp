@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cstdint>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 bool SaitoSquaredDistanceTransform::EDT_1D(GridElement* slice, std::size_t r, std::size_t c)
 {

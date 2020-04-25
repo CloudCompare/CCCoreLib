@@ -11,7 +11,7 @@
 //system
 #include <cstdio>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 static const int AVERAGE_NUMBER_OF_POINTS_FOR_GRADIENT_COMPUTATION = 14;
 

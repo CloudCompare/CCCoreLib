@@ -6,7 +6,7 @@
 //Local
 #include "GenericIndexedCloud.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A generic 3D point cloud with index-based and presistent access to points
 	/** Implements the GenericIndexedCloud interface.

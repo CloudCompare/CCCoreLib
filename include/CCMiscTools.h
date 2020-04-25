@@ -7,7 +7,7 @@
 #include "CCGeom.h"
 #include "CCToolbox.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Miscellaneous useful functions (geometrical elements handling)
 	class CC_CORE_LIB_API CCMiscTools : public CCToolbox

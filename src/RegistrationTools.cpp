@@ -21,7 +21,7 @@
 //system
 #include <ctime>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTrans,
 												int filters,

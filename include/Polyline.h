@@ -6,7 +6,7 @@
 //Local
 #include "ReferenceCloud.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A simple polyline class
 	/** The polyline is considered as a cloud of points

@@ -9,7 +9,7 @@
 #include "ScalarFieldTools.h"
 
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 FastMarchingForPropagation::FastMarchingForPropagation()
 	: FastMarching()

@@ -3,7 +3,7 @@
 
 #include "Polyline.h"
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 Polyline::Polyline(GenericIndexedCloudPersist* associatedCloud)
 	: ReferenceCloud(associatedCloud)

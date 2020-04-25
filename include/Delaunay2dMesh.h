@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedCloud;
 	class GenericIndexedCloudPersist;

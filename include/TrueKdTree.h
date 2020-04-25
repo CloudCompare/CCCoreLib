@@ -10,7 +10,7 @@
 //system
 #include <cstdint>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;

@@ -6,7 +6,7 @@
 //Local
 #include "GenericMesh.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Triangle described by the indexes of its 3 vertices
 	struct VerticesIndexes

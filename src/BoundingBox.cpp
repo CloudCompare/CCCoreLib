@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstdint>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 BoundingBox::BoundingBox()
 	: m_bbMin(0, 0, 0)

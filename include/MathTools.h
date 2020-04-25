@@ -6,7 +6,7 @@
 //Local
 #include "CCTypes.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! Empty class - for classification purpose only
 	class MathTools {};

@@ -8,7 +8,7 @@
 #include "GenericIndexedCloudPersist.h"
 
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A kind of ReferenceCloud based on the DgmOctree::NeighboursSet structure
 	class CC_CORE_LIB_API DgmOctreeReferenceCloud : public GenericIndexedCloudPersist

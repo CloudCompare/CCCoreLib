@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <random>
 
-using namespace CCLib;
+using namespace CCCoreLib;
 
 //volume of a unit sphere
 static double s_UnitSphereVolume = 4.0 * M_PI / 3.0;

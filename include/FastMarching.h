@@ -14,7 +14,7 @@
 #include <cstring>
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class DgmOctree;
 

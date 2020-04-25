@@ -7,7 +7,7 @@
 #include "DgmOctree.h"
 #include "Neighbourhood.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	class GenericProgressCallback;
 	class GenericCloud;

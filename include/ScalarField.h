@@ -10,13 +10,13 @@
 //System
 #include <vector>
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A simple scalar field (to be associated to a point cloud)
 	/** A monodimensional array of scalar values. It has also specific
 		parameters for display purposes.
 
-		Invalid values can be represented by CCLib::NAN_VALUE.
+		Invalid values can be represented by CCCoreLib::NAN_VALUE.
 	**/
 	class ScalarField : public std::vector<ScalarType>, public CCShareable
 	{
@@ -55,7 +55,7 @@ namespace CCLib
 		//! Returns whether a scalar value is valid or not
 		static inline bool ValidValue(ScalarType value) { return value == value; } //'value == value' fails for NaN values
 
-		//! Sets the value as 'invalid' (i.e. CCLib::NAN_VALUE)
+		//! Sets the value as 'invalid' (i.e. CCCoreLib::NAN_VALUE)
 		inline void flagValueAsInvalid(std::size_t index) { at(index) = NaN(); }
 
 		//! Returns the minimum value

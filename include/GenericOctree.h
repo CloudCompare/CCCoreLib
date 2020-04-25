@@ -6,7 +6,7 @@
 //Local
 #include "CCGeom.h"
 
-namespace CCLib
+namespace CCCoreLib
 {
 	//! A generic octree interface for data communication between library and client applications
 	class CC_CORE_LIB_API GenericOctree
