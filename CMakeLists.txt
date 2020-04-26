@@ -252,7 +252,7 @@ install(
 	NAMESPACE
 		CCCoreLib::
 	DESTINATION
-		${CMAKE_INSTALL_PREFIX}/cmake/CCCoreLib
+		cmake/CCCoreLib
 )
 
 # CMake Package Files
@@ -269,7 +269,7 @@ install(
 	FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/CCCoreLibConfigVersion.cmake"
 	DESTINATION
-		${CMAKE_INSTALL_PREFIX}/cmake/CCCoreLib
+		cmake/CCCoreLib
 )
 
 # Export
