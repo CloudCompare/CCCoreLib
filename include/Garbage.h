@@ -9,98 +9,97 @@
 //STL
 #include <unordered_set>
 
-//! Garbage container (automatically deletes pointers when destroyed)
-template<typename C> class Garbage
+namespace CCCoreLib
 {
-public:
-	//! Puts an item in the trash
-	inline void add(C* item)
+	//! Garbage container (automatically deletes pointers when destroyed)
+	template<typename C> class Garbage
 	{
-		try
+	public:
+		//! Puts an item in the trash
+		inline void add(C* item)
 		{
-			m_items.insert(item);
+			try
+			{
+				m_items.insert(item);
+			}
+			catch (const std::bad_alloc&)
+			{
+				//what can we do?!
+			}
 		}
-		catch (const std::bad_alloc&)
+		
+		//! Removes an item from the trash
+		/** \warning The item won't be destroyed! **/
+		inline void remove(C* item)
 		{
-			//what can we do?!
+			m_items.erase(item);
 		}
-	}
-
-	//! Removes an item from the trash
-	/** \warning The item won't be destroyed!
-	**/
-	inline void remove(C* item)
-	{
-		m_items.erase(item);
-	}
-
-	//! To manually delete an item already in the trash
-	inline void destroy(C* item)
-	{
-		m_items.erase(item);
-		delete item;
-	}
-
-	//! Destructor
-	/** Automatically deletes all items
-	**/
-	~Garbage()
-	{
-		//dispose of left over
-		for (auto it = m_items.begin(); it != m_items.end(); ++it)
-			delete *it;
-		m_items.clear();
-	}
-
-	//! Items to delete
-	std::unordered_set<C*> m_items;
-};
-
-//! Speciailization for ScalarFields
-template <> class Garbage<CCCoreLib::ScalarField>
-{
-public:
-	//! Puts an item in the trash
-	inline void add(CCCoreLib::ScalarField* item)
-	{
-		try
+		
+		//! To manually delete an item already in the trash
+		inline void destroy(C* item)
 		{
-			m_items.insert(item);
+			m_items.erase(item);
+			delete item;
 		}
-		catch (const std::bad_alloc&)
+		
+		//! Destructor
+		/** Automatically deletes all items **/
+		~Garbage()
 		{
-			//what can we do?!
+			//dispose of left over
+			for (auto it = m_items.begin(); it != m_items.end(); ++it)
+				delete *it;
+			m_items.clear();
 		}
-	}
-
-	//! Removes an item from the trash
-	/** \warning The item won't be destroyed!
-	**/
-	inline void remove(CCCoreLib::ScalarField* item)
+		
+		//! Items to delete
+		std::unordered_set<C*> m_items;
+	};
+	
+	//! Specialization for ScalarFields
+	template <> class Garbage<ScalarField>
 	{
-		m_items.erase(item);
-	}
-
-	//! Manually deltes an item already in the trash
-	inline void destroy(CCCoreLib::ScalarField* item)
-	{
-		m_items.erase(item);
-		item->release();
-	}
-
-	//! Destructor
-	/** Automatically deletes all items
-	**/
-	~Garbage()
-	{
-		//dispose of left over
-		for (auto item : m_items)
+	public:
+		//! Puts an item in the trash
+		inline void add(ScalarField* item)
 		{
+			try
+			{
+				m_items.insert(item);
+			}
+			catch (const std::bad_alloc&)
+			{
+				//what can we do?!
+			}
+		}
+		
+		//! Removes an item from the trash
+		/** \warning The item won't be destroyed! **/
+		inline void remove(ScalarField* item)
+		{
+			m_items.erase(item);
+		}
+		
+		//! Manually deltes an item already in the trash
+		inline void destroy(ScalarField* item)
+		{
+			m_items.erase(item);
 			item->release();
 		}
-		m_items.clear();
-	}
-
-	//! Items to delete
-	std::unordered_set<CCCoreLib::ScalarField*> m_items;
-};
+		
+		//! Destructor
+		/** Automatically deletes all items **/
+		~Garbage()
+		{
+			//dispose of left over
+			for (auto item : m_items)
+			{
+				item->release();
+			}
+			m_items.clear();
+		}
+		
+		//! Items to delete
+		std::unordered_set<ScalarField*> m_items;
+	};
+}
