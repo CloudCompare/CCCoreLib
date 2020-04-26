@@ -7,10 +7,10 @@
 #include "CCConst.h"
 #include "CCCoreLib.h"
 
-class AtomicCounter;
-
 namespace CCCoreLib
 {
+	class AtomicCounter;
+
 	//! A generic progress indicator interface to notify algorithms progress to the client application
 	class CC_CORE_LIB_API GenericProgressCallback
 	{
@@ -104,9 +104,7 @@ namespace CCCoreLib
 		//! Percentage added to total progress value at each step
 		float m_percentAdd;
 
-		//! Current number of calls to 'oneStep'
-		/** Thread safe if CC_CORE_LIB is compiled with Qt.
-		**/
+		//! Current number of calls to 'oneStep' (thread safe)
 		AtomicCounter* m_counter;
 
 		//! associated GenericProgressCallback
