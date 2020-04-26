@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 //Local
 #include "CCMiscTools.h"
 #include "GenericIndexedCloudPersist.h"
@@ -21,7 +23,11 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API Neighbourhood
 	{
 	public:
-
+		static constexpr int IGNORE_MAX_EDGE_LENGTH = 0;
+		
+		static constexpr bool DUPLICATE_VERTICES = true;
+		static constexpr bool DO_NOT_DUPLICATE_VERTICES = false;
+		
 		//! Geometric properties/elements that can be computed from the set of points (see Neighbourhood::getGeometricalElement)
 		enum GeomElement {		FLAG_DEPRECATED			= 0,
 								FLAG_GRAVITY_CENTER		= 1,
@@ -50,12 +56,12 @@ namespace CCCoreLib
 		//! Applies 2D Delaunay triangulation
 		/** Cloud selection is first projected on the best least-square plane.
 			\param duplicateVertices whether to duplicate vertices (a new point cloud is created) or to use the associated one)
-			\param maxEdgeLength max edge length for output triangles (0 = ignored)
-			\param errorStr error (if any) [optional]
+			\param maxEdgeLength max edge length for output triangles (IGNORE_MAX_EDGE_LENGTH = ignored)
+			\param outputErrorStr error (if any)
 		***/
-		GenericIndexedMesh* triangulateOnPlane(	bool duplicateVertices = false,
-												PointCoordinateType maxEdgeLength = 0,
-												char* errorStr = nullptr);
+		GenericIndexedMesh* triangulateOnPlane( bool duplicateVertices,
+												PointCoordinateType maxEdgeLength,
+												std::string& outputErrorStr );
 
 		//! Fit a quadric on point set (see getQuadric) then triangulates it inside bounding box
 		GenericIndexedMesh* triangulateFromQuadric(unsigned stepsX, unsigned stepsY);
