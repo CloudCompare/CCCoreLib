@@ -8,6 +8,7 @@
 #include "SimpleTriangle.h"
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 namespace CCCoreLib
