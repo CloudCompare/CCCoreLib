@@ -59,10 +59,9 @@ void Delaunay2dMesh::linkMeshWith(GenericIndexedCloud* aCloud, bool passOwnershi
 
 bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 								const std::vector<int>& segments2D,
-								char* outputErrorStr/*=0*/)
+								std::string &outputErrorStr )
 {
 #if defined(CC_CORE_LIB_USES_CGAL_LIB)
-
 	//CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
 	//We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the original point index.
@@ -81,8 +80,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 		constraints.reserve(constrCount);
 	} catch (const std::bad_alloc&)
 	{
-		if (outputErrorStr)
-			strcpy(outputErrorStr, "Not enough memory");
+		outputErrorStr = "Not enough memory";
 		return false;
 	};
 
@@ -115,22 +113,17 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	m_globalIterator = m_triIndexes;
 	m_globalIteratorEnd = m_triIndexes + 3*m_numberOfTriangles;
 	return true;
-
 #else
-
-	if (outputErrorStr)
-		strcpy(outputErrorStr, "CGAL library not supported");
+	outputErrorStr = "CGAL library not supported";
 	return false;
-
 #endif
 }
 
 bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
-								std::size_t pointCountToUse/*=0*/,
-								char* outputErrorStr/*=0*/)
+								std::size_t pointCountToUse,
+								std::string& outputErrorStr )
 {
 #if defined(CC_CORE_LIB_USES_CGAL_LIB)
-
 	//CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
 	//We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the original point index.
@@ -150,8 +143,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 
 	if (pointCount < 3)
 	{
-		if (outputErrorStr)
-			strcpy(outputErrorStr, "Not enough points");
+		outputErrorStr = "Not enough points";
 		return false;
 	}
 
@@ -161,8 +153,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	}
 	catch (const std::bad_alloc&)
 	{
-		if (outputErrorStr)
-			strcpy(outputErrorStr, "Not enough memory");
+		outputErrorStr = "Not enough memory";
 		return false;
 	};
 
@@ -200,13 +191,9 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	m_globalIterator = m_triIndexes;
 	m_globalIteratorEnd = m_triIndexes + 3*m_numberOfTriangles;
 	return true;
-
 #else
-
-	if (outputErrorStr)
-		strcpy(outputErrorStr, "CGAL library not supported");
+	outputErrorStr = "CGAL library not supported";
 	return false;
-
 #endif
 }
 
@@ -416,8 +403,8 @@ Delaunay2dMesh* Delaunay2dMesh::TesselateContour(const std::vector<CCVector2>& c
 	if (contourPoints.back().x == contourPoints.front().x &&  contourPoints.back().y == contourPoints.front().y)
 		--count;
 
-	char errorStr[1024];
-	Delaunay2dMesh* mesh = new Delaunay2dMesh();
+	std::string errorStr;
+	Delaunay2dMesh* mesh = new Delaunay2dMesh;
 	if (!mesh->buildMesh(contourPoints, count, errorStr) || mesh->size() == 0)
 	{
 		//triangulation failed

@@ -8,6 +8,7 @@
 #include "SimpleTriangle.h"
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 namespace CCCoreLib
@@ -20,6 +21,7 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API Delaunay2dMesh : public GenericIndexedMesh
 	{
 	public:
+		static constexpr int USE_ALL_POINTS = 0;
 
 		//! Delaunay2dMesh constructor
 		Delaunay2dMesh();
@@ -45,23 +47,23 @@ namespace CCCoreLib
 
 		//! Build the Delaunay mesh on top a set of 2D points
 		/** \param points2D a set of 2D points
-			\param pointCountToUse number of points to use from the input set (0 = all)
-			\param outputErrorStr error string as output by the CGAL lib. (if any) [optional]
+			\param pointCountToUse number of points to use from the input set (USE_ALL_POINTS = all)
+			\param outputErrorStr error string as output by the CGAL lib. (if any)
 			\return success
 		**/
 		virtual bool buildMesh(	const std::vector<CCVector2>& points2D,
-								std::size_t pointCountToUse = 0,
-								char* outputErrorStr = nullptr);
+								std::size_t pointCountToUse,
+								std::string& outputErrorStr );
 
 		//! Build the Delaunay mesh from a set of 2D polylines
 		/** \param points2D a set of 2D points
 			\param segments2D constraining segments (as 2 indexes per segment)
-			\param outputErrorStr error string as output by the CGAL lib. (if any) [optional]
+			\param outputErrorStr error string as output by the CGAL lib. (if any)
 			\return success
 		**/
 		virtual bool buildMesh(	const std::vector<CCVector2>& points2D,
 								const std::vector<int>& segments2D,
-								char* outputErrorStr = nullptr);
+								std::string& outputErrorStr );
 
 		//! Removes the triangles falling outside of a given (2D) polygon
 		/** \param vertices2D vertices of the mesh as 2D points (typically the one used to triangulate the mesh!)

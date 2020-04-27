@@ -232,18 +232,16 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 }
 
 GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCloudPersist* cloud,
-																CC_TRIANGULATION_TYPES type/*=DELAUNAY_2D_AXIS_ALIGNED*/,
-																PointCoordinateType maxEdgeLength/*=0*/,
-																unsigned char dim/*=0*/,
-																char* errorStr/*=nullptr*/)
+																TRIANGULATION_TYPES type,
+																PointCoordinateType maxEdgeLength,
+																unsigned char dim,
+																std::string& outputErrorStr )
 {
 	if (!cloud)
 	{
-		if (errorStr)
-			strcpy(errorStr, "Invalid input cloud");
+		outputErrorStr = "Invalid input cloud";
 		return nullptr;
 	}
-
 
 	switch (type)
 	{
@@ -251,8 +249,7 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 		{
 			if (dim > 2)
 			{
-				if (errorStr)
-					strcpy(errorStr, "Invalid projection dimension");
+				outputErrorStr = "Invalid projection dimension";
 				return nullptr;
 			}
 			const unsigned char Z = static_cast<unsigned char>(dim);
@@ -267,8 +264,7 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 			}
 			catch (.../*const std::bad_alloc&*/) //out of memory
 			{
-				if (errorStr)
-					strcpy(errorStr, "Not enough memory");
+				outputErrorStr = "Not enough memory";
 				break;
 			}
 
@@ -281,11 +277,8 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 			}
 
 			Delaunay2dMesh* dm = new Delaunay2dMesh();
-			char triLibErrorStr[1024];
-			if (!dm->buildMesh(the2DPoints, 0, triLibErrorStr))
+			if (!dm->buildMesh(the2DPoints, Delaunay2dMesh::USE_ALL_POINTS, outputErrorStr))
 			{
-				if (errorStr)
-					strcpy(errorStr, triLibErrorStr);
 				delete dm;
 				return nullptr;
 			}
@@ -298,8 +291,7 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 				if (dm->size() == 0)
 				{
 					//no more triangles?
-					if (errorStr)
-						strcpy(errorStr, "No triangle left after pruning");
+					outputErrorStr = "No triangle left after pruning";
 					delete dm;
 					return nullptr;
 				}
@@ -311,7 +303,11 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 		case DELAUNAY_2D_BEST_LS_PLANE:
 		{
 			Neighbourhood Yk(cloud);
-			GenericIndexedMesh* mesh = Yk.triangulateOnPlane(false, maxEdgeLength, errorStr);
+			
+			GenericIndexedMesh* mesh = Yk.triangulateOnPlane( Neighbourhood::DO_NOT_DUPLICATE_VERTICES,
+															  maxEdgeLength,
+															  outputErrorStr );
+			
 			return mesh;
 		}
 
