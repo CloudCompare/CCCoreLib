@@ -162,7 +162,7 @@ endif()
 # TBB (optional)
 # Must come before CGAL so it can use TBB properly
 if ( CCCORELIB_USE_TBB )
-	find_package( TBB COMPONENTS tbb )
+	find_package( TBB COMPONENTS tbb CONFIG )
 
 	if ( TBB_FOUND )
 		target_link_libraries( CCCoreLib
