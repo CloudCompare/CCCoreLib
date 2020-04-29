@@ -26,6 +26,7 @@ namespace CCCoreLib
 	constexpr double SQRT_3 = 1.7320508075688772935274463415059;
 	
 	//! Conversion factor from radians to degrees
+	[[deprecated( "Use CCCoreLib::radiansToDegrees()" )]]
 	constexpr double RAD_TO_DEG = (180.0/M_PI);
 	
 	//! Conversion factor from degrees to radians
