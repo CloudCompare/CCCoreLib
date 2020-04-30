@@ -59,7 +59,7 @@ namespace CCCoreLib
 	*/	
 	inline float radiansToDegrees( float radians )
 	{		
-		return radians * (180.0f/M_PI);
+		return radians * (180.0f/static_cast<float>(M_PI));
 	}
 	
 	//! Convert radians to degrees.
@@ -79,7 +79,7 @@ namespace CCCoreLib
 	*/	
 	inline float degreesToRadians( float degrees )
 	{		
-		return degrees * (180.0f/M_PI);
+		return degrees * (180.0f/static_cast<float>(M_PI));
 	}
 	
 	//! Convert degrees to radians.
