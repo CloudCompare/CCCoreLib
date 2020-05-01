@@ -13,33 +13,9 @@
 //System
 #include <algorithm>
 
-//Eigenvalues decomposition
-//#define USE_EIGEN
-#ifdef USE_EIGEN
-#include <eigen/Eigen/Eigenvalues>
-#else
 #include <Jacobi.h>
-#endif
 
 using namespace CCCoreLib;
-
-#ifdef USE_EIGEN
-Eigen::MatrixXd ToEigen(const SquareMatrixd& M)
-{
-	unsigned sz = M.size();
-
-	Eigen::MatrixXd A(sz, sz);
-	for (unsigned c = 0; c < sz; ++c)
-	{
-		for (unsigned r = 0; r < sz; ++r)
-		{
-			A(r, c) = M.getValue(r, c);
-		}
-	}
-
-	return A;
-}
-#endif
 
 Neighbourhood::Neighbourhood(GenericIndexedCloudPersist* associatedCloud)
 	: m_quadricEquationDirections(0, 1, 2)
@@ -244,19 +220,6 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	{
 		SquareMatrixd covMat = computeCovarianceMatrix();
 
-#ifdef USE_EIGEN
-		Eigen::Matrix3d A = ToEigen(covMat);
-		Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-		es.compute(A);
-
-		//eigen values (and vectors) are sorted in ascending order
-		const auto& eVec = es.eigenvectors();
-
-		//get normal
-		m_lsPlaneVectors[2] = CCVector3::fromArray(eVec.col(0).data()); //smallest eigenvalue
-		//get also X (Y will be deduced by cross product, see below
-		m_lsPlaneVectors[0] = CCVector3::fromArray(eVec.col(2).data()); //biggest eigenvalue
-#else
 		//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
 		SquareMatrixd eigVectors;
 		std::vector<double> eigValues;
@@ -282,7 +245,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 			Jacobi<double>::GetMaxEigenValueAndVector(eigVectors, eigValues, maxEigValue, vec.u);
 			m_lsPlaneVectors[0] = CCVector3::fromArray(vec.u);
 		}
-#endif
+
 		//get the centroid (should already be up-to-date - see computeCovarianceMatrix)
 		G = *getGravityCenter();
 	}
@@ -634,20 +597,6 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 	M.resize(0);
 
 	//now we compute eigen values and vectors of D
-#ifdef USE_EIGEN
-	Eigen::MatrixXd A = ToEigen(D);
-	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
-	es.compute(A);
-
-	//eigen values (and vectors) are sorted in ascending order
-	//(we get the eigen vector corresponding to the minimum eigen value)
-	const auto& minEigenVec = es.eigenvectors().col(0);
-
-	for (unsigned i = 0; i < D.size(); ++i)
-	{
-		quadricEquation[i] = minEigenVec[i];
-	}
-#else
 	SquareMatrixd eigVectors;
 	std::vector<double> eigValues;
 	if (!Jacobi<double>::ComputeEigenValuesAndVectors(D, eigVectors, eigValues, true))
@@ -659,7 +608,6 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 	//we get the eigen vector corresponding to the minimum eigen value
 	double minEigValue = 0;
 	Jacobi<double>::GetMinEigenValueAndVector(eigVectors, eigValues, minEigValue, quadricEquation);
-#endif
 
 	return true;
 }
@@ -1043,17 +991,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
 			SquareMatrixd covMat = computeCovarianceMatrix();
 			CCVector3d e(0, 0, 0);
-#ifdef USE_EIGEN
-			Eigen::Matrix3d A = ToEigen(covMat);
-			Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-			es.compute(A);
 
-			//eigen values (and vectors) are sorted in ascending order
-			const auto& eVal = es.eigenvalues();
-
-			//compute curvature as the rate of change of the surface
-			e = CCVector3d::fromArray(eVal.data());
-#else
 			SquareMatrixd eigVectors;
 			std::vector<double> eigValues;
 			if (!Jacobi<double>::ComputeEigenValuesAndVectors(covMat, eigVectors, eigValues, true))
@@ -1066,7 +1004,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			e.x = eigValues[0];
 			e.y = eigValues[1];
 			e.z = eigValues[2];
-#endif
+
 			const double sum = e.x + e.y + e.z; //we work with absolute values
 			if (sum < ZERO_TOLERANCE)
 			{
