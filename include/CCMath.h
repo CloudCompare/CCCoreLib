@@ -17,7 +17,7 @@ namespace CCCoreLib
 	  \param x The number to test
 	  \return True if the number is less than epsilon.
 	*/	
-	inline bool	lessThanEpsilon( float x )
+	inline bool	LessThanEpsilon( float x )
 	{
 		return x < std::numeric_limits<float>::epsilon();
 	}
@@ -27,7 +27,7 @@ namespace CCCoreLib
 	  \param x The number to test
 	  \return True if the number is less than epsilon.
 	*/	
-	inline bool	lessThanEpsilon( double x )
+	inline bool	LessThanEpsilon( double x )
 	{
 		return x < std::numeric_limits<double>::epsilon();
 	}
@@ -37,7 +37,7 @@ namespace CCCoreLib
 	  \param x The number to test
 	  \return True if the number is greater than epsilon.
 	*/	
-	inline bool	greaterThanEpsilon( float x )
+	inline bool	GreaterThanEpsilon( float x )
 	{
 		return x > std::numeric_limits<float>::epsilon();
 	}
@@ -47,7 +47,7 @@ namespace CCCoreLib
 	  \param x The number to test
 	  \return True if the number is greater than epsilon.
 	*/	
-	inline bool	greaterThanEpsilon( double x )
+	inline bool	GreaterThanEpsilon( double x )
 	{
 		return x > std::numeric_limits<double>::epsilon();
 	}
@@ -57,7 +57,7 @@ namespace CCCoreLib
 	  \param radians Radians to convert
 	  \return \a radians represented as degrees.
 	*/	
-	inline float radiansToDegrees( float radians )
+	inline float RadiansToDegrees( float radians )
 	{		
 		return radians * (180.0f/static_cast<float>(M_PI));
 	}
@@ -67,7 +67,7 @@ namespace CCCoreLib
 	  \param radians Radians to convert
 	  \return \a radians represented as degrees.
 	*/	
-	inline double radiansToDegrees( double radians )
+	inline double RadiansToDegrees( double radians )
 	{		
 		return radians * (180.0/M_PI);
 	}
@@ -77,7 +77,7 @@ namespace CCCoreLib
 	  \param degrees Degrees to convert
 	  \return \a degrees represented as radians.
 	*/	
-	inline float degreesToRadians( float degrees )
+	inline float DegreesToRadians( float degrees )
 	{		
 		return degrees * (180.0f/static_cast<float>(M_PI));
 	}
@@ -87,7 +87,7 @@ namespace CCCoreLib
 	  \param degrees Degrees to convert
 	  \return \a degrees represented as radians.
 	*/	
-	inline double degreesToRadians( double degrees )
+	inline double DegreesToRadians( double degrees )
 	{		
 		return degrees * (180.0/M_PI);
 	}
