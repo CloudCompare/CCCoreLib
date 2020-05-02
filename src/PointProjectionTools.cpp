@@ -4,6 +4,7 @@
 #include <PointProjectionTools.h>
 
 //local
+#include <CCMath.h>
 #include <Delaunay2dMesh.h>
 #include <DistanceComputationTools.h>
 #include <GenericProgressCallback.h>
@@ -100,7 +101,7 @@ PointCloud* PointProjectionTools::developCloudOnCone(GenericCloud* cloud, unsign
 	unsigned char dim1 = (dim>0 ? dim-1 : 2);
 	unsigned char dim2 = (dim<2 ? dim+1 : 0);
 
-	float tan_alpha = tanf(alpha*static_cast<float>(DEG_TO_RAD));
+	const float tan_alpha = tanf( DegreesToRadians( alpha ) );
 	//float cos_alpha = cos(alpha*CCCoreLib::DEG_TO_RAD);
 	//float sin_alpha = sin(alpha*CCCoreLib::DEG_TO_RAD);
 	float q = 1.0f/(1.0f+tan_alpha*tan_alpha);
