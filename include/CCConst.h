@@ -26,10 +26,11 @@ namespace CCCoreLib
 	constexpr double SQRT_3 = 1.7320508075688772935274463415059;
 	
 	//! Conversion factor from radians to degrees
-	[[deprecated( "Use CCCoreLib::radiansToDegrees()" )]]
+	[[deprecated( "Use CCCoreLib::RadiansToDegrees()" )]]
 	constexpr double RAD_TO_DEG = (180.0/M_PI);
 	
 	//! Conversion factor from degrees to radians
+	[[deprecated( "Use CCCoreLib::DegreesToRadians()" )]]
 	constexpr double DEG_TO_RAD = (M_PI/180.0);
 	
 	//! Numerical threshold for considering a value as "zero"
