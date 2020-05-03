@@ -4,6 +4,7 @@
 #pragma once
 
 //Local
+#include "CCMath.h"
 #include "CCMiscTools.h"
 #include "GenericCloud.h"
 #include "GenericIndexedMesh.h"
@@ -148,9 +149,9 @@ namespace CCCoreLib
 				CCVector3 CA = (*triPoints[0]) - (*triPoints[2]);
 
 				//be sure that the triangle is not degenerate!!!
-				if (AB.norm2() > ZERO_TOLERANCE &&
-						BC.norm2() > ZERO_TOLERANCE &&
-						CA.norm2() > ZERO_TOLERANCE)
+				if ( GreaterThanEpsilon( AB.norm2() ) &&
+					 GreaterThanEpsilon( BC.norm2() ) &&
+					 GreaterThanEpsilon( CA.norm2() ) )
 				{
 					Tuple3i cellPos[3];
 					{

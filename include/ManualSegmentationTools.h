@@ -112,7 +112,7 @@ namespace CCCoreLib
 				: insideMesh(nullptr)
 				, outsideMesh(nullptr)
 				, generateOutsideMesh(false)
-				, epsilon(ZERO_TOLERANCE)
+				, epsilon(std::numeric_limits<double>::epsilon())
 				, planeOrthoDim(0)
 				, planeCoord(0)
 				, bbMin(0, 0, 0)

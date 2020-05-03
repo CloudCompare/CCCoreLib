@@ -34,6 +34,7 @@ namespace CCCoreLib
 	constexpr double DEG_TO_RAD = (M_PI/180.0);
 	
 	//! Numerical threshold for considering a value as "zero"
+	[[deprecated( "Use std::numeric_limits<>::epsilon or CCCoreLib::LessThanEpsilon()/CCCoreLib::GreaterThanEpsilon()" )]]
 	constexpr double ZERO_TOLERANCE = static_cast<double>(FLT_EPSILON);
 	
 	//! '1' as a PointCoordinateType value
