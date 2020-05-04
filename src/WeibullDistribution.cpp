@@ -290,8 +290,8 @@ double WeibullDistribution::ComputeG(const ScalarContainer& values, double r, Sc
 
 	if (zeroValues)
 	{
-		const double ln_v = log(std::numeric_limits<double>::epsilon()) * zeroValues;
-		const double v_a = pow(std::numeric_limits<double>::epsilon() / valueRange, static_cast<double>(r));
+		const double ln_v = log(ZERO_TOLERANCE_D) * zeroValues;
+		const double v_a = pow(ZERO_TOLERANCE_D / valueRange, static_cast<double>(r));
 		s += ln_v;
 		q += v_a * zeroValues;
 		p += ln_v * v_a;

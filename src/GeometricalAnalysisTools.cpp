@@ -811,7 +811,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		return NotEnoughPoints;
 
 	assert(confidence < 1.0);
-	confidence = std::min(confidence, 1.0 - FLT_EPSILON);
+	confidence = std::min(confidence, 1.0 - ZERO_TOLERANCE_D);
 
 	//we'll need an array (sorted) to compute the medians
 	std::vector<PointCoordinateType> values;

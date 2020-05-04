@@ -6,7 +6,6 @@
 #include "CCTypes.h"
 
 //system
-#include <cfloat>
 #include <cmath>
 #include <limits>
 
@@ -34,8 +33,16 @@ namespace CCCoreLib
 	constexpr double DEG_TO_RAD = (M_PI/180.0);
 	
 	//! Numerical threshold for considering a value as "zero"
-	[[deprecated( "Use std::numeric_limits<>::epsilon or CCCoreLib::LessThanEpsilon()/CCCoreLib::GreaterThanEpsilon()" )]]
-	constexpr double ZERO_TOLERANCE = static_cast<double>(FLT_EPSILON);
+	[[deprecated( "Use ZERO_TOLERANCE_F/ZERO_TOLERANCE_D or CCCoreLib::LessThanEpsilon()/CCCoreLib::GreaterThanEpsilon()" )]]
+	constexpr double ZERO_TOLERANCE = std::numeric_limits<float>::epsilon();
+	
+	//! ZERO_TOLERANCE_F is used to set a float variable to "close to zero".
+	constexpr float ZERO_TOLERANCE_F = std::numeric_limits<float>::epsilon();
+	
+	//! ZERO_TOLERANCE_D is used to set a double variable to "close to zero".
+	//! It is defined as std::numeric_limits::epsilon() because using
+	//! std::numeric_limits::epsilon() results in numbers that are too small for our purposes.
+	constexpr double ZERO_TOLERANCE_D = static_cast<double>(ZERO_TOLERANCE_F);
 	
 	//! '1' as a PointCoordinateType value
 	/** To avoid compiler warnings about 'possible loss of data' **/

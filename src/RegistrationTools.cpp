@@ -916,7 +916,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			double q[4] = { cos_half_t, a.x * sin_half_t, a.y * sin_half_t, a.z * sin_half_t };
 			//don't forget to normalize the quaternion
 			double qnorm = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
-			assert( GreaterThanEpsilon( qnorm ) );
+			assert( qnorm >= ZERO_TOLERANCE_D );
 			qnorm = sqrt(qnorm);
 			q[0] /= qnorm;
 			q[1] /= qnorm;
