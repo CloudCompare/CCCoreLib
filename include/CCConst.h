@@ -40,8 +40,8 @@ namespace CCCoreLib
 	constexpr float ZERO_TOLERANCE_F = std::numeric_limits<float>::epsilon();
 	
 	//! ZERO_TOLERANCE_D is used to set a double variable to "close to zero".
-	//! It is defined as std::numeric_limits::epsilon() because using
-	//! std::numeric_limits::epsilon() results in numbers that are too small for our purposes.
+	//! It is defined as std::numeric_limits<float>::epsilon() because using
+	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our purposes.
 	constexpr double ZERO_TOLERANCE_D = static_cast<double>(ZERO_TOLERANCE_F);
 	
 	//! '1' as a PointCoordinateType value
