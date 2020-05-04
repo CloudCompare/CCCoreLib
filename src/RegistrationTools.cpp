@@ -4,6 +4,7 @@
 #include <RegistrationTools.h>
 
 //local
+#include <CCMath.h>
 #include <CloudSamplingTools.h>
 #include <DistanceComputationTools.h>
 #include <Garbage.h>
@@ -607,7 +608,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				finalRMS = rms;
 				finalPointCount = data.cloud->size();
 
-				if (rms < ZERO_TOLERANCE)
+				if ( LessThanEpsilon( rms ) )
 				{
 					//nothing to do
 					result = ICP_NOTHING_TO_DO;
@@ -874,8 +875,10 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			Np = (*Bp - *Ap).cross(*Cp - *Ap);
 			double norm = Np.normd();
-			if (norm < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( norm ) )
+			{
 				return false;
+			}
 			Np /= static_cast<PointCoordinateType>(norm);
 		}
 		//compute the second set normal
@@ -887,13 +890,15 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			Nx = (*Bx - *Ax).cross(*Cx - *Ax);
 			double norm = Nx.normd();
-			if (norm < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( norm ) )
+			{
 				return false;
+			}
 			Nx /= static_cast<PointCoordinateType>(norm);
 		}
 		//now the rotation is simply the rotation from Nx to Np, centered on Gx
 		CCVector3 a = Np.cross(Nx);
-		if (a.norm() < ZERO_TOLERANCE)
+		if ( LessThanEpsilon( a.norm() ) )
 		{
 			trans.R = SquareMatrix(3);
 			trans.R.toIdentity();
@@ -911,7 +916,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			double q[4] = { cos_half_t, a.x * sin_half_t, a.y * sin_half_t, a.z * sin_half_t };
 			//don't forget to normalize the quaternion
 			double qnorm = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
-			assert(qnorm >= ZERO_TOLERANCE);
+			assert( qnorm >= ZERO_TOLERANCE_D );
 			qnorm = sqrt(qnorm);
 			q[0] /= qnorm;
 			q[1] /= qnorm;
@@ -924,8 +929,10 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			double sumNormP = (*Bp - *Ap).norm() + (*Cp - *Bp).norm() + (*Ap - *Cp).norm();
 			sumNormP *= aPrioriScale;
-			if (sumNormP < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( sumNormP ) )
+			{
 				return false;
+			}
 			double sumNormX = (*Bx - *Ax).norm() + (*Cx - *Bx).norm() + (*Ax - *Cx).norm();
 			trans.s = static_cast<PointCoordinateType>(sumNormX / sumNormP); //sumNormX / (sumNormP * Sa) in fact
 		}
@@ -962,9 +969,11 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 
 			S = Ssum.dot(Nx);
 			double Q = sqrt(S*S + C * C);
-			if (Q < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( Q ) )
+			{
 				return false;
-
+			}
+			
 			PointCoordinateType sin_t = static_cast<PointCoordinateType>(S / Q);
 			PointCoordinateType cos_t = static_cast<PointCoordinateType>(C / Q);
 			PointCoordinateType inv_cos_t = 1 - cos_t;
@@ -1006,7 +1015,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		//it's the case when the two clouds are very far away from
 		//each other in the ICP process) we try to get the two clouds closer
 		CCVector3 diag = bbMax - bbMin;
-		if (std::abs(diag.x) + std::abs(diag.y) + std::abs(diag.z) < ZERO_TOLERANCE)
+		if ( LessThanEpsilon( std::abs(diag.x) + std::abs(diag.y) + std::abs(diag.z) ) )
 		{
 			trans.T = Gx - Gp * aPrioriScale;
 			return true;

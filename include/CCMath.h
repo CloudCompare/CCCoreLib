@@ -12,44 +12,44 @@
 
 namespace CCCoreLib
 {
-	//! Test a floating point number against epsilon (a very small number).
+	//! Test a floating point number against our epsilon (a very small number).
 	/*!
 	  \param x The number to test
 	  \return True if the number is less than epsilon.
 	*/	
 	inline bool	LessThanEpsilon( float x )
 	{
-		return x < std::numeric_limits<float>::epsilon();
+		return x < ZERO_TOLERANCE_F;
 	}
 	
-	//! Test a floating point number against epsilon (a very small number).
+	//! Test a floating point number against our epsilon (a very small number).
 	/*!
 	  \param x The number to test
 	  \return True if the number is less than epsilon.
 	*/	
 	inline bool	LessThanEpsilon( double x )
 	{
-		return x < std::numeric_limits<double>::epsilon();
+		return x < ZERO_TOLERANCE_D;
 	}
 	
-	//! Test a floating point number against epsilon (a very small number).
+	//! Test a floating point number against our epsilon (a very small number).
 	/*!
 	  \param x The number to test
 	  \return True if the number is greater than epsilon.
 	*/	
 	inline bool	GreaterThanEpsilon( float x )
 	{
-		return x > std::numeric_limits<float>::epsilon();
+		return x > ZERO_TOLERANCE_F;
 	}
 	
-	//! Test a floating point number against epsilon (a very small number).
+	//! Test a floating point number against our epsilon (a very small number).
 	/*!
 	  \param x The number to test
 	  \return True if the number is greater than epsilon.
 	*/	
 	inline bool	GreaterThanEpsilon( double x )
 	{
-		return x > std::numeric_limits<double>::epsilon();
+		return x > ZERO_TOLERANCE_D;
 	}
 	
 	//! Convert radians to degrees.

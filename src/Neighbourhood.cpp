@@ -4,16 +4,17 @@
 #include <Neighbourhood.h>
 
 //local
+#include <CCMath.h>
 #include <ConjugateGradient.h>
 #include <Delaunay2dMesh.h>
 #include <DistanceComputationTools.h>
+#include <Jacobi.h>
 #include <PointCloud.h>
 #include <SimpleMesh.h>
 
 //System
 #include <algorithm>
 
-#include <Jacobi.h>
 
 using namespace CCCoreLib;
 
@@ -266,7 +267,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	}
 
 	//make sure all vectors are unit!
-	if (m_lsPlaneVectors[2].norm2() < ZERO_TOLERANCE)
+	if ( LessThanEpsilon( m_lsPlaneVectors[2].norm2() ) )
 	{
 		//this means that the points are colinear!
 		//m_lsPlaneVectors[2] = CCVector3(0,0,1); //any normal will do
@@ -624,7 +625,7 @@ GenericIndexedMesh* Neighbourhood::triangulateOnPlane( bool duplicateVertices,
 	}
 
 	//safety check: Triangle lib will crash if the points are all the same!
-	if (computeLargestRadius() < ZERO_TOLERANCE)
+	if ( LessThanEpsilon( computeLargestRadius() ) )
 	{
 		return nullptr;
 	}
@@ -1006,7 +1007,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			e.z = eigValues[2];
 
 			const double sum = e.x + e.y + e.z; //we work with absolute values
-			if (sum < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( sum ) )
 			{
 				return NAN_VALUE;
 			}

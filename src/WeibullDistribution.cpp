@@ -9,6 +9,7 @@
 #include <WeibullDistribution.h>
 
 //local
+#include <CCMath.h>
 #include <GenericCloud.h>
 #include <ScalarField.h>
 #include <ScalarFieldTools.h>
@@ -269,7 +270,7 @@ double WeibullDistribution::ComputeG(const ScalarContainer& values, double r, Sc
 		if (ScalarField::ValidValue(v)) //we ignore NaN values
 		{
 			double v0 = static_cast<double>(v) - valueShift;
-			if (v0 > ZERO_TOLERANCE)
+			if ( GreaterThanEpsilon( v0 ) )
 			{
 				double ln_v = log(v0);
 				double v_a = pow(v0 / valueRange, r);
@@ -289,8 +290,8 @@ double WeibullDistribution::ComputeG(const ScalarContainer& values, double r, Sc
 
 	if (zeroValues)
 	{
-		double ln_v = log(ZERO_TOLERANCE) * zeroValues;
-		double v_a = pow(ZERO_TOLERANCE / valueRange, static_cast<double>(r));
+		const double ln_v = log(ZERO_TOLERANCE_D) * zeroValues;
+		const double v_a = pow(ZERO_TOLERANCE_D / valueRange, static_cast<double>(r));
 		s += ln_v;
 		q += v_a * zeroValues;
 		p += ln_v * v_a;
@@ -315,16 +316,20 @@ double WeibullDistribution::FindGRoot(const ScalarContainer& values, ScalarType 
 	double vMax = v;
 
 	//find min value for binary search so that ComputeG(aMin) < 0
-	while (vMin > 0 && aMin > ZERO_TOLERANCE)
+	while ((vMin > 0) && GreaterThanEpsilon( aMin))
 	{
 		aMin /= 10;
 		vMin = ComputeG(values, aMin, valueShift, valueRange);
 	}
 
-	if (std::abs(vMin) < ZERO_TOLERANCE)
+	if ( LessThanEpsilon( std::abs(vMin) ) )
+	{
 		return aMin;
+	}
 	else if (vMin > 0)
+	{
 		return r; //r = -1 (i.e. problem)
+	}
 
 	//find max value for binary search so that ComputeG(aMax) > 0
 	while (vMax < 0 && aMax < 1.0e3)
@@ -333,19 +338,23 @@ double WeibullDistribution::FindGRoot(const ScalarContainer& values, ScalarType 
 		vMax = ComputeG(values, aMax, valueShift, valueRange);
 	}
 
-	if (std::abs(vMax) < ZERO_TOLERANCE)
+	if ( LessThanEpsilon( std::abs(vMax) ) )
+	{
 		return aMax;
+	}
 	else if (vMax < 0)
+	{
 		return r; //r = -1 (i.e. problem)
+	}
 
 	//binary search to find r so that std::abs(ComputeG(r)) < ZERO_TOLERANCE
-	while (std::abs(v) * 100 > ZERO_TOLERANCE) //DGM: *100 ?! (can't remember why ;)
+	while ( GreaterThanEpsilon( std::abs(v) * 100 ) ) //DGM: *100 ?! (can't remember why ;)
 	{
 		r = (aMin + aMax) / 2;
 		double old_v = v;
 		v = ComputeG(values, r, valueShift, valueRange);
 
-		if (std::abs(old_v - v) < ZERO_TOLERANCE)
+		if ( LessThanEpsilon( std::abs(old_v - v) ) )
 			return r;
 
 		if (v < 0)

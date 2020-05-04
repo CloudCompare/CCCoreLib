@@ -4,6 +4,7 @@
 #include <GeometricalAnalysisTools.h>
 
 //local
+#include <CCMath.h>
 #include <DgmOctreeReferenceCloud.h>
 #include <DistanceComputationTools.h>
 #include <GenericProgressCallback.h>
@@ -481,7 +482,7 @@ bool GeometricalAnalysisTools::ComputeApproxPointsDensityInACellAtLevel(const Dg
 			double R2 = nNSS.pointsInNeighbourhood[1].squareDistd;
 
 			ScalarType density = NAN_VALUE;
-			if (R2 > ZERO_TOLERANCE)
+			if ( GreaterThanEpsilon( R2 ) )
 			{
 				switch (densityType)
 				{
@@ -763,7 +764,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 			const CCVector3* Pi = cloud->getPoint(i);
 			CCVector3d Di = CCVector3d::fromArray(Pi->u) - c;
 			double norm = Di.norm();
-			if (norm < ZERO_TOLERANCE)
+			if ( LessThanEpsilon( norm ) )
 				continue;
 
 			meanNorm += norm;
@@ -810,7 +811,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		return NotEnoughPoints;
 
 	assert(confidence < 1.0);
-	confidence = std::min(confidence, 1.0 - FLT_EPSILON);
+	confidence = std::min(confidence, 1.0 - ZERO_TOLERANCE_D);
 
 	//we'll need an array (sorted) to compute the medians
 	std::vector<PointCoordinateType> values;
