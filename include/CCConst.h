@@ -44,6 +44,9 @@ namespace CCCoreLib
 	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our purposes.
 	constexpr double ZERO_TOLERANCE_D = static_cast<double>(ZERO_TOLERANCE_F);
 	
+	//! ZERO_TOLERANCE_SCALAR is used to set a ScalarType variable to "close to zero".
+	constexpr ScalarType ZERO_TOLERANCE_SCALAR = std::numeric_limits<ScalarType>::epsilon();
+	
 	//! '1' as a PointCoordinateType value
 	/** To avoid compiler warnings about 'possible loss of data' **/
 	constexpr PointCoordinateType PC_ONE = static_cast<PointCoordinateType>(1.0);
