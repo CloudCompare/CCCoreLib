@@ -36,16 +36,19 @@ namespace CCCoreLib
 	[[deprecated( "Use ZERO_TOLERANCE_F/ZERO_TOLERANCE_D or CCCoreLib::LessThanEpsilon()/CCCoreLib::GreaterThanEpsilon()" )]]
 	constexpr double ZERO_TOLERANCE = std::numeric_limits<float>::epsilon();
 	
-	//! ZERO_TOLERANCE_F is used to set a float variable to "close to zero".
+	//! ZERO_TOLERANCE_F is used to set or compare a float variable to "close to zero".
 	constexpr float ZERO_TOLERANCE_F = std::numeric_limits<float>::epsilon();
 	
-	//! ZERO_TOLERANCE_D is used to set a double variable to "close to zero".
+	//! ZERO_TOLERANCE_D is used to set or compare a double variable to "close to zero".
 	//! It is defined as std::numeric_limits<float>::epsilon() because using
 	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our purposes.
 	constexpr double ZERO_TOLERANCE_D = static_cast<double>(ZERO_TOLERANCE_F);
 	
-	//! ZERO_TOLERANCE_SCALAR is used to set a ScalarType variable to "close to zero".
+	//! ZERO_TOLERANCE_SCALAR is used to set or compare a ScalarType variable to "close to zero".
 	constexpr ScalarType ZERO_TOLERANCE_SCALAR = std::numeric_limits<ScalarType>::epsilon();
+	
+	//! ZERO_TOLERANCE_POINT_COORDINATE is used to set or compare a PointCoordinateType variable to "close to zero".
+	constexpr ScalarType ZERO_TOLERANCE_POINT_COORDINATE = std::numeric_limits<PointCoordinateType>::epsilon();
 	
 	//! '1' as a PointCoordinateType value
 	/** To avoid compiler warnings about 'possible loss of data' **/
