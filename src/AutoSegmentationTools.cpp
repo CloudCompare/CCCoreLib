@@ -67,11 +67,11 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 	}
 
 	//empty the input vector if necessary
-	while (!cc.empty())
+	for (auto cloud : cc)
 	{
-		delete cc.back();
-		cc.pop_back();
-	}
+		delete cloud;
+	} 
+	cc.clear();
 
 	for (unsigned i = 0; i < numberOfPoints; ++i)
 	{
@@ -92,6 +92,10 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 			catch (const std::bad_alloc&)
 			{
 				//not enough memory
+				for (auto cloud : cc)
+				{
+					delete cloud;
+				} 
 				cc.clear();
 				return false;
 			}
@@ -100,11 +104,12 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 			if (!cc[ccLabel]->addPointIndex(i))
 			{
 				//not enough memory
-				while (!cc.empty())
+				for (auto cloud : cc)
 				{
-					delete cc.back();
-					cc.pop_back();
-				}
+					delete cloud;
+				} 
+				cc.clear();
+
 				return false;
 			}
 		}
