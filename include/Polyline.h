@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "ReferenceCloud.h"
 
 namespace CCCoreLib
@@ -16,21 +16,25 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API Polyline : public ReferenceCloud
 	{
 	public:
-
 		//! Polyline constructor
-		explicit Polyline(GenericIndexedCloudPersist* associatedCloud);
+		explicit Polyline( GenericIndexedCloudPersist* associatedCloud );
 
 		//! Returns whether the polyline is closed or not
-		inline bool isClosed() const { return m_isClosed; }
+		inline bool isClosed() const
+		{
+			return m_isClosed;
+		}
 
 		//! Sets whether the polyline is closed or not
-		inline void setClosed(bool state) { m_isClosed = state; }
+		inline void setClosed( bool state )
+		{
+			m_isClosed = state;
+		}
 
-		//inherited from ReferenceCloud
-		void clear(bool unusedParam = true) override;
+		// inherited from ReferenceCloud
+		void clear( bool unusedParam = true ) override;
 
 	protected:
-
 		//! Closing state
 		bool m_isClosed;
 	};

@@ -3,18 +3,17 @@
 
 #pragma once
 
-//Local
+// Local
 #include "GenericDistribution.h"
 
 namespace CCCoreLib
 {
 	//! The Weibull statistical parametric distribution
 	/** Implements the GenericDistribution interface.
-	**/
+	 **/
 	class CC_CORE_LIB_API WeibullDistribution : public GenericDistribution
 	{
 	public:
-
 		//! WeibullDistribution constructor
 		WeibullDistribution();
 
@@ -25,21 +24,21 @@ namespace CCCoreLib
 			\param b the Weibull b parameter (also known as 'lambda')
 			\param valueShift a value shift ('zero')
 		**/
-		WeibullDistribution(ScalarType a, ScalarType b, ScalarType valueShift = 0);
+		WeibullDistribution( ScalarType a, ScalarType b, ScalarType valueShift = 0 );
 
 		//! Returns the distribution parameters
 		/** \param a the Weibull a parameter (also known as 'k')
 			\param b the Weibull b parameter (also known as 'lambda')
 			\return the parameters validity
 		**/
-		bool getParameters(ScalarType &a, ScalarType &b) const;
+		bool getParameters( ScalarType& a, ScalarType& b ) const;
 
 		//! Returns the normal distribution equivalent parameters
 		/** \param mu a field to transmit the equivalent mean
 			\param sigma2 a field to transmit the equivalent variance
 			\return the parameters validity
 		**/
-		bool getOtherParameters(ScalarType &mu, ScalarType &sigma2) const;
+		bool getOtherParameters( ScalarType& mu, ScalarType& sigma2 ) const;
 
 		//! Returns the distribution 'mode'
 		double computeMode() const;
@@ -52,32 +51,38 @@ namespace CCCoreLib
 			\param valueShift a value shift ('zero')
 			\return the parameters validity
 		**/
-		bool setParameters(ScalarType a, ScalarType b, ScalarType valueShift = 0);
+		bool setParameters( ScalarType a, ScalarType b, ScalarType valueShift = 0 );
 
 		//! Sets the distribution value shift
 		/** \param vs value shift
-		**/
-		void setValueShift(ScalarType vs);
+		 **/
+		void setValueShift( ScalarType vs );
 
 		//! Returns the distribution value shift
-		inline ScalarType getValueShift() const { return m_valueShift; }
+		inline ScalarType getValueShift() const
+		{
+			return m_valueShift;
+		}
 
-		//inherited methods (see GenericDistribution)
-		bool computeParameters(const ScalarContainer& values) override;
-		double computeP(ScalarType x) const override;
-		double computePfromZero(ScalarType x) const override;
-		double computeP(ScalarType x1, ScalarType x2) const override;
-		double computeChi2Dist(const GenericCloud* cloud, unsigned numberOfClasses, int* histo = nullptr) override;
-		const char* getName() const override { return "Weibull"; }
+		// inherited methods (see GenericDistribution)
+		bool computeParameters( const ScalarContainer& values ) override;
+		double computeP( ScalarType x ) const override;
+		double computePfromZero( ScalarType x ) const override;
+		double computeP( ScalarType x1, ScalarType x2 ) const override;
+		double computeChi2Dist( const GenericCloud* cloud, unsigned numberOfClasses,
+								int* histo = nullptr ) override;
+		const char* getName() const override
+		{
+			return "Weibull";
+		}
 
 	protected:
-
 		//! Compute each Chi2 class limits
 		/** This method is used (internally) to accelerate the Chi2 distance computation.
-			\param numberOfClasses the number of classes that will be used for Chi2 distance computation
-			\return success
+			\param numberOfClasses the number of classes that will be used for Chi2 distance
+		computation \return success
 		**/
-		virtual bool setChi2ClassesPositions(unsigned numberOfClasses);
+		virtual bool setChi2ClassesPositions( unsigned numberOfClasses );
 
 		//! Chi2 classes limits
 		/** Used internally. Stores both limits for each class in a vector
@@ -101,9 +106,10 @@ namespace CCCoreLib
 
 		//! internal function for parameters evaluation from sample points
 		/** inverseVmax can be optionally specified for overflow-safe version
-		**/
-		static double ComputeG(const ScalarContainer& values, double a, ScalarType valueShift, double valueRange);
+		 **/
+		static double ComputeG( const ScalarContainer& values, double a, ScalarType valueShift,
+								double valueRange );
 		//! internal function for parameters evaluation from sample points
-		static double FindGRoot(const ScalarContainer& values, ScalarType valueShift, double valueRange);
+		static double FindGRoot( const ScalarContainer& values, ScalarType valueShift, double valueRange );
 	};
 }

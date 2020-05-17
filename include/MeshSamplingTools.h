@@ -3,10 +3,10 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCToolbox.h"
 
-//system
+// system
 #include <map>
 #include <vector>
 
@@ -22,12 +22,11 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API MeshSamplingTools : public CCToolbox
 	{
 	public:
-
 		//! Computes the mesh area
 		/** \param mesh triangular mesh
 			\return mesh area
 		**/
-		static double computeMeshArea(GenericMesh* mesh);
+		static double computeMeshArea( GenericMesh* mesh );
 
 		//! Computes the mesh volume
 		/** \warning Make sure the input mesh is closed!
@@ -35,17 +34,18 @@ namespace CCCoreLib
 			\param mesh triangular mesh (closed!)
 			\return mesh volume
 		**/
-		static double computeMeshVolume(GenericMesh* mesh);
+		static double computeMeshVolume( GenericMesh* mesh );
 
 		//! Statistics on the edges connectivty of a mesh
 		struct EdgeConnectivityStats
 		{
 			EdgeConnectivityStats()
-				: edgesCount(0)
-				, edgesNotShared(0)
-				, edgesSharedByTwo(0)
-				, edgesSharedByMore(0)
-			{}
+				: edgesCount( 0 )
+				, edgesNotShared( 0 )
+				, edgesSharedByTwo( 0 )
+				, edgesSharedByMore( 0 )
+			{
+			}
 
 			//! Total number of edges
 			unsigned edgesCount;
@@ -65,14 +65,14 @@ namespace CCCoreLib
 			\param[out] stats output statistics
 			\return false if an error occurred (invalid input or not enough memory)
 		**/
-		static bool computeMeshEdgesConnectivity(GenericIndexedMesh* mesh, EdgeConnectivityStats& stats);
+		static bool computeMeshEdgesConnectivity( GenericIndexedMesh* mesh, EdgeConnectivityStats& stats );
 
 		//! Flags used by the MeshSamplingTools::flagMeshVerticesByType method.
 		enum VertexFlags
 		{
-			VERTEX_NORMAL		= 0,	/**< Normal vertex **/
-			VERTEX_BORDER		= 1,	/**< Vertex on a border/hole **/
-			VERTEX_NON_MANIFOLD	= 2		/**< Vertex on a non-manifold edge **/
+			VERTEX_NORMAL = 0,		/**< Normal vertex **/
+			VERTEX_BORDER = 1,		/**< Vertex on a border/hole **/
+			VERTEX_NON_MANIFOLD = 2 /**< Vertex on a non-manifold edge **/
 		};
 
 		//! Flags the vertices of a mesh depending on their type
@@ -82,7 +82,8 @@ namespace CCCoreLib
 			\param[out] stats output statistics (optional)
 			\return false if an error occurred (invalid input or not enough memory)
 		**/
-		static bool flagMeshVerticesByType(GenericIndexedMesh* mesh, ScalarField* flags, EdgeConnectivityStats* stats = nullptr);
+		static bool flagMeshVerticesByType( GenericIndexedMesh* mesh, ScalarField* flags,
+											EdgeConnectivityStats* stats = nullptr );
 
 		//! Samples points on a mesh
 		/** The points are sampled on each triangle randomly, by generating
@@ -98,14 +99,14 @@ namespace CCCoreLib
 			sampled on the triangle will simply be Ni.
 			\param mesh the mesh to be sampled
 			\param samplingDensity the sampling surface density
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param[out] triIndices triangle index for each samples point (output only - optional)
-			\return the sampled points
+			\param progressCb the client application can get some notification of the process
+		progress through this callback mechanism (see GenericProgressCallback) \param[out]
+		triIndices triangle index for each samples point (output only - optional) \return the
+		sampled points
 		**/
-		static PointCloud* samplePointsOnMesh(	GenericMesh* mesh,
-												double samplingDensity,
-												GenericProgressCallback* progressCb = nullptr,
-												std::vector<unsigned>* triIndices = nullptr);
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
+											   GenericProgressCallback* progressCb = nullptr,
+											   std::vector<unsigned>* triIndices = nullptr );
 
 		//! Samples points on a mesh
 		/** See the other version of this method. Instead of specifying a
@@ -113,43 +114,42 @@ namespace CCCoreLib
 			points to sample (approximative).
 			\param mesh the mesh to be sampled
 			\param numberOfPoints the desired number of points on the whole mesh
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param[out] triIndices triangle index for each samples point (output only - optional)
-			\return the sampled points
+			\param progressCb the client application can get some notification of the process
+		progress through this callback mechanism (see GenericProgressCallback) \param[out]
+		triIndices triangle index for each samples point (output only - optional) \return the
+		sampled points
 		**/
-		static PointCloud* samplePointsOnMesh(	GenericMesh* mesh,
-												unsigned numberOfPoints,
-												GenericProgressCallback* progressCb = nullptr,
-												std::vector<unsigned>* triIndices = nullptr);
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, unsigned numberOfPoints,
+											   GenericProgressCallback* progressCb = nullptr,
+											   std::vector<unsigned>* triIndices = nullptr );
 
 	protected:
-
 		//! Samples points on a mesh - internal method
 		/** See public methods descriptions
 			\param mesh the mesh to be sampled
 			\param samplingDensity the sampling surfacical density
 			\param theoreticNumberOfPoints the approximated number of points that will be sampled
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param[out] triIndices triangle index for each samples point (output only - optional)
-			\return the sampled points
+			\param progressCb the client application can get some notification of the process
+		progress through this callback mechanism (see GenericProgressCallback) \param[out]
+		triIndices triangle index for each samples point (output only - optional) \return the
+		sampled points
 		**/
-		static PointCloud* samplePointsOnMesh(	GenericMesh* mesh,
-												double samplingDensity,
-												unsigned theoreticNumberOfPoints,
-												GenericProgressCallback* progressCb = nullptr,
-												std::vector<unsigned>* triIndices = nullptr);
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
+											   unsigned theoreticNumberOfPoints,
+											   GenericProgressCallback* progressCb = nullptr,
+											   std::vector<unsigned>* triIndices = nullptr );
 
 		//! Map used to count the number of triangles using each edge
 		/** Edges are represented by two 32 bits indexes merged as a 64 integer
-		**/
+		 **/
 		using EdgeUsageMap = std::map<unsigned long long, unsigned>;
 
 		//! Computes the unique key corresponding to an edge
-		static unsigned long long ComputeEdgeKey(unsigned i1, unsigned i2);
+		static unsigned long long ComputeEdgeKey( unsigned i1, unsigned i2 );
 		//! Computes the edge vertex indexes from its unique key
-		static void DecodeEdgeKey(unsigned long long key, unsigned& i1, unsigned& i2);
+		static void DecodeEdgeKey( unsigned long long key, unsigned& i1, unsigned& i2 );
 
 		//! Creates a map to count the number of triangles using each edge
-		static bool buildMeshEdgeUsageMap(GenericIndexedMesh* mesh, EdgeUsageMap& edgeMap);
+		static bool buildMeshEdgeUsageMap( GenericIndexedMesh* mesh, EdgeUsageMap& edgeMap );
 	};
 }

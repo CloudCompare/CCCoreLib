@@ -3,95 +3,96 @@
 
 #include <ScalarField.h>
 
-//System
+// System
 #include <cassert>
 #include <cstring>
 
 using namespace CCCoreLib;
 
-ScalarField::ScalarField(const char* name/*=0*/)
+ScalarField::ScalarField( const char* name /*=0*/ )
 {
-	setName(name);
+	setName( name );
 }
 
-ScalarField::ScalarField(const ScalarField& sf)
-	: std::vector<ScalarType>(sf)
+ScalarField::ScalarField( const ScalarField& sf )
+	: std::vector<ScalarType>( sf )
 {
-	setName(sf.m_name);
+	setName( sf.m_name );
 }
 
-void ScalarField::setName(const char* name)
+void ScalarField::setName( const char* name )
 {
-	if (name)
-		strncpy(m_name, name, 255);
+	if ( name )
+		strncpy( m_name, name, 255 );
 	else
-		strcpy(m_name, "Undefined");
+		strcpy( m_name, "Undefined" );
 }
 
-void ScalarField::computeMeanAndVariance(ScalarType &mean, ScalarType* variance) const
+void ScalarField::computeMeanAndVariance( ScalarType& mean, ScalarType* variance ) const
 {
 	double _mean = 0.0;
 	double _std2 = 0.0;
 	std::size_t count = 0;
 
-	for (std::size_t i = 0; i < size(); ++i)
+	for ( std::size_t i = 0; i < size(); ++i )
 	{
-		const ScalarType& val = at(i);
-		if (ValidValue(val))
+		const ScalarType& val = at( i );
+		if ( ValidValue( val ) )
 		{
 			_mean += val;
-			_std2 += static_cast<double>(val) * val;
+			_std2 += static_cast<double>( val ) * val;
 			++count;
 		}
 	}
 
-	if (count)
+	if ( count )
 	{
 		_mean /= count;
-		mean = static_cast<ScalarType>(_mean);
+		mean = static_cast<ScalarType>( _mean );
 
-		if (variance)
+		if ( variance )
 		{
-			_std2 = std::abs(_std2 / count - _mean*_mean);
-			*variance = static_cast<ScalarType>(_std2);
+			_std2 = std::abs( _std2 / count - _mean * _mean );
+			*variance = static_cast<ScalarType>( _std2 );
 		}
 	}
 	else
 	{
 		mean = 0;
-		if (variance)
+		if ( variance )
 		{
 			*variance = 0;
 		}
 	}
 }
 
-bool ScalarField::reserveSafe(std::size_t count)
+bool ScalarField::reserveSafe( std::size_t count )
 {
 	try
 	{
-		reserve(count);
+		reserve( count );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
-		//not enough memory
+		// not enough memory
 		return false;
 	}
 	return true;
 }
 
-bool ScalarField::resizeSafe(std::size_t count, bool initNewElements/*=false*/, ScalarType valueForNewElements/*=0*/)
+bool ScalarField::resizeSafe( std::size_t count, bool initNewElements /*=false*/,
+							  ScalarType valueForNewElements /*=0*/ )
 {
 	try
 	{
-		if (initNewElements)
-			resize(count, valueForNewElements);
+		if ( initNewElements )
+			resize( count, valueForNewElements );
 		else
-			resize(count);
+			resize( count );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
-		//not enough memory
+		// not enough memory
 		return false;
 	}
 	return true;

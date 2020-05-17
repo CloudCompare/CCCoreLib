@@ -3,10 +3,9 @@
 
 #pragma once
 
-//Local
+// Local
 #include "MathTools.h"
 #include "SquareMatrix.h"
-
 
 namespace CCCoreLib
 {
@@ -21,36 +20,41 @@ namespace CCCoreLib
 	template <int N, class Scalar> class ConjugateGradient : MathTools
 	{
 	public:
-
 		//! Default constructor
 		ConjugateGradient()
-			: cg_A(N)
+			: cg_A( N )
 		{
-			memset(cg_Gn, 0, sizeof(Scalar)*N);
-			memset(cg_Hn, 0, sizeof(Scalar)*N);
-			memset(cg_u,  0, sizeof(Scalar)*N);
-			memset(cg_b,  0, sizeof(Scalar)*N);
+			memset( cg_Gn, 0, sizeof( Scalar ) * N );
+			memset( cg_Hn, 0, sizeof( Scalar ) * N );
+			memset( cg_u, 0, sizeof( Scalar ) * N );
+			memset( cg_b, 0, sizeof( Scalar ) * N );
 		}
 
 		//! Default destructor
 		virtual ~ConjugateGradient() = default;
 
 		//! Returns A matrix
-		inline SquareMatrixTpl<Scalar>& A() { return cg_A; }
+		inline SquareMatrixTpl<Scalar>& A()
+		{
+			return cg_A;
+		}
 
 		//! Returns b vector
-		inline Scalar* b() { return cg_b; }
+		inline Scalar* b()
+		{
+			return cg_b;
+		}
 
 		//! Initializes the conjugate gradient
 		/** \param X0 the initial state (size N)
-		**/
-		void initConjugateGradient(const Scalar* X0)
+		 **/
+		void initConjugateGradient( const Scalar* X0 )
 		{
-			//we init the Gn (residuals) and Hn vectors
-			//H0 = G0 = A.X0-b
-			cg_A.apply(X0,cg_Gn);
-			for (unsigned k=0; k<N; ++k)
-				cg_Hn[k] = (cg_Gn[k] -= cg_b[k]);
+			// we init the Gn (residuals) and Hn vectors
+			// H0 = G0 = A.X0-b
+			cg_A.apply( X0, cg_Gn );
+			for ( unsigned k = 0; k < N; ++k )
+				cg_Hn[k] = ( cg_Gn[k] -= cg_b[k] );
 		}
 
 		//! Iterates the conjugate gradient
@@ -58,66 +62,65 @@ namespace CCCoreLib
 			\param Xn the current estimation of Xn (size N)
 			\return mean square error
 		**/
-		Scalar iterConjugateGradient(Scalar* Xn)
+		Scalar iterConjugateGradient( Scalar* Xn )
 		{
-			//we compute Xn+1
-			cg_A.apply(cg_Hn,cg_u);		//u = A.Hn
+			// we compute Xn+1
+			cg_A.apply( cg_Hn, cg_u ); // u = A.Hn
 
 			unsigned k;
 			Scalar d = 0, e = 0, f = 0;
-			for (k=0; k<N; ++k)
+			for ( k = 0; k < N; ++k )
 			{
-				d += cg_Hn[k]*cg_Gn[k];	    // t^Hn.Gn
-				e += cg_Hn[k]*cg_u[k];	    // t^Hn.A.Hn
-				f += cg_Gn[k]*cg_Gn[k];	    // t^Gn.Gn (needed for Hn+1 - see below)
+				d += cg_Hn[k] * cg_Gn[k]; // t^Hn.Gn
+				e += cg_Hn[k] * cg_u[k];  // t^Hn.A.Hn
+				f += cg_Gn[k] * cg_Gn[k]; // t^Gn.Gn (needed for Hn+1 - see below)
 			}
 
-			//Xn+1 = Xn - Hn*(t^Hn.Gn)/(t^Hn.A.Hn)
+			// Xn+1 = Xn - Hn*(t^Hn.Gn)/(t^Hn.A.Hn)
 			d /= e;
-			for (k=0; k<N; ++k)
-				Xn[k] -= cg_Hn[k]*d;
+			for ( k = 0; k < N; ++k )
+				Xn[k] -= cg_Hn[k] * d;
 
-			//we compute Gn+1
-			cg_A.apply(Xn,cg_u);           // u = A.Xn+1
-			for (k=0; k<N; ++k)
-				cg_Gn[k] = cg_u[k]-cg_b[k];	//Gn+1 = A.Xn+1-b
+			// we compute Gn+1
+			cg_A.apply( Xn, cg_u ); // u = A.Xn+1
+			for ( k = 0; k < N; ++k )
+				cg_Gn[k] = cg_u[k] - cg_b[k]; // Gn+1 = A.Xn+1-b
 
-			//sum of square errors
-			e=cg_Gn[0]*cg_Gn[0];
-			for (k=1;k<N;++k)
-				e += cg_Gn[k]*cg_Gn[k];	    //t^Gn+1.Gn+1
+			// sum of square errors
+			e = cg_Gn[0] * cg_Gn[0];
+			for ( k = 1; k < N; ++k )
+				e += cg_Gn[k] * cg_Gn[k]; // t^Gn+1.Gn+1
 
-			//we update Hn+1 for next iteration
-			d = e/f;
-			for (k=0; k<N; ++k)
-				cg_Hn[k] = cg_Gn[k] + cg_Hn[k]*d;	//Hn+1 = Gn+1 + Hn.(t^Gn+1.Gn+1)/(t^Gn.Gn)
+			// we update Hn+1 for next iteration
+			d = e / f;
+			for ( k = 0; k < N; ++k )
+				cg_Hn[k] = cg_Gn[k] + cg_Hn[k] * d; // Hn+1 = Gn+1 + Hn.(t^Gn+1.Gn+1)/(t^Gn.Gn)
 
-			return e/N;
+			return e / N;
 		}
 
 	protected:
-
 		//! Residuals vector
 		Scalar cg_Gn[N];
 
 		//! 'Hn' vector
 		/** Intermediary computation result
-		**/
+		 **/
 		Scalar cg_Hn[N];
 
 		//! 'u' vector
 		/** Intermediary computation result
-		**/
+		 **/
 		Scalar cg_u[N];
 
 		//! 'b' vector
 		/** Equation solved: "A.X=b"
-		**/
+		 **/
 		Scalar cg_b[N];
 
 		//! 'A' matrix
 		/** Equation solved: "A.X=b"
-		**/
+		 **/
 		SquareMatrixTpl<Scalar> cg_A;
 	};
 }

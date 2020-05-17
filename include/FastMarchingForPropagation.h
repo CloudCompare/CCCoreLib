@@ -3,7 +3,7 @@
 
 #pragma once
 
-//local
+// local
 #include "DgmOctree.h"
 #include "FastMarching.h"
 
@@ -14,11 +14,10 @@ namespace CCCoreLib
 
 	//! Fast Marching algorithm for surface front propagation
 	/** Extends the FastMarching class.
-	**/
+	 **/
 	class FastMarchingForPropagation : public FastMarching
 	{
 	public:
-
 		//! Default constructor
 		FastMarchingForPropagation();
 
@@ -32,24 +31,22 @@ namespace CCCoreLib
 			\param theCloud the point cloud
 			\param theOctree the associated octree
 			\param gridLevel the level of subdivision
-			\param constantAcceleration specifies if the acceleration is constant or shoul be computed from the cell points scalar values
-			\return a negative value if something went wrong
+			\param constantAcceleration specifies if the acceleration is constant or shoul be
+		computed from the cell points scalar values \return a negative value if something went wrong
 		**/
-		int init(GenericCloud* theCloud,
-				 DgmOctree* theOctree,
-				 unsigned char gridLevel,
-				 bool constantAcceleration = false);
+		int init( GenericCloud* theCloud, DgmOctree* theOctree, unsigned char gridLevel,
+				  bool constantAcceleration = false );
 
 		//! Returns a list of the points (references to) reached by the propagation process
 		/** Returns a cloud of points (references to) corresponding to the points that are
 			lying in cells that have been visited by the last propagation process.
 			\param[out] Zk (reference) point cloud
 		**/
-		bool extractPropagatedPoints(ReferenceCloud* Zk);
+		bool extractPropagatedPoints( ReferenceCloud* Zk );
 
 		//! Sets the propagation timings as distances for each point
 		/** \return true if ok, false otherwise
-		**/
+		 **/
 		bool setPropagationTimingsAsDistances();
 
 		//! Sets the threshold for propagation stop
@@ -58,7 +55,10 @@ namespace CCCoreLib
 			two consecutive cells is higher, the propagation process is stoped.
 			\param value the threshold
 		**/
-		void setDetectionThreshold(float value) { m_detectionThreshold = value; }
+		void setDetectionThreshold( float value )
+		{
+			m_detectionThreshold = value;
+		}
 
 		//! Sets the accceleration exageration factor
 		/** In order to detect the front arrival time jumps (see
@@ -67,7 +67,10 @@ namespace CCCoreLib
 			computation with this factor.
 			\param value the acceleration exageration factor
 		**/
-		void setJumpCoef(float value) { m_jumpCoef = value; }
+		void setJumpCoef( float value )
+		{
+			m_jumpCoef = value;
+		}
 
 		//! Find peaks of local acceleration values
 		/** This method is useful when using this Fast Marching
@@ -76,11 +79,10 @@ namespace CCCoreLib
 		**/
 		void findPeaks();
 
-		//inherited methods (see FastMarching)
+		// inherited methods (see FastMarching)
 		int propagate() override;
 
 	protected:
-
 		//! A Fast Marching grid cell for surfacical propagation
 		class PropagationCell : public Cell
 		{
@@ -88,9 +90,10 @@ namespace CCCoreLib
 			//! Default constructor
 			PropagationCell()
 				: Cell()
-				, f(0)
-				, cellCode(0)
-			{}
+				, f( 0 )
+				, cellCode( 0 )
+			{
+			}
 
 			//! Destructor
 			~PropagationCell() override = default;
@@ -101,10 +104,13 @@ namespace CCCoreLib
 			DgmOctree::CellCode cellCode;
 		};
 
-		//inherited methods (see FastMarching)
-		float computeTCoefApprox(Cell* currentCell, Cell* neighbourCell) const override;
+		// inherited methods (see FastMarching)
+		float computeTCoefApprox( Cell* currentCell, Cell* neighbourCell ) const override;
 		int step() override;
-		bool instantiateGrid(unsigned size) override { return instantiateGridTpl<PropagationCell>(size); }
+		bool instantiateGrid( unsigned size ) override
+		{
+			return instantiateGridTpl<PropagationCell>( size );
+		}
 
 		//! Accceleration exageration factor
 		float m_jumpCoef;

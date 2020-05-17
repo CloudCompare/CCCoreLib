@@ -5,18 +5,18 @@
 
 #include <functional>
 
-//Local
+// Local
 #include "CCConst.h"
 #include "CCGeom.h"
 
 namespace CCCoreLib
 {
-	//! A generic 3D point cloud interface for data communication between library and client applications
+	//! A generic 3D point cloud interface for data communication between library and client
+	//! applications
 	class CC_CORE_LIB_API GenericCloud
 	{
 
 	public:
-
 		//! Default constructor
 		GenericCloud() = default;
 
@@ -24,7 +24,7 @@ namespace CCCoreLib
 		virtual ~GenericCloud() = default;
 
 		//! Generic function applied to a point (used by foreach)
-		using genericPointAction = std::function<void (const CCVector3 &, ScalarType &)>;
+		using genericPointAction = std::function<void( const CCVector3&, ScalarType& )>;
 
 		//! Returns the number of points
 		/**	Virtual method to request the cloud size
@@ -36,30 +36,32 @@ namespace CCCoreLib
 		/**	Virtual method to apply a function to the whole cloud
 			\param action the function to apply (see GenericCloud::genericPointAction)
 		**/
-		virtual void forEach(genericPointAction action) = 0;
+		virtual void forEach( genericPointAction action ) = 0;
 
 		//! Returns the cloud bounding box
 		/**	Virtual method to request the cloud bounding box limits
 			\param bbMin lower bounding-box limits (Xmin,Ymin,Zmin)
 			\param bbMax higher bounding-box limits (Xmax,Ymax,Zmax)
 		**/
-		virtual void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) = 0;
+		virtual void getBoundingBox( CCVector3& bbMin, CCVector3& bbMax ) = 0;
 
 		//! Returns a given point visibility state (relatively to a sensor for instance)
-		/**	Generic method to request a point visibility (should be overloaded if this functionality is required).
-			The point visibility is such as defined in Daniel Girardeau-Montaut's PhD manuscript (see Chapter 2,
-			section 2-3-3). In this case, a ground based laser sensor model should be used to determine it.
-			This method is called before performing any point-to-cloud comparison. If the result is not
-			POINT_VISIBLE, then the comparison won't be performed and the scalar field value associated
-			to this point will be this visibility value.
-			\param P the 3D point to test
-			\return visibility (default: POINT_VISIBLE)
+		/**	Generic method to request a point visibility (should be overloaded if this functionality
+		is required). The point visibility is such as defined in Daniel Girardeau-Montaut's PhD
+		manuscript (see Chapter 2, section 2-3-3). In this case, a ground based laser sensor model
+		should be used to determine it. This method is called before performing any point-to-cloud
+		comparison. If the result is not POINT_VISIBLE, then the comparison won't be performed and
+		the scalar field value associated to this point will be this visibility value. \param P the
+		3D point to test \return visibility (default: POINT_VISIBLE)
 		**/
-		virtual inline unsigned char testVisibility(const CCVector3& P) const { return POINT_VISIBLE; }
+		virtual inline unsigned char testVisibility( const CCVector3& P ) const
+		{
+			return POINT_VISIBLE;
+		}
 
 		//! Sets the cloud iterator at the beginning
 		/**	Virtual method to handle the cloud global iterator
-		**/
+		 **/
 		virtual void placeIteratorAtBeginning() = 0;
 
 		//! Returns the next point (relatively to the global iterator position)
@@ -87,10 +89,10 @@ namespace CCCoreLib
 		virtual bool isScalarFieldEnabled() const = 0;
 
 		//! Sets the ith point associated scalar value
-		virtual void setPointScalarValue(unsigned pointIndex, ScalarType value) = 0;
+		virtual void setPointScalarValue( unsigned pointIndex, ScalarType value ) = 0;
 
 		//! Returns the ith point associated scalar value
-		virtual ScalarType getPointScalarValue(unsigned pointIndex) const = 0;
+		virtual ScalarType getPointScalarValue( unsigned pointIndex ) const = 0;
 	};
 
 }

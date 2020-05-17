@@ -3,12 +3,12 @@
 
 #pragma once
 
-//Local
+// Local
 #include "BoundingBox.h"
 #include "GenericIndexedMesh.h"
 #include "SimpleTriangle.h"
 
-//System
+// System
 #include <vector>
 
 namespace CCCoreLib
@@ -21,39 +21,50 @@ namespace CCCoreLib
 	**/
 	class CC_CORE_LIB_API SimpleMesh : public GenericIndexedMesh
 	{
-	public: //constructors
-
+	public: // constructors
 		//! SimpleMesh Constructor
 		/** \param _theVertices the point cloud containing the vertices
-			\param linkVerticesWithMesh specifies if the vertex cloud should be deleted when the SimpleMesh object is destructed
+			\param linkVerticesWithMesh specifies if the vertex cloud should be deleted when the
+		SimpleMesh object is destructed
 		**/
-		SimpleMesh(GenericIndexedCloud* _theVertices, bool linkVerticesWithMesh = false);
+		SimpleMesh( GenericIndexedCloud* _theVertices, bool linkVerticesWithMesh = false );
 
 		//! SimpleMesh destructor
 		~SimpleMesh() override;
 
-	public: //inherited methods
-
-		void forEach(genericTriangleAction action) override;
+	public: // inherited methods
+		void forEach( genericTriangleAction action ) override;
 		void placeIteratorAtBeginning() override;
-		GenericTriangle* _getNextTriangle() override; //temporary
-		GenericTriangle* _getTriangle(unsigned triangleIndex) override; //temporary
+		GenericTriangle* _getNextTriangle() override;					  // temporary
+		GenericTriangle* _getTriangle( unsigned triangleIndex ) override; // temporary
 		VerticesIndexes* getNextTriangleVertIndexes() override;
-		VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) override;
-		unsigned size() const override { return static_cast<unsigned>(m_triIndexes.size()); }
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
-		void getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
+		VerticesIndexes* getTriangleVertIndexes( unsigned triangleIndex ) override;
+		unsigned size() const override
+		{
+			return static_cast<unsigned>( m_triIndexes.size() );
+		}
+		void getBoundingBox( CCVector3& bbMin, CCVector3& bbMax ) override;
+		void getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
+								  CCVector3& C ) const override;
 
-	public: //specific methods
-
+	public: // specific methods
 		//! Returns the mesh capacity
-		inline unsigned capacity() const { return static_cast<unsigned>(m_triIndexes.capacity()); }
+		inline unsigned capacity() const
+		{
+			return static_cast<unsigned>( m_triIndexes.capacity() );
+		}
 
 		//! Returns the vertices
-		inline const GenericIndexedCloud* vertices() const { return theVertices; }
+		inline const GenericIndexedCloud* vertices() const
+		{
+			return theVertices;
+		}
 
 		//! Clears the mesh
-		inline void clear() { m_triIndexes.resize(0); }
+		inline void clear()
+		{
+			m_triIndexes.resize( 0 );
+		}
 
 		//! Adds a triangle to the mesh
 		/** Vertex indexes are expresesed relatively to the vertex cloud.
@@ -61,13 +72,13 @@ namespace CCCoreLib
 			\param i2 second vertex index
 			\param i3 third vertex index
 		**/
-		virtual void addTriangle(unsigned i1, unsigned i2, unsigned i3);
+		virtual void addTriangle( unsigned i1, unsigned i2, unsigned i3 );
 
 		//! Reserves the memory to store the triangles (as 3 indexes each)
 		/** \param n the number of triangles to reserve
 			\return true if the method succeeds, false otherwise
 		**/
-		virtual bool reserve(unsigned n);
+		virtual bool reserve( unsigned n );
 
 		//! Resizes the mesh database
 		/** If the new number of elements is smaller than the actual size,
@@ -75,10 +86,9 @@ namespace CCCoreLib
 			\param n the new number of triangles
 			\return true if the method succeeds, false otherwise
 		**/
-		virtual bool resize(unsigned n);
+		virtual bool resize( unsigned n );
 
 	protected:
-
 		//! A triangle vertices indexes container
 		using TriangleIndexesContainer = std::vector<VerticesIndexes>;
 		//! The triangles indexes

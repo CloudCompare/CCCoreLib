@@ -3,25 +3,26 @@
 
 #include "GenericProgressCallback.h"
 
-//system
+// system
 #include <atomic>
 #include <cassert>
 
 using namespace CCCoreLib;
 
 // Use a class "wrapper" to avoid having to include <atomic> in header
-class CCCoreLib::AtomicCounter : public std::atomic_uint {};
-
-NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
-										unsigned totalSteps,
-										unsigned totalPercentage/*=100*/)
-	: m_percent(0)
-	, m_step(1)
-	, m_percentAdd(1.0f)
-	, m_counter( new AtomicCounter{} )
-	, progressCallback(callback)
+class CCCoreLib::AtomicCounter : public std::atomic_uint
 {
-	scale(totalSteps, totalPercentage);
+};
+
+NormalizedProgress::NormalizedProgress( GenericProgressCallback* callback, unsigned totalSteps,
+										unsigned totalPercentage /*=100*/ )
+	: m_percent( 0 )
+	, m_step( 1 )
+	, m_percentAdd( 1.0f )
+	, m_counter( new AtomicCounter{} )
+	, progressCallback( callback )
+{
+	scale( totalSteps, totalPercentage );
 }
 
 NormalizedProgress::~NormalizedProgress()
@@ -29,38 +30,38 @@ NormalizedProgress::~NormalizedProgress()
 	delete m_counter;
 }
 
-void NormalizedProgress::scale(	unsigned totalSteps,
-								unsigned totalPercentage/*=100*/,
-								bool updateCurrentProgress/*=false*/)
+void NormalizedProgress::scale( unsigned totalSteps, unsigned totalPercentage /*=100*/,
+								bool updateCurrentProgress /*=false*/ )
 {
-	if (progressCallback)
+	if ( progressCallback )
 	{
-		if (totalSteps == 0 || totalPercentage == 0)
+		if ( totalSteps == 0 || totalPercentage == 0 )
 		{
 			m_step = 1;
 			m_percentAdd = 0;
 			return;
 		}
 
-		if (totalSteps >= 2 * totalPercentage)
+		if ( totalSteps >= 2 * totalPercentage )
 		{
-			m_step = static_cast<unsigned>(ceil(static_cast<float>(totalSteps) / totalPercentage));
-			assert(m_step != 0 && m_step < totalSteps);
-			m_percentAdd = static_cast<float>(totalPercentage) / (totalSteps / m_step);
+			m_step = static_cast<unsigned>( ceil( static_cast<float>( totalSteps ) / totalPercentage ) );
+			assert( m_step != 0 && m_step < totalSteps );
+			m_percentAdd = static_cast<float>( totalPercentage ) / ( totalSteps / m_step );
 		}
 		else
 		{
 			m_step = 1;
-			m_percentAdd = static_cast<float>(totalPercentage) / totalSteps;
+			m_percentAdd = static_cast<float>( totalPercentage ) / totalSteps;
 		}
 
-		if (updateCurrentProgress)
+		if ( updateCurrentProgress )
 		{
-			m_percent = static_cast<float>(totalPercentage) / totalSteps * static_cast<float>(m_counter->load());
+			m_percent =
+				static_cast<float>( totalPercentage ) / totalSteps * static_cast<float>( m_counter->load() );
 		}
 		else
 		{
-			m_counter->store(0);
+			m_counter->store( 0 );
 		}
 	}
 }
@@ -68,45 +69,45 @@ void NormalizedProgress::scale(	unsigned totalSteps,
 void NormalizedProgress::reset()
 {
 	m_percent = 0;
-	m_counter->store(0);
-	if (progressCallback)
+	m_counter->store( 0 );
+	if ( progressCallback )
 	{
-		progressCallback->update(0);
+		progressCallback->update( 0 );
 	}
 }
 
 bool NormalizedProgress::oneStep()
 {
-	if (!progressCallback)
+	if ( !progressCallback )
 	{
 		return true;
 	}
 
 	unsigned currentCount = m_counter->fetch_add( 1 ) + 1;
-	if ((currentCount % m_step) == 0)
+	if ( ( currentCount % m_step ) == 0 )
 	{
 		m_percent += m_percentAdd;
-		progressCallback->update(m_percent);
+		progressCallback->update( m_percent );
 	}
 
 	return !progressCallback->isCancelRequested();
 }
 
-bool NormalizedProgress::steps(unsigned n)
+bool NormalizedProgress::steps( unsigned n )
 {
-	if (!progressCallback)
+	if ( !progressCallback )
 	{
 		return true;
 	}
 
 	unsigned currentCount = m_counter->fetch_add( n ) + n;
 	unsigned d1 = currentCount / m_step;
-	unsigned d2 = (currentCount + n) / m_step;
+	unsigned d2 = ( currentCount + n ) / m_step;
 
-	if (d2 != d1) //thread safe? Well '++int' is a kind of atomic operation ;)
+	if ( d2 != d1 ) // thread safe? Well '++int' is a kind of atomic operation ;)
 	{
-		m_percent += static_cast<float>(d2 - d1) * m_percentAdd;
-		progressCallback->update(m_percent);
+		m_percent += static_cast<float>( d2 - d1 ) * m_percentAdd;
+		progressCallback->update( m_percent );
 	}
 
 	return !progressCallback->isCancelRequested();

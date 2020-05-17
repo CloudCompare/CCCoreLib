@@ -3,56 +3,56 @@
 
 #include "FastMarchingForPropagation.h"
 
-//local
+// local
 #include "DgmOctree.h"
 #include "ReferenceCloud.h"
 #include "ScalarFieldTools.h"
-
 
 using namespace CCCoreLib;
 
 FastMarchingForPropagation::FastMarchingForPropagation()
 	: FastMarching()
-	, m_jumpCoef(0)							//resistance a l'avancement du front, en fonction de Cell->f (ici, pas de resistance)
-	, m_detectionThreshold(Cell::T_INF())	//saut relatif de la valeur d'arrivee qui arrete la propagation (ici, "desactive")
+	, m_jumpCoef( 0 ) // resistance a l'avancement du front, en fonction de Cell->f (ici, pas de resistance)
+	, m_detectionThreshold( Cell::T_INF() ) // saut relatif de la valeur d'arrivee qui arrete la
+											// propagation (ici, "desactive")
 {
 }
 
-int FastMarchingForPropagation::init(	GenericCloud* theCloud,
-										DgmOctree* theOctree,
-										unsigned char level,
-										bool constantAcceleration/*=false*/)
+int FastMarchingForPropagation::init( GenericCloud* theCloud, DgmOctree* theOctree, unsigned char level,
+									  bool constantAcceleration /*=false*/ )
 {
-	assert(theCloud && theOctree);
+	assert( theCloud && theOctree );
 
-	int result = initGridWithOctree(theOctree,level);
-	if (result < 0)
+	int result = initGridWithOctree( theOctree, level );
+	if ( result < 0 )
 		return result;
 
-	//on remplit la grille
+	// on remplit la grille
 	DgmOctree::cellCodesContainer cellCodes;
-	theOctree->getCellCodes(level,cellCodes,true);
+	theOctree->getCellCodes( level, cellCodes, true );
 
-	ReferenceCloud Yk(theOctree->associatedCloud());
+	ReferenceCloud Yk( theOctree->associatedCloud() );
 
-	while (!cellCodes.empty())
+	while ( !cellCodes.empty() )
 	{
-		if (!theOctree->getPointsInCell(cellCodes.back(),level,&Yk,true))
+		if ( !theOctree->getPointsInCell( cellCodes.back(), level, &Yk, true ) )
 		{
-			//not enough memory?
+			// not enough memory?
 			return -1;
 		}
 
-		//on transforme le code de cellule en position
+		// on transforme le code de cellule en position
 		Tuple3i cellPos;
-		theOctree->getCellPos(cellCodes.back(),level,cellPos,true);
+		theOctree->getCellPos( cellCodes.back(), level, cellPos, true );
 
-		//on renseigne la grille
-		unsigned gridPos = pos2index(cellPos);
+		// on renseigne la grille
+		unsigned gridPos = pos2index( cellPos );
 
 		PropagationCell* aCell = new PropagationCell;
 		aCell->cellCode = cellCodes.back();
-		aCell->f = (constantAcceleration ? 1.0f : static_cast<float>(ScalarFieldTools::computeMeanScalarValue(&Yk)));
+		aCell->f =
+			( constantAcceleration ? 1.0f
+								   : static_cast<float>( ScalarFieldTools::computeMeanScalarValue( &Yk ) ) );
 
 		m_theGrid[gridPos] = aCell;
 
@@ -66,59 +66,59 @@ int FastMarchingForPropagation::init(	GenericCloud* theCloud,
 
 int FastMarchingForPropagation::step()
 {
-	if (!m_initialized)
+	if ( !m_initialized )
 		return -1;
 
 	unsigned minTCellIndex = getNearestTrialCell();
-	if (minTCellIndex == 0)
+	if ( minTCellIndex == 0 )
 	{
-		//fl_alert("No more trial cells !");
+		// fl_alert("No more trial cells !");
 		return 0;
 	}
 
-	Cell* minTCell =  m_theGrid[minTCellIndex];
-	assert(minTCell != nullptr);
+	Cell* minTCell = m_theGrid[minTCellIndex];
+	assert( minTCell != nullptr );
 
-	//last arrival time
-	float lastT = (m_activeCells.empty() ? 0 : m_theGrid[m_activeCells.back()]->T);
+	// last arrival time
+	float lastT = ( m_activeCells.empty() ? 0 : m_theGrid[m_activeCells.back()]->T );
 
-	if (minTCell->T-lastT > m_detectionThreshold * m_cellSize)
+	if ( minTCell->T - lastT > m_detectionThreshold * m_cellSize )
 	{
-		//reset();
+		// reset();
 		return 0;
 	}
 
-	assert(minTCell->state != Cell::ACTIVE_CELL);
+	assert( minTCell->state != Cell::ACTIVE_CELL );
 
-	if (minTCell->T < Cell::T_INF())
+	if ( minTCell->T < Cell::T_INF() )
 	{
-		//we add this cell to the "ACTIVE" set
-		addActiveCell(minTCellIndex);
+		// we add this cell to the "ACTIVE" set
+		addActiveCell( minTCellIndex );
 
-		assert(minTCell->T >= lastT);
+		assert( minTCell->T >= lastT );
 
-		//add its neighbors to the TRIAL set
+		// add its neighbors to the TRIAL set
 		Cell* nCell;
-		for (unsigned i=0;i<m_numberOfNeighbours;++i)
+		for ( unsigned i = 0; i < m_numberOfNeighbours; ++i )
 		{
-			//get neighbor cell
+			// get neighbor cell
 			unsigned nIndex = minTCellIndex + m_neighboursIndexShift[i];
 			nCell = m_theGrid[nIndex];
-			if (nCell)
+			if ( nCell )
 			{
-				//if it' not yet a TRIAL cell
-				if (nCell->state == Cell::FAR_CELL)
+				// if it' not yet a TRIAL cell
+				if ( nCell->state == Cell::FAR_CELL )
 				{
-					nCell->T = computeT(nIndex);
-					addTrialCell(nIndex);
+					nCell->T = computeT( nIndex );
+					addTrialCell( nIndex );
 				}
-				else if (nCell->state == Cell::TRIAL_CELL)
-				//otherwise we must update it's arrival time
+				else if ( nCell->state == Cell::TRIAL_CELL )
+				// otherwise we must update it's arrival time
 				{
 					float t_old = nCell->T;
-					float t_new = computeT(nIndex);
+					float t_new = computeT( nIndex );
 
-					if (t_new < t_old)
+					if ( t_new < t_old )
 						nCell->T = t_new;
 				}
 			}
@@ -126,7 +126,7 @@ int FastMarchingForPropagation::step()
 	}
 	else
 	{
-		addIgnoredCell(minTCellIndex);
+		addIgnoredCell( minTCellIndex );
 	}
 
 	return 1;
@@ -137,7 +137,7 @@ int FastMarchingForPropagation::propagate()
 	initTrialCells();
 
 	int result = 1;
-	while (result > 0)
+	while ( result > 0 )
 	{
 		result = step();
 	}
@@ -145,26 +145,26 @@ int FastMarchingForPropagation::propagate()
 	return result;
 }
 
-bool FastMarchingForPropagation::extractPropagatedPoints(ReferenceCloud* points)
+bool FastMarchingForPropagation::extractPropagatedPoints( ReferenceCloud* points )
 {
-	if (!m_initialized || !m_octree || m_gridLevel > DgmOctree::MAX_OCTREE_LEVEL || !points)
+	if ( !m_initialized || !m_octree || m_gridLevel > DgmOctree::MAX_OCTREE_LEVEL || !points )
 		return false;
 
 	points->clear();
 
-	for (unsigned int activeCellIndex : m_activeCells)
+	for ( unsigned int activeCellIndex : m_activeCells )
 	{
-		PropagationCell* aCell = static_cast<PropagationCell*>(m_theGrid[activeCellIndex]);
+		PropagationCell* aCell = static_cast<PropagationCell*>( m_theGrid[activeCellIndex] );
 
-		if (!m_octree->getPointsInCell(aCell->cellCode, m_gridLevel, points, true, false))
+		if ( !m_octree->getPointsInCell( aCell->cellCode, m_gridLevel, points, true, false ) )
 			return false;
 	}
 
-	//raz de la norme du gradient du point, pour qu'il ne soit plus pris en compte par la suite !
+	// raz de la norme du gradient du point, pour qu'il ne soit plus pris en compte par la suite !
 	points->placeIteratorAtBeginning();
-	for (unsigned k = 0; k < points->size(); ++k)
+	for ( unsigned k = 0; k < points->size(); ++k )
 	{
-		points->setCurrentPointScalarValue(NAN_VALUE);
+		points->setCurrentPointScalarValue( NAN_VALUE );
 		points->forwardIterator();
 	}
 
@@ -173,113 +173,114 @@ bool FastMarchingForPropagation::extractPropagatedPoints(ReferenceCloud* points)
 
 bool FastMarchingForPropagation::setPropagationTimingsAsDistances()
 {
-	if (!m_initialized || !m_octree || m_gridLevel > DgmOctree::MAX_OCTREE_LEVEL)
+	if ( !m_initialized || !m_octree || m_gridLevel > DgmOctree::MAX_OCTREE_LEVEL )
 		return false;
 
-	ReferenceCloud Yk(m_octree->associatedCloud());
+	ReferenceCloud Yk( m_octree->associatedCloud() );
 
-	for (unsigned int activeCellIndex : m_activeCells)
+	for ( unsigned int activeCellIndex : m_activeCells )
 	{
-		PropagationCell* aCell = static_cast<PropagationCell*>(m_theGrid[activeCellIndex]);
+		PropagationCell* aCell = static_cast<PropagationCell*>( m_theGrid[activeCellIndex] );
 
-		if (!m_octree->getPointsInCell(aCell->cellCode,m_gridLevel,&Yk,true))
+		if ( !m_octree->getPointsInCell( aCell->cellCode, m_gridLevel, &Yk, true ) )
 		{
-			//not enough memory?
+			// not enough memory?
 			return false;
 		}
 
 		Yk.placeIteratorAtBeginning();
-		for (unsigned k=0; k<Yk.size(); ++k)
+		for ( unsigned k = 0; k < Yk.size(); ++k )
 		{
-			Yk.setCurrentPointScalarValue(aCell->T);
+			Yk.setCurrentPointScalarValue( aCell->T );
 			Yk.forwardIterator();
 		}
-		//Yk.clear(); //useless
+		// Yk.clear(); //useless
 	}
 
 	return true;
 }
 
 #ifdef _MSC_VER
-//Visual 2012 (and previous versions) don't know expm1
+// Visual 2012 (and previous versions) don't know expm1
 #if _MSC_VER <= 1700
 
 // Compute exp(x) - 1 without loss of precision for small values of x.
-template <typename T> T expm1(T x)
+template <typename T> T expm1( T x )
 {
-	if (std::abs(x) < 1e-5)
-		return x + (x*x)/2;
+	if ( std::abs( x ) < 1e-5 )
+		return x + ( x * x ) / 2;
 	else
-		return exp(x) - 1;
+		return exp( x ) - 1;
 }
 
 #endif
 #endif
 
-float FastMarchingForPropagation::computeTCoefApprox(Cell* currentCell, Cell* neighbourCell) const
+float FastMarchingForPropagation::computeTCoefApprox( Cell* currentCell, Cell* neighbourCell ) const
 {
-	PropagationCell* cCell = static_cast<PropagationCell*>(currentCell);
-	PropagationCell* nCell = static_cast<PropagationCell*>(neighbourCell);
-	return expm1(m_jumpCoef * (cCell->f-nCell->f));
+	PropagationCell* cCell = static_cast<PropagationCell*>( currentCell );
+	PropagationCell* nCell = static_cast<PropagationCell*>( neighbourCell );
+	return expm1( m_jumpCoef * ( cCell->f - nCell->f ) );
 }
 
 void FastMarchingForPropagation::findPeaks()
 {
-	if (!m_initialized)
+	if ( !m_initialized )
 		return;
 
-	//on fait bien attention a ne pas initialiser les cellules sur les bords
-	for (unsigned k=0; k<m_dz; ++k)
+	// on fait bien attention a ne pas initialiser les cellules sur les bords
+	for ( unsigned k = 0; k < m_dz; ++k )
 	{
-		int pos[3] = { 0, 0, static_cast<int>(k) };
+		int pos[3] = { 0, 0, static_cast<int>( k ) };
 
-		for (unsigned j=0; j<m_dy; ++j)
+		for ( unsigned j = 0; j < m_dy; ++j )
 		{
-			pos[1] = static_cast<int>(j);
+			pos[1] = static_cast<int>( j );
 
-			for (unsigned i=0; i<m_dx; ++i)
+			for ( unsigned i = 0; i < m_dx; ++i )
 			{
-				pos[0] = static_cast<int>(i);
+				pos[0] = static_cast<int>( i );
 
-				unsigned index =  static_cast<unsigned>(pos[0]+1)
-						+ static_cast<unsigned>(pos[1]+1) * m_rowSize
-						+ static_cast<unsigned>(pos[2]+1) * m_sliceSize;
+				unsigned index = static_cast<unsigned>( pos[0] + 1 ) +
+								 static_cast<unsigned>( pos[1] + 1 ) * m_rowSize +
+								 static_cast<unsigned>( pos[2] + 1 ) * m_sliceSize;
 
-				PropagationCell* theCell = reinterpret_cast<PropagationCell*>(m_theGrid[index]);
+				PropagationCell* theCell = reinterpret_cast<PropagationCell*>( m_theGrid[index] );
 
-				if (theCell)
+				if ( theCell )
 				{
 					bool isMin = true;
 					bool isMax = true;
 
-					//theCell->state = ACTIVE_CELL;
+					// theCell->state = ACTIVE_CELL;
 
-					for (int n : m_neighboursIndexShift)
+					for ( int n : m_neighboursIndexShift )
 					{
-						const PropagationCell* nCell = reinterpret_cast<const PropagationCell*>(m_theGrid[index+n]);
-						if (nCell)
+						const PropagationCell* nCell =
+							reinterpret_cast<const PropagationCell*>( m_theGrid[index + n] );
+						if ( nCell )
 						{
-							if (nCell->f > theCell->f)
+							if ( nCell->f > theCell->f )
 								isMax = false;
-							else if (nCell->f < theCell->f)
+							else if ( nCell->f < theCell->f )
 								isMin = false;
 						}
 					}
 
-					if (isMin != isMax)
+					if ( isMin != isMax )
 					{
-						//if (isMin)
+						// if (isMin)
 						//	theCell->T = 1.0;
-						//else
+						// else
 						//	theCell->T = 2.0;
 
-						if (isMax)
+						if ( isMax )
 						{
 							theCell->T = 0;
-							addActiveCell(index);
+							addActiveCell( index );
 						}
 					}
-					//else theCell->T = 0;
+					// else theCell->T = 0;
 				}
 			}
 		}

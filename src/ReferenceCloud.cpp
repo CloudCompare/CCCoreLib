@@ -3,29 +3,30 @@
 
 #include "ReferenceCloud.h"
 
-//system
+// system
 #include <algorithm>
 
 using namespace CCCoreLib;
 
-ReferenceCloud::ReferenceCloud(GenericIndexedCloudPersist* associatedCloud)
-	: m_globalIterator(0)
-	, m_theAssociatedCloud(associatedCloud)
+ReferenceCloud::ReferenceCloud( GenericIndexedCloudPersist* associatedCloud )
+	: m_globalIterator( 0 )
+	, m_theAssociatedCloud( associatedCloud )
 {
 }
 
-ReferenceCloud::ReferenceCloud(const ReferenceCloud& refCloud)
-	: m_theIndexes(refCloud.m_theIndexes) //we don't catch any exception so that the caller of the constructor can do it!
-	, m_globalIterator(0)
-	, m_theAssociatedCloud(refCloud.m_theAssociatedCloud)
+ReferenceCloud::ReferenceCloud( const ReferenceCloud& refCloud )
+	: m_theIndexes( refCloud.m_theIndexes ) // we don't catch any exception so that the caller of
+											// the constructor can do it!
+	, m_globalIterator( 0 )
+	, m_theAssociatedCloud( refCloud.m_theAssociatedCloud )
 {
 }
 
-void ReferenceCloud::clear(bool releaseMemory/*=false*/)
+void ReferenceCloud::clear( bool releaseMemory /*=false*/ )
 {
 	m_mutex.lock();
-	if (releaseMemory)
-		m_theIndexes.resize(0);
+	if ( releaseMemory )
+		m_theIndexes.resize( 0 );
 	else
 		m_theIndexes.clear();
 
@@ -33,15 +34,15 @@ void ReferenceCloud::clear(bool releaseMemory/*=false*/)
 	m_mutex.unlock();
 }
 
-void ReferenceCloud::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
+void ReferenceCloud::getBoundingBox( CCVector3& bbMin, CCVector3& bbMax )
 {
 	m_mutex.lock();
-	if (!m_bbox.isValid())
+	if ( !m_bbox.isValid() )
 	{
 		m_bbox.clear();
-		for (unsigned index : m_theIndexes)
+		for ( unsigned index : m_theIndexes )
 		{
-			m_bbox.add(*m_theAssociatedCloud->getPoint(index));
+			m_bbox.add( *m_theAssociatedCloud->getPoint( index ) );
 		}
 	}
 
@@ -50,14 +51,14 @@ void ReferenceCloud::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
 	m_mutex.unlock();
 }
 
-bool ReferenceCloud::reserve(unsigned n)
+bool ReferenceCloud::reserve( unsigned n )
 {
 	m_mutex.lock();
 	try
 	{
-		m_theIndexes.reserve(n);
+		m_theIndexes.reserve( n );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
 		m_mutex.unlock();
 		return false;
@@ -67,14 +68,14 @@ bool ReferenceCloud::reserve(unsigned n)
 	return true;
 }
 
-bool ReferenceCloud::resize(unsigned n)
+bool ReferenceCloud::resize( unsigned n )
 {
 	m_mutex.lock();
 	try
 	{
-		m_theIndexes.resize(n);
+		m_theIndexes.resize( n );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
 		m_mutex.unlock();
 		return false;
@@ -86,19 +87,19 @@ bool ReferenceCloud::resize(unsigned n)
 
 const CCVector3* ReferenceCloud::getCurrentPointCoordinates() const
 {
-	assert(m_theAssociatedCloud && m_globalIterator < size());
-	assert(m_theIndexes[m_globalIterator] < m_theAssociatedCloud->size());
-	return m_theAssociatedCloud->getPointPersistentPtr(m_theIndexes[m_globalIterator]);
+	assert( m_theAssociatedCloud && m_globalIterator < size() );
+	assert( m_theIndexes[m_globalIterator] < m_theAssociatedCloud->size() );
+	return m_theAssociatedCloud->getPointPersistentPtr( m_theIndexes[m_globalIterator] );
 }
 
-bool ReferenceCloud::addPointIndex(unsigned globalIndex)
+bool ReferenceCloud::addPointIndex( unsigned globalIndex )
 {
 	m_mutex.lock();
 	try
 	{
-		m_theIndexes.push_back(globalIndex);
+		m_theIndexes.push_back( globalIndex );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
 		m_mutex.unlock();
 		return false;
@@ -109,32 +110,32 @@ bool ReferenceCloud::addPointIndex(unsigned globalIndex)
 	return true;
 }
 
-bool ReferenceCloud::addPointIndex(unsigned firstIndex, unsigned lastIndex)
+bool ReferenceCloud::addPointIndex( unsigned firstIndex, unsigned lastIndex )
 {
-	if (firstIndex >= lastIndex)
+	if ( firstIndex >= lastIndex )
 	{
-		assert(false);
+		assert( false );
 		return false;
 	}
 
-	unsigned range = lastIndex - firstIndex; //lastIndex is excluded
+	unsigned range = lastIndex - firstIndex; // lastIndex is excluded
 
 	m_mutex.lock();
 	unsigned pos = size();
-	if (size() < pos + range)
+	if ( size() < pos + range )
 	{
 		try
 		{
-			m_theIndexes.resize(pos + range);
+			m_theIndexes.resize( pos + range );
 		}
-		catch (const std::bad_alloc&)
+		catch ( const std::bad_alloc& )
 		{
 			m_mutex.unlock();
 			return false;
 		}
 	}
 
-	for (unsigned i = 0; i < range; ++i, ++firstIndex)
+	for ( unsigned i = 0; i < range; ++i, ++firstIndex )
 	{
 		m_theIndexes[pos++] = firstIndex;
 	}
@@ -145,81 +146,81 @@ bool ReferenceCloud::addPointIndex(unsigned firstIndex, unsigned lastIndex)
 	return true;
 }
 
-void ReferenceCloud::setPointIndex(unsigned localIndex, unsigned globalIndex)
+void ReferenceCloud::setPointIndex( unsigned localIndex, unsigned globalIndex )
 {
-	assert(localIndex < size());
+	assert( localIndex < size() );
 	m_theIndexes[localIndex] = globalIndex;
 	invalidateBoundingBox();
 }
 
-void ReferenceCloud::forEach(genericPointAction action)
+void ReferenceCloud::forEach( genericPointAction action )
 {
-	assert(m_theAssociatedCloud);
+	assert( m_theAssociatedCloud );
 
 	unsigned count = size();
-	for (unsigned i = 0; i < count; ++i)
+	for ( unsigned i = 0; i < count; ++i )
 	{
 		const unsigned& index = m_theIndexes[i];
-		ScalarType d = m_theAssociatedCloud->getPointScalarValue(index);
+		ScalarType d = m_theAssociatedCloud->getPointScalarValue( index );
 		ScalarType d2 = d;
-		action(*m_theAssociatedCloud->getPointPersistentPtr(index), d2);
-		if (d != d2)
-			m_theAssociatedCloud->setPointScalarValue(index, d2);
+		action( *m_theAssociatedCloud->getPointPersistentPtr( index ), d2 );
+		if ( d != d2 )
+			m_theAssociatedCloud->setPointScalarValue( index, d2 );
 	}
 }
 
-void ReferenceCloud::removePointGlobalIndex(unsigned localIndex)
+void ReferenceCloud::removePointGlobalIndex( unsigned localIndex )
 {
 	m_mutex.lock();
 
-	if (localIndex < size())
+	if ( localIndex < size() )
 	{
 		unsigned lastIndex = size() - 1;
-		//swap the value to be removed with the last one
+		// swap the value to be removed with the last one
 		m_theIndexes[localIndex] = m_theIndexes[lastIndex];
-		m_theIndexes.resize(lastIndex);
+		m_theIndexes.resize( lastIndex );
 	}
 	else
 	{
-		assert(false);
+		assert( false );
 	}
 
 	m_mutex.unlock();
 }
 
-void ReferenceCloud::setAssociatedCloud(GenericIndexedCloudPersist* cloud)
+void ReferenceCloud::setAssociatedCloud( GenericIndexedCloudPersist* cloud )
 {
 	m_theAssociatedCloud = cloud;
 	invalidateBoundingBox();
 }
 
-bool ReferenceCloud::add(const ReferenceCloud& cloud)
+bool ReferenceCloud::add( const ReferenceCloud& cloud )
 {
-	if (!cloud.m_theAssociatedCloud || m_theAssociatedCloud != cloud.m_theAssociatedCloud)
+	if ( !cloud.m_theAssociatedCloud || m_theAssociatedCloud != cloud.m_theAssociatedCloud )
 	{
 		return false;
 	}
 
 	std::size_t newCount = cloud.m_theIndexes.size();
-	if (newCount == 0)
+	if ( newCount == 0 )
 		return true;
 
 	m_mutex.lock();
 
-	//reserve memory
+	// reserve memory
 	std::size_t currentSize = size();
 	try
 	{
-		m_theIndexes.resize(currentSize + newCount);
+		m_theIndexes.resize( currentSize + newCount );
 	}
-	catch (const std::bad_alloc&)
+	catch ( const std::bad_alloc& )
 	{
 		m_mutex.unlock();
 		return false;
 	}
 
-	//copy new indexes (warning: no duplicate check!)
-	for (unsigned i = 0; i < newCount; ++i)
+	// copy new indexes (warning: no duplicate check!)
+	for ( unsigned i = 0; i < newCount; ++i )
 	{
 		m_theIndexes[currentSize + i] = cloud.m_theIndexes[i];
 	}

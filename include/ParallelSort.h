@@ -8,23 +8,23 @@
 #pragma message "Replacing preprocessor symbol 'ParallelSort' with the one defined in Parallel.h"
 #endif
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1800)
+#if defined( _MSC_VER ) && ( _MSC_VER >= 1800 )
 
-   //Parallel Patterns Library (for parallel sort)
-   #include <ppl.h>
+// Parallel Patterns Library (for parallel sort)
+#include <ppl.h>
 
-   #define ParallelSort Concurrency::parallel_sort
+#define ParallelSort Concurrency::parallel_sort
 
 #elif CC_CORE_LIB_USES_TBB
 
-   #include <tbb/parallel_sort.h>
+#include <tbb/parallel_sort.h>
 
-   #define ParallelSort tbb::parallel_sort
+#define ParallelSort tbb::parallel_sort
 
 #else
 
-   #include <algorithm>
+#include <algorithm>
 
-   #define ParallelSort std::sort
+#define ParallelSort std::sort
 
 #endif

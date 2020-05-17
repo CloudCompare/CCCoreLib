@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCGeom.h"
 
 namespace CCCoreLib
@@ -12,7 +12,6 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API GenericOctree
 	{
 	public:
-
 		//! Default destructor
 		virtual ~GenericOctree() = default;
 	};

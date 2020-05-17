@@ -3,9 +3,10 @@
 
 #pragma once
 
-// Inspired from bil_edt.cxx (VXL) by Ricardo Fabbri (rfabbri), Brown University  (rfabbri@lems.brown.edu)
+// Inspired from bil_edt.cxx (VXL) by Ricardo Fabbri (rfabbri), Brown University
+// (rfabbri@lems.brown.edu)
 
-//Local
+// Local
 #include "Grid3D.h"
 #include "MathTools.h"
 
@@ -20,7 +21,6 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API SaitoSquaredDistanceTransform : public Grid3D<unsigned>, public MathTools
 	{
 	public:
-
 		//! Default constructor
 		SaitoSquaredDistanceTransform() = default;
 
@@ -28,27 +28,24 @@ namespace CCCoreLib
 		/** The memory for the grid must be explicitelty reserved prior to any action.
 			\return true if the initialization succeeded
 		**/
-		inline bool initGrid(const Tuple3ui& gridSize)
+		inline bool initGrid( const Tuple3ui& gridSize )
 		{
-			return Grid3D<GridElement>::init(gridSize.x, gridSize.y, gridSize.z, 0, 0); //margin = 0 (we need continuous memory)
+			return Grid3D<GridElement>::init( gridSize.x, gridSize.y, gridSize.z, 0,
+											  0 ); // margin = 0 (we need continuous memory)
 		}
 
 		//! Initializes the distance transform with a mesh
-		inline bool initDT(	GenericIndexedMesh* mesh,
-							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
-							GenericProgressCallback* progressCb = nullptr)
+		inline bool initDT( GenericIndexedMesh* mesh, PointCoordinateType cellLength,
+							const CCVector3& gridMinCorner, GenericProgressCallback* progressCb = nullptr )
 		{
-			return intersecthWith(mesh, cellLength, gridMinCorner, 1, progressCb);
+			return intersecthWith( mesh, cellLength, gridMinCorner, 1, progressCb );
 		}
 
 		//! Initializes the distance transform with a cloud
-		inline bool initDT(	GenericCloud* cloud,
-							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
-							GenericProgressCallback* progressCb = nullptr)
+		inline bool initDT( GenericCloud* cloud, PointCoordinateType cellLength,
+							const CCVector3& gridMinCorner, GenericProgressCallback* progressCb = nullptr )
 		{
-			return intersecthWith(cloud, cellLength, gridMinCorner, 1, progressCb);
+			return intersecthWith( cloud, cellLength, gridMinCorner, 1, progressCb );
 		}
 
 		//! Computes the exact Squared Distance Transform on the whole grid
@@ -67,15 +64,18 @@ namespace CCCoreLib
 			\param progressCb progress callback (optional)
 			\return success
 		**/
-		inline bool propagateDistance(GenericProgressCallback* progressCb = nullptr) { return SDT_3D(*this, progressCb); }
+		inline bool propagateDistance( GenericProgressCallback* progressCb = nullptr )
+		{
+			return SDT_3D( *this, progressCb );
+		}
 
 	protected:
-
 		//! 1D Euclidean Distance Transform
-		static bool EDT_1D(GridElement* slice, std::size_t r, std::size_t c);
+		static bool EDT_1D( GridElement* slice, std::size_t r, std::size_t c );
 		//! 2D Exact Squared Distance Transform
-		static bool SDT_2D(Grid3D<GridElement>& image, std::size_t sliceIndex, const std::vector<GridElement>& sq);
+		static bool SDT_2D( Grid3D<GridElement>& image, std::size_t sliceIndex,
+							const std::vector<GridElement>& sq );
 		//! 3D Exact Squared Distance Transform
-		static bool SDT_3D(Grid3D<GridElement>& image, GenericProgressCallback* progressCb = nullptr);
+		static bool SDT_3D( Grid3D<GridElement>& image, GenericProgressCallback* progressCb = nullptr );
 	};
 }

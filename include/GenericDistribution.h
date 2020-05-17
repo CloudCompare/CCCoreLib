@@ -3,11 +3,11 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCCoreLib.h"
 #include "CCTypes.h"
 
-//system
+// system
 #include <vector>
 
 namespace CCCoreLib
@@ -21,9 +21,11 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API GenericDistribution
 	{
 	public:
-
 		//! Default constructor
-		GenericDistribution() : m_isValid(false) {}
+		GenericDistribution()
+			: m_isValid( false )
+		{
+		}
 
 		//! Default destructor
 		virtual ~GenericDistribution() = default;
@@ -37,7 +39,10 @@ namespace CCCoreLib
 			case, the dsitribution should'nt be used (most of the methods won't work anyway).
 			\return true (if the distribution parameters are valid) or false (if not)
 		**/
-		virtual bool isValid() const { return m_isValid; }
+		virtual bool isValid() const
+		{
+			return m_isValid;
+		}
 
 		//! Scalar values container
 		using ScalarContainer = std::vector<ScalarType>;
@@ -46,19 +51,19 @@ namespace CCCoreLib
 		/**	\param values a set of scalar values
 			\return true (if the computation succeeded) or false (if not)
 		**/
-		virtual bool computeParameters(const ScalarContainer& values) = 0;
+		virtual bool computeParameters( const ScalarContainer& values ) = 0;
 
 		//! Computes the probability of x
 		/** \param x the variable
 			\return the probabilty
 		**/
-		virtual double computeP(ScalarType x) const = 0;
+		virtual double computeP( ScalarType x ) const = 0;
 
 		//! Computes the cumulative probability between 0 and x
 		/** \param x the upper boundary
 			\return the cumulative probabilty
 		**/
-		virtual double computePfromZero(ScalarType x) const = 0;
+		virtual double computePfromZero( ScalarType x ) const = 0;
 
 		//! Computes the cumulative probability between x1 and x2
 		/** x1 should be lower than x2
@@ -66,7 +71,7 @@ namespace CCCoreLib
 			\param x2 the upper boundary
 			\return the cumulative probabilty
 		**/
-		virtual double computeP(ScalarType x1, ScalarType x2) const = 0;
+		virtual double computeP( ScalarType x1, ScalarType x2 ) const = 0;
 
 		//! Computes the Chi2 distance (related to the Chi2 Test)
 		/** Computes the Chi2 distance from a group of point, accordingly to
@@ -81,12 +86,15 @@ namespace CCCoreLib
 			\param histo an array to store the values projection result (optional)
 			\return the Chi2 distance (or -1.0 if an error occurred)
 		**/
-		virtual double computeChi2Dist(const GenericCloud* Yk, unsigned numberOfClasses, int* histo = nullptr) = 0;
+		virtual double computeChi2Dist( const GenericCloud* Yk, unsigned numberOfClasses,
+										int* histo = nullptr ) = 0;
 
 	protected:
-
 		//! Sets distribution current validity
-		void setValid(bool state) { m_isValid = state; }
+		void setValid( bool state )
+		{
+			m_isValid = state;
+		}
 
 		//! Whether the distribution is in a valid state or not
 		bool m_isValid;

@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCConst.h"
 #include "CCToolbox.h"
 #include "DgmOctree.h"
@@ -22,17 +22,18 @@ namespace CCCoreLib
 	struct OctreeAndMeshIntersection;
 	class ScalarField;
 
-	//! Several entity-to-entity distances computation algorithms (cloud-cloud, cloud-mesh, point-triangle, etc.)
+	//! Several entity-to-entity distances computation algorithms (cloud-cloud, cloud-mesh,
+	//! point-triangle, etc.)
 	class CC_CORE_LIB_API DistanceComputationTools : public CCToolbox
 	{
-	public: //distance to clouds or meshes
-
+	public: // distance to clouds or meshes
 		//! Cloud-to-cloud "Hausdorff" distance computation parameters
 		struct Cloud2CloudDistanceComputationParams
 		{
-			//! Level of subdivision of the octree at witch to apply the distance computation algorithm
+			//! Level of subdivision of the octree at witch to apply the distance computation
+			//! algorithm
 			/** If set to 0 (default) the algorithm will try to guess the best level automatically.
-			**/
+			 **/
 			unsigned char octreeLevel;
 
 			//! Maximum search distance (true distance won't be computed if greater)
@@ -43,7 +44,7 @@ namespace CCCoreLib
 
 			//! Whether to use multi-thread or single thread mode
 			/** If maxSearchDist > 0, single thread mode will be forced.
-			**/
+			 **/
 			bool multiThread;
 
 			//! Maximum number of threads to use (0 = max)
@@ -51,12 +52,13 @@ namespace CCCoreLib
 
 			//! Type of local 3D modeling to use
 			/** Default: NO_MODEL. Otherwise see CC_LOCAL_MODEL_TYPES.
-			**/
+			 **/
 			LOCAL_MODEL_TYPES localModel;
 
-			//! Whether to use a fixed number of neighbors or a (sphere) radius for nearest neighbours search
+			//! Whether to use a fixed number of neighbors or a (sphere) radius for nearest
+			//! neighbours search
 			/** For local models only (i.e. ignored if localModel = NO_MODEL).
-			**/
+			 **/
 			bool useSphericalSearchForLocalModel;
 
 			//! Number of neighbours for nearest neighbours search (local model)
@@ -78,8 +80,8 @@ namespace CCCoreLib
 			bool reuseExistingLocalModels;
 
 			//! Container of (references to) points to store the "Closest Point Set"
-			/** The Closest Point Set corresponds to (the reference to) each compared point's closest neighbour.
-				\warning Not compatible with max search distance (see maxSearchDist)
+			/** The Closest Point Set corresponds to (the reference to) each compared point's
+			closest neighbour. \warning Not compatible with max search distance (see maxSearchDist)
 			**/
 			ReferenceCloud* CPSet;
 
@@ -87,53 +89,56 @@ namespace CCCoreLib
 			ScalarField* splitDistances[3];
 
 			//! Whether to keep the existing distances as is (if any) or not
-			/** By default, any previous distances/scalar values stored in the 'enabled' scalar field will be
-				reset before computing them again.
+			/** By default, any previous distances/scalar values stored in the 'enabled' scalar
+			field will be reset before computing them again.
 			**/
 			bool resetFormerDistances;
 
 			//! Default constructor/initialization
 			Cloud2CloudDistanceComputationParams()
-				: octreeLevel(0)
-				, maxSearchDist(0)
-				, multiThread(true)
-				, maxThreadCount(0)
-				, localModel(NO_MODEL)
-				, useSphericalSearchForLocalModel(false)
-				, kNNForLocalModel(0)
-				, radiusForLocalModel(0)
-				, reuseExistingLocalModels(false)
-				, CPSet(nullptr)
-				, resetFormerDistances(true)
+				: octreeLevel( 0 )
+				, maxSearchDist( 0 )
+				, multiThread( true )
+				, maxThreadCount( 0 )
+				, localModel( NO_MODEL )
+				, useSphericalSearchForLocalModel( false )
+				, kNNForLocalModel( 0 )
+				, radiusForLocalModel( 0 )
+				, reuseExistingLocalModels( false )
+				, CPSet( nullptr )
+				, resetFormerDistances( true )
 			{
 				splitDistances[0] = splitDistances[1] = splitDistances[2] = nullptr;
 			}
 		};
 
-		//! Computes the "nearest neighbour distance" between two point clouds (formerly named "Hausdorff distance")
-		/** The main algorithm and its different versions (with or without local modeling) are described in
-			Daniel Girardeau-Montaut's PhD manuscript (Chapter 2, section 2.3). It is the standard way to compare
-			directly two dense (and globally close) point clouds.
-			\warning The current scalar field of the compared cloud should be enabled. By default it will be reset to
-			NAN_VALUE but one can avoid this by defining the Cloud2CloudDistanceComputationParams::resetFormerDistances
-			parameters to false. But even in this case, only values above Cloud2CloudDistanceComputationParams::maxSearchDist
-			will remain untouched.
-			\warning Max search distance (Cloud2CloudDistanceComputationParams::maxSearchDist > 0) is not compatible with the
-			determination of the Closest Point Set (Cloud2CloudDistanceComputationParams::CPSet)
-			\param comparedCloud the compared cloud (the distances will be computed on these points)
-			\param referenceCloud the reference cloud (the distances will be computed relatively to these points)
-			\param params distance computation parameters
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param compOctree the pre-computed octree of the compared cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
-			\param refOctree the pre-computed octree of the reference cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
-			\return 0 if ok, a negative value otherwise
+		//! Computes the "nearest neighbour distance" between two point clouds (formerly named
+		//! "Hausdorff distance")
+		/** The main algorithm and its different versions (with or without local modeling) are
+		described in Daniel Girardeau-Montaut's PhD manuscript (Chapter 2, section 2.3). It is the
+		standard way to compare directly two dense (and globally close) point clouds. \warning The
+		current scalar field of the compared cloud should be enabled. By default it will be reset to
+			NAN_VALUE but one can avoid this by defining the
+		Cloud2CloudDistanceComputationParams::resetFormerDistances parameters to false. But even in
+		this case, only values above Cloud2CloudDistanceComputationParams::maxSearchDist will remain
+		untouched. \warning Max search distance (Cloud2CloudDistanceComputationParams::maxSearchDist
+		> 0) is not compatible with the determination of the Closest Point Set
+		(Cloud2CloudDistanceComputationParams::CPSet) \param comparedCloud the compared cloud (the
+		distances will be computed on these points) \param referenceCloud the reference cloud (the
+		distances will be computed relatively to these points) \param params distance computation
+		parameters \param progressCb the client application can get some notification of the process
+		progress through this callback mechanism (see GenericProgressCallback) \param compOctree the
+		pre-computed octree of the compared cloud (warning: both octrees must have the same cubical
+		bounding-box - it is automatically computed if 0) \param refOctree the pre-computed octree
+		of the reference cloud (warning: both octrees must have the same cubical bounding-box - it
+		is automatically computed if 0) \return 0 if ok, a negative value otherwise
 		**/
-		static int computeCloud2CloudDistance(	GenericIndexedCloudPersist* comparedCloud,
-												GenericIndexedCloudPersist* referenceCloud,
-												Cloud2CloudDistanceComputationParams& params,
-												GenericProgressCallback* progressCb = nullptr,
-												DgmOctree* compOctree = nullptr,
-												DgmOctree* refOctree = nullptr);
+		static int computeCloud2CloudDistance( GenericIndexedCloudPersist* comparedCloud,
+											   GenericIndexedCloudPersist* referenceCloud,
+											   Cloud2CloudDistanceComputationParams& params,
+											   GenericProgressCallback* progressCb = nullptr,
+											   DgmOctree* compOctree = nullptr,
+											   DgmOctree* refOctree = nullptr );
 
 		//! Cloud-to-mes distances computation parameters
 		struct Cloud2MeshDistanceComputationParams
@@ -142,8 +147,9 @@ namespace CCCoreLib
 			unsigned char octreeLevel;
 
 			//! Max search distance (acceleration)
-			/** Default value: 0. If greater than 0, then the algorithm won't compute distances over this value
-			**/
+			/** Default value: 0. If greater than 0, then the algorithm won't compute distances over
+			 *this value
+			 **/
 			ScalarType maxSearchDist;
 
 			//! Use distance map (acceleration)
@@ -153,37 +159,40 @@ namespace CCCoreLib
 			bool useDistanceMap;
 
 			//! Whether to compute signed distances or not
-			/** If true, the computed distances will be signed (in this case, the Distance Transform can't be used
-				and therefore useDistanceMap will be ignored)
+			/** If true, the computed distances will be signed (in this case, the Distance Transform
+			can't be used and therefore useDistanceMap will be ignored)
 			**/
 			bool signedDistances;
 
-			//! Whether triangle normals should be computed in the 'direct' order (true) or 'indirect' (false)
+			//! Whether triangle normals should be computed in the 'direct' order (true) or
+			//! 'indirect' (false)
 			bool flipNormals;
 
-			//! Whether to use multi-thread or single thread mode (if maxSearchDist > 0, single thread mode is forced)
+			//! Whether to use multi-thread or single thread mode (if maxSearchDist > 0, single
+			//! thread mode is forced)
 			bool multiThread;
 
 			//! Maximum number of threads to use (0 = max)
 			int maxThreadCount;
 
 			//! Cloud to store the Closest Point Set
-			/** The cloud should be initialized but empty on input. It will have the same size as the compared cloud on output.
-				\warning Not compatible with maxSearchDist > 0.
+			/** The cloud should be initialized but empty on input. It will have the same size as
+			the compared cloud on output. \warning Not compatible with maxSearchDist > 0.
 			**/
 			PointCloud* CPSet;
 
 			//! Default constructor
 			Cloud2MeshDistanceComputationParams()
-				: octreeLevel(0)
-				, maxSearchDist(0)
-				, useDistanceMap(false)
-				, signedDistances(false)
-				, flipNormals(false)
-				, multiThread(true)
-				, maxThreadCount(0)
-				, CPSet(nullptr)
-			{}
+				: octreeLevel( 0 )
+				, maxSearchDist( 0 )
+				, useDistanceMap( false )
+				, signedDistances( false )
+				, flipNormals( false )
+				, multiThread( true )
+				, maxThreadCount( 0 )
+				, CPSet( nullptr )
+			{
+			}
 		};
 
 		//! Computes the distance between a point cloud and a mesh
@@ -191,43 +200,44 @@ namespace CCCoreLib
 			in Daniel Girardeau-Montaut's PhD manuscript (Chapter 2, section 2.2).
 			It is the general way to compare a point cloud with a triangular mesh.
 			\param pointCloud the compared cloud (the distances will be computed on these points)
-			\param mesh the reference mesh (the distances will be computed relatively to its triangles)
-			\param params parameters
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param cloudOctree the pre-computed octree of the compared cloud (warning: its bounding box should be equal to the union of both point cloud and mesh bbs and it should be cubical - it is automatically computed if 0)
-			\return 0 if ok, a negative value otherwise
+			\param mesh the reference mesh (the distances will be computed relatively to its
+		triangles) \param params parameters \param progressCb the client application can get some
+		notification of the process progress through this callback mechanism (see
+		GenericProgressCallback) \param cloudOctree the pre-computed octree of the compared cloud
+		(warning: its bounding box should be equal to the union of both point cloud and mesh bbs and
+		it should be cubical - it is automatically computed if 0) \return 0 if ok, a negative value
+		otherwise
 		**/
-		static int computeCloud2MeshDistance(	GenericIndexedCloudPersist* pointCloud,
-												GenericIndexedMesh* mesh,
-												Cloud2MeshDistanceComputationParams& params,
-												GenericProgressCallback* progressCb = nullptr,
-												DgmOctree* cloudOctree = nullptr);
+		static int computeCloud2MeshDistance( GenericIndexedCloudPersist* pointCloud,
+											  GenericIndexedMesh* mesh,
+											  Cloud2MeshDistanceComputationParams& params,
+											  GenericProgressCallback* progressCb = nullptr,
+											  DgmOctree* cloudOctree = nullptr );
 
-	public: //approximate distances to clouds or meshes
-
+	public: // approximate distances to clouds or meshes
 		//! Computes approximate distances between two point clouds
 		/** This methods uses an exact Distance Transform to approximate the real distances.
-			Therefore, the greater the octree level is (it is used to determine the grid step), the finer
-			the result will be (but more memory and time will be needed).
-			\param comparedCloud the compared cloud
-			\param referenceCloud the reference cloud
-			\param octreeLevel the octree level at which to compute the Distance Transform
-			\param maxSearchDist max search distance (or any negative value if no max distance is defined)
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\param compOctree the pre-computed octree of the compared cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
-			\param refOctree the pre-computed octree of the reference cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
+			Therefore, the greater the octree level is (it is used to determine the grid step), the
+		finer the result will be (but more memory and time will be needed). \param comparedCloud the
+		compared cloud \param referenceCloud the reference cloud \param octreeLevel the octree level
+		at which to compute the Distance Transform \param maxSearchDist max search distance (or any
+		negative value if no max distance is defined) \param progressCb the client application can
+		get some notification of the process progress through this callback mechanism (see
+		GenericProgressCallback) \param compOctree the pre-computed octree of the compared cloud
+		(warning: both octrees must have the same cubical bounding-box - it is automatically
+		computed if 0) \param refOctree the pre-computed octree of the reference cloud (warning:
+		both octrees must have the same cubical bounding-box - it is automatically computed if 0)
 			\return negative error code or a positive value in case of success
 		**/
-		static int computeApproxCloud2CloudDistance(GenericIndexedCloudPersist* comparedCloud,
-													GenericIndexedCloudPersist* referenceCloud,
-													unsigned char octreeLevel,
-													PointCoordinateType maxSearchDist = 0,
-													GenericProgressCallback* progressCb = nullptr,
-													DgmOctree* compOctree = nullptr,
-													DgmOctree* refOctree = nullptr);
+		static int computeApproxCloud2CloudDistance( GenericIndexedCloudPersist* comparedCloud,
+													 GenericIndexedCloudPersist* referenceCloud,
+													 unsigned char octreeLevel,
+													 PointCoordinateType maxSearchDist = 0,
+													 GenericProgressCallback* progressCb = nullptr,
+													 DgmOctree* compOctree = nullptr,
+													 DgmOctree* refOctree = nullptr );
 
-	public: //distance to simple entities (triangles, planes, etc.)
-
+	public: // distance to simple entities (triangles, planes, etc.)
 		//! Computes the distance between a point and a triangle
 		/** WARNING: if not signed, the returned distance is SQUARED!
 			\param P a 3D point
@@ -236,17 +246,17 @@ namespace CCCoreLib
 			\param nearestP optional: returns the nearest point on the triangle
 			\return the distance between the point and the triangle
 		**/
-		static ScalarType computePoint2TriangleDistance(const CCVector3* P,
-														const GenericTriangle* theTriangle,
-														bool signedDist,
-														CCVector3* nearestP = nullptr);
+		static ScalarType computePoint2TriangleDistance( const CCVector3* P,
+														 const GenericTriangle* theTriangle, bool signedDist,
+														 CCVector3* nearestP = nullptr );
 
 		//! Computes the (signed) distance between a point and a plane
 		/** \param P a 3D point
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
 			\return the signed distance between the point and the plane
 		**/
-		static ScalarType computePoint2PlaneDistance(const CCVector3* P, const PointCoordinateType* planeEquation);
+		static ScalarType computePoint2PlaneDistance( const CCVector3* P,
+													  const PointCoordinateType* planeEquation );
 
 		//! Computes the square of the distance between a point and a line segment
 		/** \param point a 3D point
@@ -254,7 +264,8 @@ namespace CCCoreLib
 			\param end the end of line segment
 			\return the distance squared between the point and the line segment
 		**/
-		static ScalarType computePoint2LineSegmentDistSquared(const CCVector3* point, const CCVector3* start, const CCVector3* end);
+		static ScalarType computePoint2LineSegmentDistSquared( const CCVector3* point, const CCVector3* start,
+															   const CCVector3* end );
 
 		//! Computes the distance between each point in a cloud and a cone
 		/** \param cloud a 3D point cloud
@@ -262,64 +273,89 @@ namespace CCCoreLib
 			\param coneP2 center point associated with the smaller radii
 			\param coneR1 cone radius at coneP1 (larger)
 			\param coneR2 cone radius at coneP2 (smaller)
-			\param signedDist whether to compute the signed or positive (absolute) distance (optional)
-			\param solutionType if true the scalar field will be set to which solution was selected 1-4 (optional)
-			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
-			\return negative error code or a positive value in case of success
+			\param signedDist whether to compute the signed or positive (absolute) distance
+		(optional) \param solutionType if true the scalar field will be set to which solution was
+		selected 1-4 (optional) \param[out] rms will be set with the Root Mean Square (RMS) distance
+		between a cloud and a cylinder (optional) \return negative error code or a positive value in
+		case of success
 		**/
-		static int computeCloud2ConeEquation(GenericIndexedCloudPersist* cloud, const CCVector3& coneP1, const CCVector3& coneP2, const PointCoordinateType coneR1, const PointCoordinateType coneR2, bool signedDistances = true, bool solutionType = false, double* rms = nullptr);
+		static int computeCloud2ConeEquation( GenericIndexedCloudPersist* cloud, const CCVector3& coneP1,
+											  const CCVector3& coneP2, const PointCoordinateType coneR1,
+											  const PointCoordinateType coneR2, bool signedDistances = true,
+											  bool solutionType = false, double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a cylinder
 		/** \param cloud a 3D point cloud
 			\param cylinderP1 center bottom point
 			\param cylinderP2 center top point
 			\param cylinderRadius cylinder radius
-			\param signedDist whether to compute the signed or positive (absolute) distance (optional)
-			\param solutionType if true the scalar field will be set to which solution was selected 1-4 (optional)
-			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
-			\return negative error code or a positive value in case of success
+			\param signedDist whether to compute the signed or positive (absolute) distance
+		(optional) \param solutionType if true the scalar field will be set to which solution was
+		selected 1-4 (optional) \param[out] rms will be set with the Root Mean Square (RMS) distance
+		between a cloud and a cylinder (optional) \return negative error code or a positive value in
+		case of success
 		**/
-		static int computeCloud2CylinderEquation(GenericIndexedCloudPersist* cloud, const CCVector3& cylinderP1, const CCVector3& cylinderP2, const PointCoordinateType cylinderRadius, bool signedDistances = true, bool solutionType = false, double* rms = nullptr);
+		static int computeCloud2CylinderEquation( GenericIndexedCloudPersist* cloud,
+												  const CCVector3& cylinderP1, const CCVector3& cylinderP2,
+												  const PointCoordinateType cylinderRadius,
+												  bool signedDistances = true, bool solutionType = false,
+												  double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a sphere
 		/** \param cloud a 3D point cloud
 			\param sphereCenter sphere 3d center point
 			\param sphereRadius sphere radius
-			\param signedDist whether to compute the signed or positive (absolute) distance (optional)
-			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a sphere (optional)
-			\return negative error code or a positive value in case of success
+			\param signedDist whether to compute the signed or positive (absolute) distance
+		(optional) \param[out] rms will be set with the Root Mean Square (RMS) distance between a
+		cloud and a sphere (optional) \return negative error code or a positive value in case of
+		success
 		**/
-		static int computeCloud2SphereEquation(GenericIndexedCloudPersist *cloud, const CCVector3& sphereCenter, const PointCoordinateType sphereRadius, bool signedDistances = true, double* rms = nullptr);
+		static int computeCloud2SphereEquation( GenericIndexedCloudPersist* cloud,
+												const CCVector3& sphereCenter,
+												const PointCoordinateType sphereRadius,
+												bool signedDistances = true, double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a plane
 		/** \param cloud a 3D point cloud
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
-			\param signedDist whether to compute the signed or positive (absolute) distance (optional)
-			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
-			\return negative error code or a positive value in case of success
+			\param signedDist whether to compute the signed or positive (absolute) distance
+		(optional) \param[out] rms will be set with the Root Mean Square (RMS) distance between a
+		cloud and a plane (optional) \return negative error code or a positive value in case of
+		success
 		**/
-		static int computeCloud2PlaneEquation(GenericIndexedCloudPersist* cloud, const PointCoordinateType* planeEquation, bool signedDistances = true, double * rms = nullptr);
+		static int computeCloud2PlaneEquation( GenericIndexedCloudPersist* cloud,
+											   const PointCoordinateType* planeEquation,
+											   bool signedDistances = true, double* rms = nullptr );
 
-		static int computeCloud2RectangleEquation(GenericIndexedCloudPersist *cloud, PointCoordinateType widthX, PointCoordinateType widthY, const SquareMatrix& rotationTransform, const CCVector3& center, bool signedDist = true, double* rms = nullptr);
+		static int computeCloud2RectangleEquation( GenericIndexedCloudPersist* cloud,
+												   PointCoordinateType widthX, PointCoordinateType widthY,
+												   const SquareMatrix& rotationTransform,
+												   const CCVector3& center, bool signedDist = true,
+												   double* rms = nullptr );
 
-		static int computeCloud2BoxEquation(GenericIndexedCloudPersist* cloud, const CCVector3& boxDimensions, const SquareMatrix& rotationTransform, const CCVector3& boxCenter, bool signedDist = true, double* rms = nullptr);
+		static int computeCloud2BoxEquation( GenericIndexedCloudPersist* cloud,
+											 const CCVector3& boxDimensions,
+											 const SquareMatrix& rotationTransform,
+											 const CCVector3& boxCenter, bool signedDist = true,
+											 double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a polyline
 		/** \param cloud a 3D point cloud
 			\param polyline the polyline to measure to
-			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
-			\return negative error code or a positive value in case of success
+			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and
+		a plane (optional) \return negative error code or a positive value in case of success
 		**/
-		static int computeCloud2PolylineEquation(GenericIndexedCloudPersist* cloud, const Polyline* polyline, double* rms = nullptr);
+		static int computeCloud2PolylineEquation( GenericIndexedCloudPersist* cloud, const Polyline* polyline,
+												  double* rms = nullptr );
 
 		//! Error estimators
 		enum ERROR_MEASURES
 		{
-			RMS,						/**< Root Mean Square error **/
-			MAX_DIST_68_PERCENT,		/**< Max distance @ 68% (1 sigma) **/
-			MAX_DIST_95_PERCENT,		/**< Max distance @ 98% (2 sigmas) **/
-			MAX_DIST_99_PERCENT,		/**< Max distance @ 99% (3 sigmas) **/
-			MAX_DIST,					/**< Max distance **/
+			RMS,				 /**< Root Mean Square error **/
+			MAX_DIST_68_PERCENT, /**< Max distance @ 68% (1 sigma) **/
+			MAX_DIST_95_PERCENT, /**< Max distance @ 98% (2 sigmas) **/
+			MAX_DIST_99_PERCENT, /**< Max distance @ 99% (3 sigmas) **/
+			MAX_DIST,			 /**< Max distance **/
 		};
 
 		enum DISTANCE_COMPUTATION_RESULTS
@@ -370,9 +406,9 @@ namespace CCCoreLib
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
 			\param measureType measure type
 		**/
-		static ScalarType ComputeCloud2PlaneDistance(	GenericCloud* cloud,
-														const PointCoordinateType* planeEquation,
-														ERROR_MEASURES measureType);
+		static ScalarType ComputeCloud2PlaneDistance( GenericCloud* cloud,
+													  const PointCoordinateType* planeEquation,
+													  ERROR_MEASURES measureType );
 
 		//! Computes the maximum distance between a point cloud and a plane
 		/** WARNING: this method uses the cloud global iterator
@@ -381,9 +417,9 @@ namespace CCCoreLib
 			\param percent percentage of lowest values ignored
 			\return the max distance @ 'percent' % between the point and the plane
 		**/
-		static ScalarType ComputeCloud2PlaneRobustMax(	GenericCloud* cloud,
-														const PointCoordinateType* planeEquation,
-														float percent);
+		static ScalarType ComputeCloud2PlaneRobustMax( GenericCloud* cloud,
+													   const PointCoordinateType* planeEquation,
+													   float percent );
 
 		//! Computes the maximum distance between a point cloud and a plane
 		/** WARNING: this method uses the cloud global iterator
@@ -391,67 +427,68 @@ namespace CCCoreLib
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
 			\return the max distance between the point and the plane
 		**/
-		static ScalarType ComputeCloud2PlaneMaxDistance(GenericCloud* cloud,
-														const PointCoordinateType* planeEquation);
+		static ScalarType ComputeCloud2PlaneMaxDistance( GenericCloud* cloud,
+														 const PointCoordinateType* planeEquation );
 
 		//! Computes the Root Mean Square (RMS) distance between a cloud and a plane
-		/** Sums the squared distances between each point of the cloud and the plane, then computes the mean value.
-			WARNING: this method uses the cloud global iterator
-			\param cloud a point cloud
-			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
-			\return the RMS of distances (or NaN if an error occurred)
+		/** Sums the squared distances between each point of the cloud and the plane, then computes
+		the mean value. WARNING: this method uses the cloud global iterator \param cloud a point
+		cloud \param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' \return the RMS of
+		distances (or NaN if an error occurred)
 		**/
-		static ScalarType computeCloud2PlaneDistanceRMS(	GenericCloud* cloud,
-															const PointCoordinateType* planeEquation);
+		static ScalarType computeCloud2PlaneDistanceRMS( GenericCloud* cloud,
+														 const PointCoordinateType* planeEquation );
 
 		//! Returns the (squared) distance from a point to a segment
 		/** \param P 3D point
 			\param A first point of the segment
 			\param B first point of the segment
-			\param onlyOrthogonal computes distance only if P lies 'in front' of AB (returns -1.0 otherwise)
-			\return squared distance (or potentially -1.0 if onlyOrthogonal is true)
+			\param onlyOrthogonal computes distance only if P lies 'in front' of AB (returns -1.0
+		otherwise) \return squared distance (or potentially -1.0 if onlyOrthogonal is true)
 		**/
-		static PointCoordinateType ComputeSquareDistToSegment(	const CCVector2& P,
-																const CCVector2& A,
-																const CCVector2& B,
-																bool onlyOrthogonal = false);
+		static PointCoordinateType ComputeSquareDistToSegment( const CCVector2& P, const CCVector2& A,
+															   const CCVector2& B,
+															   bool onlyOrthogonal = false );
 
-	public: //other methods
-
+	public: // other methods
 		//! Computes geodesic distances over a point cloud "surface" (starting from a seed point)
 		/** This method uses the FastMarching algorithm. Thereofre it needs an octree level as input
-			parameter in order to create the corresponding 3D grid. The greater this level is, the finer
-			the result will be, but more memory will be required as well.
-			Moreover to get an interesting result the cells size should not be too small (the propagation
-			will be stoped more easily on any encountered 'hole').
-			\param cloud the point cloud
-			\param seedPointIndex the index of the point from where to start the propagation
-			\param octreeLevel the octree at which to perform the Fast Marching propagation
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return true if the method succeeds
+			parameter in order to create the corresponding 3D grid. The greater this level is, the
+		finer the result will be, but more memory will be required as well. Moreover to get an
+		interesting result the cells size should not be too small (the propagation will be stoped
+		more easily on any encountered 'hole'). \param cloud the point cloud \param seedPointIndex
+		the index of the point from where to start the propagation \param octreeLevel the octree at
+		which to perform the Fast Marching propagation \param progressCb the client application can
+		get some notification of the process progress through this callback mechanism (see
+		GenericProgressCallback) \return true if the method succeeds
 		**/
-		static bool computeGeodesicDistances(	GenericIndexedCloudPersist* cloud,
-												unsigned seedPointIndex,
-												unsigned char octreeLevel,
-												GenericProgressCallback* progressCb = nullptr);
+		static bool computeGeodesicDistances( GenericIndexedCloudPersist* cloud, unsigned seedPointIndex,
+											  unsigned char octreeLevel,
+											  GenericProgressCallback* progressCb = nullptr );
 
 		//! Computes the differences between two scalar fields associated to equivalent point clouds
-		/** The compared cloud should be smaller or equal to the reference cloud. Its points should be
-			at the same position in space as points in the other cloud. The algorithm simply computes
+		/** The compared cloud should be smaller or equal to the reference cloud. Its points should
+		be at the same position in space as points in the other cloud. The algorithm simply computes
 			the difference between the scalar values associated to each couple of equivalent points.
 			\warning The result is stored in the active scalar field (input) of the comparedCloud.
-			\warning Moreover, the output scalar field should be different than the input scalar field!
-			\warning Be sure to activate an OUTPUT scalar field on both clouds
-			\param comparedCloud the compared cloud
-			\param referenceCloud the reference cloud
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\warning Moreover, the output scalar field should be different than the input scalar
+		field! \warning Be sure to activate an OUTPUT scalar field on both clouds \param
+		comparedCloud the compared cloud \param referenceCloud the reference cloud \param progressCb
+		the client application can get some notification of the process progress through this
+		callback mechanism (see GenericProgressCallback)
 		**/
-		static int diff(GenericIndexedCloudPersist* comparedCloud,
-						GenericIndexedCloudPersist* referenceCloud,
-						GenericProgressCallback* progressCb = nullptr);
+		static int diff( GenericIndexedCloudPersist* comparedCloud,
+						 GenericIndexedCloudPersist* referenceCloud,
+						 GenericProgressCallback* progressCb = nullptr );
 
 		//! Return codes for DistanceComputationTools::synchronizeOctrees
-		enum SOReturnCode { EMPTY_CLOUD, SYNCHRONIZED, DISJOINT, OUT_OF_MEMORY };
+		enum SOReturnCode
+		{
+			EMPTY_CLOUD,
+			SYNCHRONIZED,
+			DISJOINT,
+			OUT_OF_MEMORY
+		};
 
 		//! Synchronizes (and re-build if necessary) two octrees
 		/** Initializes the octrees before computing the distance between two clouds.
@@ -461,47 +498,48 @@ namespace CCCoreLib
 			\param referenceCloud the cloud corresponding to the second octree
 			\param comparedOctree the first octree
 			\param referenceOctree the second octree
-			\param maxSearchDist max search distance (or any negative value if no max distance is defined)
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return return code
+			\param maxSearchDist max search distance (or any negative value if no max distance is
+		defined) \param progressCb the client method can get some notification of the process
+		progress through this callback mechanism (see GenericProgressCallback) \return return code
 		**/
-		static SOReturnCode synchronizeOctrees(	GenericIndexedCloudPersist* comparedCloud,
+		static SOReturnCode synchronizeOctrees( GenericIndexedCloudPersist* comparedCloud,
 												GenericIndexedCloudPersist* referenceCloud,
-												DgmOctree* &comparedOctree,
-												DgmOctree* &referenceOctree,
+												DgmOctree*& comparedOctree, DgmOctree*& referenceOctree,
 												PointCoordinateType maxSearchDist = 0,
-												GenericProgressCallback* progressCb = nullptr);
+												GenericProgressCallback* progressCb = nullptr );
 
 		//! Returns whether multi-threading (parallel) computation is supported or not
 		static bool MultiThreadSupport();
 
 	protected:
-
 		//! Intersects a mesh with a grid structure
 		/** This method is used by computeCloud2MeshDistance.
 			\param theIntersection a specific structure to store the result of the intersection
 			\param octreeLevel the octree subdivision level corresponding to the grid
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param progressCb the client method can get some notification of the process progress
+		through this callback mechanism (see GenericProgressCallback)
 		**/
-		static int intersectMeshWithOctree(	OctreeAndMeshIntersection* theIntersection,
+		static int intersectMeshWithOctree( OctreeAndMeshIntersection* theIntersection,
 											unsigned char octreeLevel,
-											GenericProgressCallback* progressCb = nullptr);
+											GenericProgressCallback* progressCb = nullptr );
 
 		//! Computes the distances between a point cloud and a mesh projected into a grid structure
-		/** This method is used by computeCloud2MeshDistance, after intersectMeshWithOctree has been called.
-			\param theIntersection a specific structure corresponding the intersection of the mesh with the grid
-			\param params parameters
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+		/** This method is used by computeCloud2MeshDistance, after intersectMeshWithOctree has been
+		called. \param theIntersection a specific structure corresponding the intersection of the
+		mesh with the grid \param params parameters \param progressCb the client method can get some
+		notification of the process progress through this callback mechanism (see
+		GenericProgressCallback) \return -1 if an error occurred (e.g. not enough memory) and 0
+		otherwise
 		**/
-		static int computeCloud2MeshDistanceWithOctree(	OctreeAndMeshIntersection* theIntersection,
+		static int computeCloud2MeshDistanceWithOctree( OctreeAndMeshIntersection* theIntersection,
 														Cloud2MeshDistanceComputationParams& params,
-														GenericProgressCallback* progressCb = nullptr);
+														GenericProgressCallback* progressCb = nullptr );
 
-		//! Computes the "nearest neighbour distance" without local modeling for all points of an octree cell
-		/** This method has the generic syntax of a "cellular function" (see DgmOctree::localFunctionPtr).
-			Specific parameters are transmitted via the "additionalParameters" structure.
-			There are 3 additional parameters :
+		//! Computes the "nearest neighbour distance" without local modeling for all points of an
+		//! octree cell
+		/** This method has the generic syntax of a "cellular function" (see
+		DgmOctree::localFunctionPtr). Specific parameters are transmitted via the
+		"additionalParameters" structure. There are 3 additional parameters :
 			- (GenericCloud*) the compared cloud
 			- (GenericCloud*) the reference cloud
 			- (DgmOctree*) the octree corresponding to the compared cloud
@@ -509,14 +547,15 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool computeCellHausdorffDistance(	const DgmOctree::octreeCell& cell,
-													void** additionalParameters,
-													NormalizedProgress* nProgress = nullptr);
+		static bool computeCellHausdorffDistance( const DgmOctree::octreeCell& cell,
+												  void** additionalParameters,
+												  NormalizedProgress* nProgress = nullptr );
 
-		//! Computes the "nearest neighbour distance" with local modeling for all points of an octree cell
-		/** This method has the generic syntax of a "cellular function" (see DgmOctree::localFunctionPtr).
-			Specific parameters are transmitted via the "additionalParameters" structure.
-			There are 4 additional parameters :
+		//! Computes the "nearest neighbour distance" with local modeling for all points of an
+		//! octree cell
+		/** This method has the generic syntax of a "cellular function" (see
+		DgmOctree::localFunctionPtr). Specific parameters are transmitted via the
+		"additionalParameters" structure. There are 4 additional parameters :
 			- (GenericCloud*) the compared cloud
 			- (GenericCloud*) the reference cloud
 			- (DgmOctree*) the octree corresponding to the compared cloud
@@ -525,8 +564,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool computeCellHausdorffDistanceWithLocalModel(	const DgmOctree::octreeCell& cell,
+		static bool computeCellHausdorffDistanceWithLocalModel( const DgmOctree::octreeCell& cell,
 																void** additionalParameters,
-																NormalizedProgress* nProgress = nullptr);
+																NormalizedProgress* nProgress = nullptr );
 	};
 }
