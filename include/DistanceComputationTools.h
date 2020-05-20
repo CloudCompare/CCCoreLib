@@ -241,7 +241,8 @@ namespace CCCoreLib
 			\return the distance between the point and the triangle
 		**/
 		static ScalarType computePoint2TriangleDistance( const CCVector3* P,
-														 const GenericTriangle* theTriangle, bool signedDist,
+														 const GenericTriangle* theTriangle,
+														 bool signedDist,
 														 CCVector3* nearestP = nullptr );
 
 		//! Computes the (signed) distance between a point and a plane
@@ -258,7 +259,8 @@ namespace CCCoreLib
 			\param end the end of line segment
 			\return the distance squared between the point and the line segment
 		**/
-		static ScalarType computePoint2LineSegmentDistSquared( const CCVector3* point, const CCVector3* start,
+		static ScalarType computePoint2LineSegmentDistSquared( const CCVector3* point,
+															   const CCVector3* start,
 															   const CCVector3* end );
 
 		//! Computes the distance between each point in a cloud and a cone
@@ -272,10 +274,14 @@ namespace CCCoreLib
 			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
 			\return negative error code or a positive value in case of success
 		**/
-		static int computeCloud2ConeEquation( GenericIndexedCloudPersist* cloud, const CCVector3& coneP1,
-											  const CCVector3& coneP2, const PointCoordinateType coneR1,
-											  const PointCoordinateType coneR2, bool signedDistances = true,
-											  bool solutionType = false, double* rms = nullptr );
+		static int computeCloud2ConeEquation( GenericIndexedCloudPersist* cloud,
+											  const CCVector3& coneP1,
+											  const CCVector3& coneP2,
+											  const PointCoordinateType coneR1,
+											  const PointCoordinateType coneR2,
+											  bool signedDistances = true,
+											  bool solutionType = false,
+											  double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a cylinder
 		/** \param cloud a 3D point cloud
@@ -288,9 +294,11 @@ namespace CCCoreLib
 			\return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2CylinderEquation( GenericIndexedCloudPersist* cloud,
-												  const CCVector3& cylinderP1, const CCVector3& cylinderP2,
+												  const CCVector3& cylinderP1,
+												  const CCVector3& cylinderP2,
 												  const PointCoordinateType cylinderRadius,
-												  bool signedDistances = true, bool solutionType = false,
+												  bool signedDistances = true,
+												  bool solutionType = false,
 												  double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a sphere
@@ -304,7 +312,8 @@ namespace CCCoreLib
 		static int computeCloud2SphereEquation( GenericIndexedCloudPersist* cloud,
 												const CCVector3& sphereCenter,
 												const PointCoordinateType sphereRadius,
-												bool signedDistances = true, double* rms = nullptr );
+												bool signedDistances = true,
+												double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a plane
 		/** \param cloud a 3D point cloud
@@ -315,18 +324,22 @@ namespace CCCoreLib
 		**/
 		static int computeCloud2PlaneEquation( GenericIndexedCloudPersist* cloud,
 											   const PointCoordinateType* planeEquation,
-											   bool signedDistances = true, double* rms = nullptr );
+											   bool signedDistances = true,
+											   double* rms = nullptr );
 
 		static int computeCloud2RectangleEquation( GenericIndexedCloudPersist* cloud,
-												   PointCoordinateType widthX, PointCoordinateType widthY,
+												   PointCoordinateType widthX,
+												   PointCoordinateType widthY,
 												   const SquareMatrix& rotationTransform,
-												   const CCVector3& center, bool signedDist = true,
+												   const CCVector3& center,
+												   bool signedDist = true,
 												   double* rms = nullptr );
 
 		static int computeCloud2BoxEquation( GenericIndexedCloudPersist* cloud,
 											 const CCVector3& boxDimensions,
 											 const SquareMatrix& rotationTransform,
-											 const CCVector3& boxCenter, bool signedDist = true,
+											 const CCVector3& boxCenter,
+											 bool signedDist = true,
 											 double* rms = nullptr );
 
 		//! Computes the distance between each point in a cloud and a polyline
@@ -335,7 +348,8 @@ namespace CCCoreLib
 			\param[out] rms will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 			\return negative error code or a positive value in case of success
 		**/
-		static int computeCloud2PolylineEquation( GenericIndexedCloudPersist* cloud, const Polyline* polyline,
+		static int computeCloud2PolylineEquation( GenericIndexedCloudPersist* cloud,
+												  const Polyline* polyline,
 												  double* rms = nullptr );
 
 		//! Error estimators
@@ -437,7 +451,8 @@ namespace CCCoreLib
 			\param onlyOrthogonal computes distance only if P lies 'in front' of AB (returns -1.0 otherwise)
 			\return squared distance (or potentially -1.0 if onlyOrthogonal is true)
 		**/
-		static PointCoordinateType ComputeSquareDistToSegment( const CCVector2& P, const CCVector2& A,
+		static PointCoordinateType ComputeSquareDistToSegment( const CCVector2& P,
+															   const CCVector2& A,
 															   const CCVector2& B,
 															   bool onlyOrthogonal = false );
 
@@ -454,7 +469,8 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return true if the method succeeds
 		**/
-		static bool computeGeodesicDistances( GenericIndexedCloudPersist* cloud, unsigned seedPointIndex,
+		static bool computeGeodesicDistances( GenericIndexedCloudPersist* cloud,
+											  unsigned seedPointIndex,
 											  unsigned char octreeLevel,
 											  GenericProgressCallback* progressCb = nullptr );
 
@@ -496,7 +512,8 @@ namespace CCCoreLib
 		**/
 		static SOReturnCode synchronizeOctrees( GenericIndexedCloudPersist* comparedCloud,
 												GenericIndexedCloudPersist* referenceCloud,
-												DgmOctree*& comparedOctree, DgmOctree*& referenceOctree,
+												DgmOctree*& comparedOctree,
+												DgmOctree*& referenceOctree,
 												PointCoordinateType maxSearchDist = 0,
 												GenericProgressCallback* progressCb = nullptr );
 

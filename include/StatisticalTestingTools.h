@@ -40,12 +40,14 @@ namespace CCCoreLib
 			\return the Chi2 distance (or -1.0 if an error occurred)
 		**/
 		static double computeAdaptativeChi2Dist( const GenericDistribution* distrib,
-												 const GenericCloud* cloud, unsigned numberOfClasses,
+												 const GenericCloud* cloud,
+												 unsigned numberOfClasses,
 												 unsigned& finalNumberOfClasses,
 												 bool noClassCompression = false,
 												 const ScalarType* histoMin = nullptr,
 												 const ScalarType* histoMax = nullptr,
-												 unsigned* histoValues = nullptr, double* npis = nullptr );
+												 unsigned* histoValues = nullptr,
+												 double* npis = nullptr );
 
 		//! Computes the Chi2 fractile
 		/** Returns the max Chi2 Distance for a given "confidence" probability and a given number of
@@ -88,7 +90,8 @@ namespace CCCoreLib
 		**/
 		static double testCloudWithStatisticalModel( const GenericDistribution* distrib,
 													 GenericIndexedCloudPersist* theCloud,
-													 unsigned numberOfNeighbours, double pTrust,
+													 unsigned numberOfNeighbours,
+													 double pTrust,
 													 GenericProgressCallback* progressCb = nullptr,
 													 DgmOctree* inputOctree = nullptr );
 

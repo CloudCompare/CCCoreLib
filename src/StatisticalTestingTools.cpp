@@ -44,10 +44,15 @@ struct Chi2Class
 //! An ordered list of Chi2 classes
 using Chi2ClassList = std::list<Chi2Class>;
 
-double StatisticalTestingTools::computeAdaptativeChi2Dist(
-	const GenericDistribution* distrib, const GenericCloud* cloud, unsigned numberOfClasses,
-	unsigned& finalNumberOfClasses, bool noClassCompression /*=false*/, const ScalarType* histoMin /*=0*/,
-	const ScalarType* histoMax /*=0*/, unsigned* histoValues /*=0*/, double* npis /*=0*/ )
+double StatisticalTestingTools::computeAdaptativeChi2Dist( const GenericDistribution* distrib,
+														   const GenericCloud* cloud,
+														   unsigned numberOfClasses,
+														   unsigned& finalNumberOfClasses,
+														   bool noClassCompression /*=false*/,
+														   const ScalarType* histoMin /*=0*/,
+														   const ScalarType* histoMax /*=0*/,
+														   unsigned* histoValues /*=0*/,
+														   double* npis /*=0*/ )
 {
 	assert( distrib && cloud );
 	unsigned n = cloud->size();
@@ -288,7 +293,8 @@ double StatisticalTestingTools::computeChi2Probability( double chi2result, int d
 
 double StatisticalTestingTools::testCloudWithStatisticalModel( const GenericDistribution* distrib,
 															   GenericIndexedCloudPersist* theCloud,
-															   unsigned numberOfNeighbours, double pTrust,
+															   unsigned numberOfNeighbours,
+															   double pTrust,
 															   GenericProgressCallback* progressCb /*=0*/,
 															   DgmOctree* inputOctree /*=0*/ )
 {

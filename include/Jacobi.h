@@ -38,8 +38,10 @@ namespace CCCoreLib
 		\param[in] maxIterationCount max number of iteration (optional)
 		\return success
 		**/
-		static bool ComputeEigenValuesAndVectors2( const SquareMatrix& matrix, SquareMatrix& eigenVectors,
-												   EigenValues& eigenValues, unsigned maxIterationCount = 50 )
+		static bool ComputeEigenValuesAndVectors2( const SquareMatrix& matrix,
+												   SquareMatrix& eigenVectors,
+												   EigenValues& eigenValues,
+												   unsigned maxIterationCount = 50 )
 		{
 			if ( !matrix.isValid() )
 			{
@@ -196,8 +198,10 @@ namespace CCCoreLib
 
 		//! Computes eigen vectors (and values) with the Jacobian method
 		/** See the Numerical Recipes. **/
-		static bool ComputeEigenValuesAndVectors( const SquareMatrix& matrix, SquareMatrix& eigenVectors,
-												  EigenValues& eigenValues, bool absoluteValues = true,
+		static bool ComputeEigenValuesAndVectors( const SquareMatrix& matrix,
+												  SquareMatrix& eigenVectors,
+												  EigenValues& eigenValues,
+												  bool absoluteValues = true,
 												  unsigned maxIterationCount = 50 )
 		{
 			if ( !matrix.isValid() )
@@ -414,7 +418,8 @@ namespace CCCoreLib
 		\return success
 		**/
 		static bool GetMaxEigenValueAndVector( const SquareMatrix& eigenVectors,
-											   const EigenValues& eigenValues, Scalar& maxEigenValue,
+											   const EigenValues& eigenValues,
+											   Scalar& maxEigenValue,
 											   Scalar maxEigenVector[] )
 		{
 			if ( !eigenVectors.isValid() || eigenVectors.size() < 2 ||
@@ -441,7 +446,8 @@ namespace CCCoreLib
 		\return success
 		**/
 		static bool GetMinEigenValueAndVector( const SquareMatrix& eigenVectors,
-											   const EigenValues& eigenValues, Scalar& minEigenValue,
+											   const EigenValues& eigenValues,
+											   Scalar& minEigenValue,
 											   Scalar minEigenVector[] )
 		{
 			if ( !eigenVectors.isValid() || eigenVectors.size() < 2 ||

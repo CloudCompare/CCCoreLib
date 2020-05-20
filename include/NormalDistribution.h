@@ -30,7 +30,8 @@ namespace CCCoreLib
 		double computeP( ScalarType x ) const override;
 		double computePfromZero( ScalarType x ) const override;
 		double computeP( ScalarType x1, ScalarType x2 ) const override;
-		double computeChi2Dist( const GenericCloud* Yk, unsigned numberOfClasses,
+		double computeChi2Dist( const GenericCloud* Yk,
+								unsigned numberOfClasses,
 								int* histo = nullptr ) override;
 		const char* getName() const override
 		{

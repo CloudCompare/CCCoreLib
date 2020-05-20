@@ -128,7 +128,8 @@ void CCMiscTools::EnlargeBox( CCVector3& dimMin, CCVector3& dimMax, double coef 
 
 /**** tribox3.c *****/
 
-bool CCMiscTools::TriBoxOverlap( const CCVector3& boxcenter, const CCVector3& boxhalfSize,
+bool CCMiscTools::TriBoxOverlap( const CCVector3& boxcenter,
+								 const CCVector3& boxhalfSize,
 								 const CCVector3* triverts[3] )
 {
 	/*    use separating axis theorem to test overlap between triangle and box */
@@ -263,7 +264,8 @@ bool CCMiscTools::TriBoxOverlap( const CCVector3& boxcenter, const CCVector3& bo
 	return true; /* box and triangle overlaps */
 }
 
-bool CCMiscTools::TriBoxOverlapd( const CCVector3d& boxcenter, const CCVector3d& boxhalfSize,
+bool CCMiscTools::TriBoxOverlapd( const CCVector3d& boxcenter,
+								  const CCVector3d& boxhalfSize,
 								  const CCVector3d triverts[3] )
 {
 	/*    use separating axis theorem to test overlap between triangle and box */

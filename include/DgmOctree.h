@@ -440,8 +440,10 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build( const CCVector3& octreeMin, const CCVector3& octreeMax,
-				   const CCVector3* pointsMinFilter = nullptr, const CCVector3* pointsMaxFilter = nullptr,
+		int build( const CCVector3& octreeMin,
+				   const CCVector3& octreeMax,
+				   const CCVector3* pointsMinFilter = nullptr,
+				   const CCVector3* pointsMaxFilter = nullptr,
 				   GenericProgressCallback* progressCb = nullptr );
 
 		/**** GETTERS ****/
@@ -529,7 +531,9 @@ namespace CCCoreLib
 			\param neighbourhoodLength cell neighbourhood "radius"
 			\param cellDists output
 		**/
-		void getCellDistanceFromBorders( const Tuple3i& cellPos, unsigned char level, int neighbourhoodLength,
+		void getCellDistanceFromBorders( const Tuple3i& cellPos,
+										 unsigned char level,
+										 int neighbourhoodLength,
 										 int* cellDists ) const;
 
 		//! Returns the points lying in a specific cell
@@ -546,7 +550,9 @@ namespace CCCoreLib
 			\param clearOutputCloud whether to clear the input cloud prior to inserting the points or not
 			\return success
 		**/
-		bool getPointsInCellByCellIndex( ReferenceCloud* cloud, unsigned cellIndex, unsigned char level,
+		bool getPointsInCellByCellIndex( ReferenceCloud* cloud,
+										 unsigned cellIndex,
+										 unsigned char level,
 										 bool clearOutputCloud = true ) const;
 
 		//! Returns the points lying in a specific cell
@@ -557,8 +563,11 @@ namespace CCCoreLib
 			\param clearOutputCloud whether to clear or not the output cloud (subest) if no points lie in the specified cell
 			\return success
 		**/
-		bool getPointsInCell( CellCode cellCode, unsigned char level, ReferenceCloud* subset,
-							  bool isCodeTruncated = false, bool clearOutputCloud = true ) const;
+		bool getPointsInCell( CellCode cellCode,
+							  unsigned char level,
+							  ReferenceCloud* subset,
+							  bool isCodeTruncated = false,
+							  bool clearOutputCloud = true ) const;
 
 		//! Returns the points lying in multiple cells
 		/** Cells are recognized here by their unique "code". They should be sorted
@@ -571,7 +580,8 @@ namespace CCCoreLib
 			\return the set of points lying in the cell (references, no duplication)
 		**/
 		ReferenceCloud* getPointsInCellsWithSortedCellCodes( cellCodesContainer& cellCodes,
-															 unsigned char level, ReferenceCloud* subset,
+															 unsigned char level,
+															 ReferenceCloud* subset,
 															 bool areCodesTruncated = false ) const;
 
 		/**** NEIGHBOURHOOD SEARCH ****/
@@ -592,9 +602,12 @@ namespace CCCoreLib
 			\param[out] the final neighborhood (half)size (optional)
 			\return the number of neighbours found
 		**/
-		unsigned findPointNeighbourhood( const CCVector3* _queryPoint, ReferenceCloud* Yk,
-										 unsigned maxNumberOfNeighbors, unsigned char level,
-										 double& maxSquareDist, double maxSearchDist = 0,
+		unsigned findPointNeighbourhood( const CCVector3* _queryPoint,
+										 ReferenceCloud* Yk,
+										 unsigned maxNumberOfNeighbors,
+										 unsigned char level,
+										 double& maxSquareDist,
+										 double maxSearchDist = 0,
 										 int* finalNeighbourhoodSize = nullptr ) const;
 
 		//! Advanced form of the nearest neighbour search algorithm (unique neighbour)
@@ -629,7 +642,8 @@ namespace CCCoreLib
 			\return the number of neighbours found
 		**/
 		int findNeighborsInASphereStartingFromCell( NearestNeighboursSphericalSearchStruct& nNSS,
-													double radius, bool sortValues = true ) const;
+													double radius,
+													bool sortValues = true ) const;
 
 	public: // extraction of points inside geometrical volumes (sphere, cylinder, box, etc.)
 		// deprecated
@@ -645,8 +659,10 @@ namespace CCCoreLib
 			\param level subdivision level at which to apply the extraction process
 			\return the number of extracted points
 		**/
-		int getPointsInSphericalNeighbourhood( const CCVector3& sphereCenter, PointCoordinateType radius,
-											   NeighboursSet& neighbours, unsigned char level ) const;
+		int getPointsInSphericalNeighbourhood( const CCVector3& sphereCenter,
+											   PointCoordinateType radius,
+											   NeighboursSet& neighbours,
+											   unsigned char level ) const;
 
 		//! Input/output parameters structure for getPointsInCylindricalNeighbourhood
 		struct CylindricalNeighbourhood
@@ -792,7 +808,8 @@ namespace CCCoreLib
 			\param cellPos the computed position
 			\param level the level of subdivision
 		**/
-		inline void getTheCellPosWhichIncludesThePoint( const CCVector3* thePoint, Tuple3i& cellPos,
+		inline void getTheCellPosWhichIncludesThePoint( const CCVector3* thePoint,
+														Tuple3i& cellPos,
 														unsigned char level ) const
 		{
 			assert( level <= MAX_OCTREE_LEVEL );
@@ -815,8 +832,10 @@ namespace CCCoreLib
 			\param level the level of subdivision
 			\param inBounds indicates if the query point is inside or outside the octree bounding-box
 		**/
-		inline void getTheCellPosWhichIncludesThePoint( const CCVector3* thePoint, Tuple3i& cellPos,
-														unsigned char level, bool& inBounds ) const
+		inline void getTheCellPosWhichIncludesThePoint( const CCVector3* thePoint,
+														Tuple3i& cellPos,
+														unsigned char level,
+														bool& inBounds ) const
 		{
 			assert( level <= MAX_OCTREE_LEVEL );
 
@@ -845,7 +864,9 @@ namespace CCCoreLib
 			\param center the computed center
 			\param isCodeTruncated indicates if the given code is truncated or not
 		**/
-		inline void computeCellCenter( CellCode code, unsigned char level, CCVector3& center,
+		inline void computeCellCenter( CellCode code,
+									   unsigned char level,
+									   CCVector3& center,
 									   bool isCodeTruncated = false ) const
 		{
 			Tuple3i cellPos;
@@ -891,7 +912,10 @@ namespace CCCoreLib
 			\param cellMax the maximum coordinates along each dimension
 			\param isCodeTruncated indicates if the given code is truncated or not
 		**/
-		void computeCellLimits( CellCode code, unsigned char level, CCVector3& cellMin, CCVector3& cellMax,
+		void computeCellLimits( CellCode code,
+								unsigned char level,
+								CCVector3& cellMin,
+								CCVector3& cellMax,
 								bool isCodeTruncated = false ) const;
 
 		//! Returns the index of a given cell represented by its code
@@ -972,7 +996,8 @@ namespace CCCoreLib
 			\param truncatedCodes indicates if the resulting codes should be truncated or not
 			\return false if an error occurred (e.g. not enough memory)
 		**/
-		bool getCellCodesAndIndexes( unsigned char level, cellsContainer& vec,
+		bool getCellCodesAndIndexes( unsigned char level,
+									 cellsContainer& vec,
 									 bool truncatedCodes = false ) const;
 
 		//! Returns the cells that differ between two octrees (for a same implicit level of subdivision)
@@ -982,8 +1007,10 @@ namespace CCCoreLib
 			\param diffA the cells of the first octree that are not in the second octree
 			\param diffB the cells of the second octree that are not in the first octree
 		**/
-		void diff( const cellCodesContainer& codesA, const cellCodesContainer& codesB,
-				   cellCodesContainer& diffA, cellCodesContainer& diffB ) const;
+		void diff( const cellCodesContainer& codesA,
+				   const cellCodesContainer& codesB,
+				   cellCodesContainer& diffA,
+				   cellCodesContainer& diffB ) const;
 
 		//! Returns the differences (in terms of number of cells) between two octrees for a given level of
 		//! subdivision
@@ -997,8 +1024,13 @@ namespace CCCoreLib
 			\param cellsB the number of cells of the second octree for the given number of subdivision
 			\return false if it could not calculate the differences
 		**/
-		bool diff( unsigned char octreeLevel, const cellsContainer& codesA, const cellsContainer& codesB,
-				   int& diffA, int& diffB, int& cellsA, int& cellsB ) const;
+		bool diff( unsigned char octreeLevel,
+				   const cellsContainer& codesA,
+				   const cellsContainer& codesB,
+				   int& diffA,
+				   int& diffB,
+				   int& cellsA,
+				   int& cellsB ) const;
 
 		//! Returns the number of cells for a given level of subdivision
 		inline const unsigned& getCellNumber( unsigned char level ) const
@@ -1051,7 +1083,9 @@ namespace CCCoreLib
 				- '-2' = not enough memory
 				- '-3' = no CC found
 		**/
-		int extractCCs( const cellCodesContainer& cellCodes, unsigned char level, bool sixConnexity,
+		int extractCCs( const cellCodesContainer& cellCodes,
+						unsigned char level,
+						bool sixConnexity,
 						GenericProgressCallback* progressCb = nullptr ) const;
 
 		//! Computes the connected components (considering the octree cells only) for a given level of
@@ -1069,7 +1103,8 @@ namespace CCCoreLib
 				- '-2' = not enough memory
 				- '-3' = no CC found
 		**/
-		int extractCCs( unsigned char level, bool sixConnexity,
+		int extractCCs( unsigned char level,
+						bool sixConnexity,
 						GenericProgressCallback* progressCb = nullptr ) const;
 
 		/**** OCTREE VISITOR ****/
@@ -1095,11 +1130,15 @@ namespace CCCoreLib
 			\param maxThreadCount the maximum number of threads to use (0 = all). Ignored if 'multiThread' is false.
 			\return the number of processed cells (or 0 is something went wrong)
 		**/
-		unsigned executeFunctionForAllCellsStartingAtLevel(
-			unsigned char startingLevel, octreeCellFunc func, void** additionalParameters,
-			unsigned minNumberOfPointsPerCell, unsigned maxNumberOfPointsPerCell, bool multiThread = true,
-			GenericProgressCallback* progressCb = nullptr, const char* functionTitle = nullptr,
-			int maxThreadCount = 0 );
+		unsigned executeFunctionForAllCellsStartingAtLevel( unsigned char startingLevel,
+															octreeCellFunc func,
+															void** additionalParameters,
+															unsigned minNumberOfPointsPerCell,
+															unsigned maxNumberOfPointsPerCell,
+															bool multiThread = true,
+															GenericProgressCallback* progressCb = nullptr,
+															const char* functionTitle = nullptr,
+															int maxThreadCount = 0 );
 
 		//! Method to apply automatically a specific function to each cell of the octree
 		/** The function to apply should be of the form DgmOctree::octreeCellFunc. In this case
@@ -1116,8 +1155,10 @@ namespace CCCoreLib
 			\param maxThreadCount the maximum number of threads to use (0 = all). Ignored if 'multiThread' is false.
 			\return the number of processed cells (or 0 is something went wrong)
 		**/
-		unsigned executeFunctionForAllCellsAtLevel( unsigned char level, octreeCellFunc func,
-													void** additionalParameters, bool multiThread = false,
+		unsigned executeFunctionForAllCellsAtLevel( unsigned char level,
+													octreeCellFunc func,
+													void** additionalParameters,
+													bool multiThread = false,
 													GenericProgressCallback* progressCb = nullptr,
 													const char* functionTitle = nullptr,
 													int maxThreadCount = 0 );
@@ -1131,9 +1172,12 @@ namespace CCCoreLib
 
 		//! Ray casting algorithm
 		bool rayCast(
-			const CCVector3& rayAxis, const CCVector3& rayOrigin, double maxRadiusOrFov,
+			const CCVector3& rayAxis,
+			const CCVector3& rayOrigin,
+			double maxRadiusOrFov,
 			bool isFOV, // whether the previous parameter is a radius (distance) or a FOV (in radians)
-			RayCastProcess process, std::vector<PointDescriptor>& output ) const;
+			RayCastProcess process,
+			std::vector<PointDescriptor>& output ) const;
 
 		//! Returns the associated cloud
 		inline GenericIndexedCloudPersist* associatedCloud() const
@@ -1244,20 +1288,24 @@ namespace CCCoreLib
 			\param neighbourhoodLength the distance (in terms of cells) at which to look for neighbour cells
 			\param level the level of subdivision
 		**/
-		void getNeighborCellsAround( const Tuple3i& cellPos, cellIndexesContainer& neighborCellsIndexes,
-									 int neighbourhoodLength, unsigned char level ) const;
+		void getNeighborCellsAround( const Tuple3i& cellPos,
+									 cellIndexesContainer& neighborCellsIndexes,
+									 int neighbourhoodLength,
+									 unsigned char level ) const;
 
 		//! Gets point in the neighbourhing cells of a specific cell
 		/** \param nNSS NN search parameters (from which are used: cellPos, pointsInNeighbourCells and level)
 			\param neighbourhoodLength the new distance (in terms of cells) at which to look for neighbour cells
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 		**/
-		void getPointsInNeighbourCellsAround( NearestNeighboursSearchStruct& nNSS, int neighbourhoodLength,
+		void getPointsInNeighbourCellsAround( NearestNeighboursSearchStruct& nNSS,
+											  int neighbourhoodLength,
 											  bool getOnlyPointsWithValidScalar = false ) const;
 
 #ifdef TEST_CELLS_FOR_SPHERICAL_NN
 		void getPointsInNeighbourCellsAround( NearestNeighboursSphericalSearchStruct& nNSS,
-											  int minNeighbourhoodLength, int maxNeighbourhoodLength ) const;
+											  int minNeighbourhoodLength,
+											  int maxNeighbourhoodLength ) const;
 #endif
 
 		//! Returns the index of a given cell represented by its code
@@ -1269,7 +1317,9 @@ namespace CCCoreLib
 			\param end last index of the sub-list in which to perform the binary search
 			\return the index of the cell (or 'm_numberOfProjectedPoints' if none found)
 		**/
-		unsigned getCellIndex( CellCode truncatedCellCode, unsigned char bitDec, unsigned begin,
+		unsigned getCellIndex( CellCode truncatedCellCode,
+							   unsigned char bitDec,
+							   unsigned begin,
 							   unsigned end ) const;
 	};
 

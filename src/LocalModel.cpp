@@ -16,7 +16,8 @@ class LSLocalModel : public LocalModel
 {
 public:
 	//! Constructor
-	LSLocalModel( const PointCoordinateType eq[4], const CCVector3& center,
+	LSLocalModel( const PointCoordinateType eq[4],
+				  const CCVector3& center,
 				  PointCoordinateType squaredRadius )
 		: LocalModel( center, squaredRadius )
 	{
@@ -115,8 +116,13 @@ class QuadricLocalModel : public LocalModel
 {
 public:
 	//! Constructor
-	QuadricLocalModel( const PointCoordinateType eq[6], unsigned char X, unsigned char Y, unsigned char Z,
-					   CCVector3 gravityCenter, const CCVector3& center, PointCoordinateType squaredRadius )
+	QuadricLocalModel( const PointCoordinateType eq[6],
+					   unsigned char X,
+					   unsigned char Y,
+					   unsigned char Z,
+					   CCVector3 gravityCenter,
+					   const CCVector3& center,
+					   PointCoordinateType squaredRadius )
 		: LocalModel( center, squaredRadius )
 		, m_X( X )
 		, m_Y( Y )
@@ -172,7 +178,9 @@ LocalModel::LocalModel( const CCVector3& center, PointCoordinateType squaredRadi
 {
 }
 
-LocalModel* LocalModel::New( LOCAL_MODEL_TYPES type, Neighbourhood& subset, const CCVector3& center,
+LocalModel* LocalModel::New( LOCAL_MODEL_TYPES type,
+							 Neighbourhood& subset,
+							 const CCVector3& center,
 							 PointCoordinateType squaredRadius )
 {
 	switch ( type )

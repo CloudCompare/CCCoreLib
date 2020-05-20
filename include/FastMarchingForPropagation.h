@@ -34,7 +34,9 @@ namespace CCCoreLib
 			\param constantAcceleration specifies if the acceleration is constant or shoul be computed from the cell points scalar values
 			\return a negative value if something went wrong
 		**/
-		int init( GenericCloud* theCloud, DgmOctree* theOctree, unsigned char gridLevel,
+		int init( GenericCloud* theCloud,
+				  DgmOctree* theOctree,
+				  unsigned char gridLevel,
 				  bool constantAcceleration = false );
 
 		//! Returns a list of the points (references to) reached by the propagation process

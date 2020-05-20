@@ -126,8 +126,10 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctree( GenericIndexedClou
 }
 
 ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctreeAtLevel(
-	GenericIndexedCloudPersist* inputCloud, unsigned char octreeLevel,
-	SUBSAMPLING_CELL_METHOD subsamplingMethod, GenericProgressCallback* progressCb /*=0*/,
+	GenericIndexedCloudPersist* inputCloud,
+	unsigned char octreeLevel,
+	SUBSAMPLING_CELL_METHOD subsamplingMethod,
+	GenericProgressCallback* progressCb /*=0*/,
 	DgmOctree* inputOctree /*=0*/ )
 {
 	assert( inputCloud );
@@ -459,8 +461,10 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially( GenericIndexedCloudP
 	return sampledCloud;
 }
 
-ReferenceCloud* CloudSamplingTools::sorFilter( GenericIndexedCloudPersist* inputCloud, int knn /*=6*/,
-											   double nSigma /*=1.0*/, DgmOctree* inputOctree /*=0*/,
+ReferenceCloud* CloudSamplingTools::sorFilter( GenericIndexedCloudPersist* inputCloud,
+											   int knn /*=6*/,
+											   double nSigma /*=1.0*/,
+											   DgmOctree* inputOctree /*=0*/,
 											   GenericProgressCallback* progressCb /*=0*/ )
 {
 	if ( !inputCloud || knn <= 0 || inputCloud->size() <= static_cast<unsigned>( knn ) )
@@ -567,10 +571,14 @@ ReferenceCloud* CloudSamplingTools::sorFilter( GenericIndexedCloudPersist* input
 }
 
 ReferenceCloud* CloudSamplingTools::noiseFilter( GenericIndexedCloudPersist* inputCloud,
-												 PointCoordinateType kernelRadius, double nSigma,
-												 bool removeIsolatedPoints /*=false*/, bool useKnn /*=false*/,
-												 int knn /*=6*/, bool useAbsoluteError /*=true*/,
-												 double absoluteError /*=0.0*/, DgmOctree* inputOctree /*=0*/,
+												 PointCoordinateType kernelRadius,
+												 double nSigma,
+												 bool removeIsolatedPoints /*=false*/,
+												 bool useKnn /*=false*/,
+												 int knn /*=6*/,
+												 bool useAbsoluteError /*=true*/,
+												 double absoluteError /*=0.0*/,
+												 DgmOctree* inputOctree /*=0*/,
 												 GenericProgressCallback* progressCb /*=0*/ )
 {
 	if ( !inputCloud || inputCloud->size() < 2 || ( useKnn && knn <= 0 ) || ( !useKnn && kernelRadius <= 0 ) )
@@ -640,7 +648,8 @@ ReferenceCloud* CloudSamplingTools::noiseFilter( GenericIndexedCloudPersist* inp
 	return filteredCloud;
 }
 
-bool CloudSamplingTools::resampleCellAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+bool CloudSamplingTools::resampleCellAtLevel( const DgmOctree::octreeCell& cell,
+											  void** additionalParameters,
 											  NormalizedProgress* nProgress /*=0*/ )
 {
 	PointCloud* cloud = static_cast<PointCloud*>( additionalParameters[0] );
@@ -669,7 +678,8 @@ bool CloudSamplingTools::resampleCellAtLevel( const DgmOctree::octreeCell& cell,
 	return true;
 }
 
-bool CloudSamplingTools::subsampleCellAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+bool CloudSamplingTools::subsampleCellAtLevel( const DgmOctree::octreeCell& cell,
+											   void** additionalParameters,
 											   NormalizedProgress* nProgress /*=0*/ )
 {
 	ReferenceCloud* cloud = static_cast<ReferenceCloud*>( additionalParameters[0] );

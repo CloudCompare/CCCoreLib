@@ -69,7 +69,8 @@ namespace CCCoreLib
 		double computeP( ScalarType x ) const override;
 		double computePfromZero( ScalarType x ) const override;
 		double computeP( ScalarType x1, ScalarType x2 ) const override;
-		double computeChi2Dist( const GenericCloud* cloud, unsigned numberOfClasses,
+		double computeChi2Dist( const GenericCloud* cloud,
+								unsigned numberOfClasses,
 								int* histo = nullptr ) override;
 		const char* getName() const override
 		{
@@ -107,7 +108,9 @@ namespace CCCoreLib
 		//! internal function for parameters evaluation from sample points
 		/** inverseVmax can be optionally specified for overflow-safe version
 		 **/
-		static double ComputeG( const ScalarContainer& values, double a, ScalarType valueShift,
+		static double ComputeG( const ScalarContainer& values,
+								double a,
+								ScalarType valueShift,
 								double valueRange );
 		//! internal function for parameters evaluation from sample points
 		static double FindGRoot( const ScalarContainer& values, ScalarType valueShift, double valueRange );

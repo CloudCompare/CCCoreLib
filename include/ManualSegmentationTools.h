@@ -30,8 +30,10 @@ namespace CCCoreLib
 			\param viewMat the optional 4x4 visualization matrix (OpenGL style)
 			\return a cloud structure containing references to the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segment( GenericIndexedCloudPersist* aCloud, const Polyline* poly,
-										bool keepInside, const float* viewMat = nullptr );
+		static ReferenceCloud* segment( GenericIndexedCloudPersist* aCloud,
+										const Polyline* poly,
+										bool keepInside,
+										const float* viewMat = nullptr );
 
 		//! Selects the points which associated scalar value fall inside or outside a specified interval
 		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
@@ -41,8 +43,10 @@ namespace CCCoreLib
 			\param outside whether to select the points inside or outside
 			\return a new cloud structure containing the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segmentReferenceCloud( ReferenceCloud* cloud, ScalarType minDist,
-													  ScalarType maxDist, bool outside );
+		static ReferenceCloud* segmentReferenceCloud( ReferenceCloud* cloud,
+													  ScalarType minDist,
+													  ScalarType maxDist,
+													  bool outside );
 
 		//! Selects the points which associated scalar value fall inside or outside a specified interval
 		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
@@ -52,8 +56,10 @@ namespace CCCoreLib
 			\param outside whether to select the points inside or outside
 			\return a new cloud structure containing the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segment( GenericIndexedCloudPersist* cloud, ScalarType minDist,
-										ScalarType maxDist, bool outside = false );
+		static ReferenceCloud* segment( GenericIndexedCloudPersist* cloud,
+										ScalarType minDist,
+										ScalarType maxDist,
+										bool outside = false );
 
 		//! Tests if a point is inside a polygon (2D)
 		/** \param P a 2D point
@@ -85,7 +91,8 @@ namespace CCCoreLib
 			\param indexShift optionally, a shift can be added to all vertex indexes of the new mesh
 			\return a new mesh structure, or 0 if something went wrong
 		**/
-		static GenericIndexedMesh* segmentMesh( GenericIndexedMesh* theMesh, ReferenceCloud* pointsIndexes,
+		static GenericIndexedMesh* segmentMesh( GenericIndexedMesh* theMesh,
+												ReferenceCloud* pointsIndexes,
 												bool pointsWillBeInside,
 												GenericProgressCallback* progressCb = nullptr,
 												GenericIndexedCloud* destCloud = nullptr,
@@ -122,11 +129,13 @@ namespace CCCoreLib
 			}
 		};
 
-		static bool segmentMeshWithAAPlane( GenericIndexedMesh* mesh, GenericIndexedCloudPersist* vertices,
+		static bool segmentMeshWithAAPlane( GenericIndexedMesh* mesh,
+											GenericIndexedCloudPersist* vertices,
 											MeshCutterParams& ioParams,
 											GenericProgressCallback* progressCb = nullptr );
 
-		static bool segmentMeshWithAABox( GenericIndexedMesh* mesh, GenericIndexedCloudPersist* vertices,
+		static bool segmentMeshWithAABox( GenericIndexedMesh* mesh,
+										  GenericIndexedCloudPersist* vertices,
 										  MeshCutterParams& ioParams,
 										  GenericProgressCallback* progressCb = nullptr );
 	};

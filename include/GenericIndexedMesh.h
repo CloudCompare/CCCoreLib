@@ -66,7 +66,9 @@ namespace CCCoreLib
 			\param[out] B second vertex
 			\param[out] C third vertex
 		**/
-		virtual void getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
+		virtual void getTriangleVertices( unsigned triangleIndex,
+										  CCVector3& A,
+										  CCVector3& B,
 										  CCVector3& C ) const = 0;
 
 		//! Returns the indexes of the vertices of the next triangle (relatively to the global iterator

@@ -51,7 +51,8 @@ namespace CCCoreLib
 			\param outputErrorStr error string as output by the CGAL lib. (if any)
 			\return success
 		**/
-		virtual bool buildMesh( const std::vector<CCVector2>& points2D, std::size_t pointCountToUse,
+		virtual bool buildMesh( const std::vector<CCVector2>& points2D,
+								std::size_t pointCountToUse,
 								std::string& outputErrorStr );
 
 		//! Build the Delaunay mesh from a set of 2D polylines
@@ -60,7 +61,8 @@ namespace CCCoreLib
 			\param outputErrorStr error string as output by the CGAL lib. (if any)
 			\return success
 		**/
-		virtual bool buildMesh( const std::vector<CCVector2>& points2D, const std::vector<int>& segments2D,
+		virtual bool buildMesh( const std::vector<CCVector2>& points2D,
+								const std::vector<int>& segments2D,
 								std::string& outputErrorStr );
 
 		//! Removes the triangles falling outside of a given (2D) polygon
@@ -86,7 +88,9 @@ namespace CCCoreLib
 		GenericTriangle* _getTriangle( unsigned triangleIndex ) override;
 		VerticesIndexes* getNextTriangleVertIndexes() override;
 		VerticesIndexes* getTriangleVertIndexes( unsigned triangleIndex ) override;
-		void getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
+		void getTriangleVertices( unsigned triangleIndex,
+								  CCVector3& A,
+								  CCVector3& B,
 								  CCVector3& C ) const override;
 
 		//! Returns triangles indexes array (pointer to)

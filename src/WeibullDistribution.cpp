@@ -249,7 +249,9 @@ double WeibullDistribution::computeP( ScalarType x1, ScalarType x2 ) const
 		   exp( -pow( static_cast<double>( x2 - m_valueShift ) / m_b, static_cast<double>( m_a ) ) );
 }
 
-double WeibullDistribution::ComputeG( const ScalarContainer& values, double r, ScalarType valueShift,
+double WeibullDistribution::ComputeG( const ScalarContainer& values,
+									  double r,
+									  ScalarType valueShift,
 									  double valueRange )
 {
 	size_t n = values.size();
@@ -306,7 +308,8 @@ double WeibullDistribution::ComputeG( const ScalarContainer& values, double r, S
 	return ( p / q - s / counter ) * r - 1.0;
 }
 
-double WeibullDistribution::FindGRoot( const ScalarContainer& values, ScalarType valueShift,
+double WeibullDistribution::FindGRoot( const ScalarContainer& values,
+									   ScalarType valueShift,
 									   double valueRange )
 {
 	double r = -1.0;
@@ -367,7 +370,8 @@ double WeibullDistribution::FindGRoot( const ScalarContainer& values, ScalarType
 	return r;
 }
 
-double WeibullDistribution::computeChi2Dist( const GenericCloud* cloud, unsigned numberOfClasses,
+double WeibullDistribution::computeChi2Dist( const GenericCloud* cloud,
+											 unsigned numberOfClasses,
 											 int* inputHisto )
 {
 	assert( cloud );

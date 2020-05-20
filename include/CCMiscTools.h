@@ -49,7 +49,8 @@ namespace CCCoreLib
 		\param triverts the 3 triangle vertices
 		\return true if the input box and triangle overlap, false otherwise
 		**/
-		static bool TriBoxOverlap( const CCVector3& boxcenter, const CCVector3& boxhalfsize,
+		static bool TriBoxOverlap( const CCVector3& boxcenter,
+								   const CCVector3& boxhalfsize,
 								   const CCVector3* triverts[3] );
 
 		//! Ovelap test between a 3D box and a triangle (double version)
@@ -58,7 +59,8 @@ namespace CCCoreLib
 			\param triverts the 3 triangle vertices
 			\return true if the input box and triangle overlap, false otherwise
 		**/
-		static bool TriBoxOverlapd( const CCVector3d& boxcenter, const CCVector3d& boxhalfsize,
+		static bool TriBoxOverlapd( const CCVector3d& boxcenter,
+									const CCVector3d& boxhalfsize,
 									const CCVector3d triverts[3] );
 	};
 }

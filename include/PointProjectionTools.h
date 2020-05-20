@@ -73,8 +73,10 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the "developed" cloud
 		**/
-		static PointCloud* developCloudOnCylinder( GenericCloud* cloud, PointCoordinateType radius,
-												   unsigned char dim = 2, CCVector3* center = nullptr,
+		static PointCloud* developCloudOnCylinder( GenericCloud* cloud,
+												   PointCoordinateType radius,
+												   unsigned char dim = 2,
+												   CCVector3* center = nullptr,
 												   GenericProgressCallback* progressCb = nullptr );
 
 		//! Develops a cone-shaped point cloud around its main axis
@@ -88,8 +90,10 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the "developed" cloud
 		**/
-		static PointCloud* developCloudOnCone( GenericCloud* cloud, unsigned char dim,
-											   PointCoordinateType baseRadius, float alpha,
+		static PointCloud* developCloudOnCone( GenericCloud* cloud,
+											   unsigned char dim,
+											   PointCoordinateType baseRadius,
+											   float alpha,
 											   const CCVector3& center,
 											   GenericProgressCallback* progressCb = nullptr );
 
@@ -99,7 +103,8 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the "transformed" cloud
 		**/
-		static PointCloud* applyTransformation( GenericCloud* cloud, Transformation& trans,
+		static PointCloud* applyTransformation( GenericCloud* cloud,
+												Transformation& trans,
 												GenericProgressCallback* progressCb = nullptr );
 
 		//! Applys a geometrical transformation to a single point
@@ -124,7 +129,8 @@ namespace CCCoreLib
 		**/
 		static GenericIndexedMesh* computeTriangulation( GenericIndexedCloudPersist* cloud,
 														 TRIANGULATION_TYPES type,
-														 PointCoordinateType maxEdgeLength, unsigned char dim,
+														 PointCoordinateType maxEdgeLength,
+														 unsigned char dim,
 														 std::string& outputErrorStr );
 
 		//! Indexed 2D vector
@@ -190,7 +196,9 @@ namespace CCCoreLib
 										  PointCoordinateType maxSquareLength = 0 );
 
 		//! Returns true if the AB and CD segments intersect each other
-		static bool segmentIntersect( const CCVector2& A, const CCVector2& B, const CCVector2& C,
+		static bool segmentIntersect( const CCVector2& A,
+									  const CCVector2& B,
+									  const CCVector2& C,
 									  const CCVector2& D );
 	};
 }

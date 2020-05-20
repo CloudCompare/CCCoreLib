@@ -56,7 +56,8 @@ bool SaitoSquaredDistanceTransform::EDT_1D( GridElement* slice, std::size_t r, s
 //:
 // Assumes given a Lookup table of integer squares.
 // Also assumes the image \a im already has infinity in all non-zero points.
-bool SaitoSquaredDistanceTransform::SDT_2D( Grid3D<GridElement>& grid, std::size_t sliceIndex,
+bool SaitoSquaredDistanceTransform::SDT_2D( Grid3D<GridElement>& grid,
+											std::size_t sliceIndex,
 											const std::vector<GridElement>& sq )
 {
 	const Tuple3ui& gridSize = grid.size();

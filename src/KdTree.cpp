@@ -119,7 +119,10 @@ static bool ComparisonZ( const unsigned& a, const unsigned& b )
 	return ( s_comparisonCloud->getPoint( a )->z < s_comparisonCloud->getPoint( b )->z );
 }
 
-KDTree::KdCell* KDTree::buildSubTree( unsigned first, unsigned last, KdCell* father, unsigned& nbBuildCell,
+KDTree::KdCell* KDTree::buildSubTree( unsigned first,
+									  unsigned last,
+									  KdCell* father,
+									  unsigned& nbBuildCell,
 									  GenericProgressCallback* progressCb )
 {
 	KdCell* cell = new KdCell;
@@ -184,7 +187,8 @@ KDTree::KdCell* KDTree::buildSubTree( unsigned first, unsigned last, KdCell* fat
 	return cell;
 }
 
-bool KDTree::findNearestNeighbour( const PointCoordinateType* queryPoint, unsigned& nearestPointIndex,
+bool KDTree::findNearestNeighbour( const PointCoordinateType* queryPoint,
+								   unsigned& nearestPointIndex,
 								   ScalarType maxDist )
 {
 	if ( m_root == nullptr )
@@ -297,8 +301,10 @@ bool KDTree::findPointBelowDistance( const PointCoordinateType* queryPoint, Scal
 	return false;
 }
 
-unsigned KDTree::findPointsLyingToDistance( const PointCoordinateType* queryPoint, ScalarType distance,
-											ScalarType tolerance, std::vector<unsigned>& points )
+unsigned KDTree::findPointsLyingToDistance( const PointCoordinateType* queryPoint,
+											ScalarType distance,
+											ScalarType tolerance,
+											std::vector<unsigned>& points )
 {
 	if ( m_root == nullptr )
 		return 0;
@@ -395,7 +401,9 @@ ScalarType KDTree::pointToCellSquareDistance( const PointCoordinateType* queryPo
 	return static_cast<ScalarType>( dx * dx + dy * dy + dz * dz );
 }
 
-void KDTree::pointToCellDistances( const PointCoordinateType* queryPoint, KdCell* cell, ScalarType& min,
+void KDTree::pointToCellDistances( const PointCoordinateType* queryPoint,
+								   KdCell* cell,
+								   ScalarType& min,
 								   ScalarType& max )
 {
 	PointCoordinateType dx;
@@ -456,7 +464,8 @@ ScalarType KDTree::InsidePointToCellDistance( const PointCoordinateType* queryPo
 	return static_cast<ScalarType>( std::min( dx, std::min( dy, dz ) ) );
 }
 
-int KDTree::checkNearerPointInSubTree( const PointCoordinateType* queryPoint, ScalarType& maxSqrDist,
+int KDTree::checkNearerPointInSubTree( const PointCoordinateType* queryPoint,
+									   ScalarType& maxSqrDist,
 									   KdCell* cell )
 {
 	if ( pointToCellSquareDistance( queryPoint, cell ) >= maxSqrDist )
@@ -486,7 +495,8 @@ int KDTree::checkNearerPointInSubTree( const PointCoordinateType* queryPoint, Sc
 	return checkNearerPointInSubTree( queryPoint, maxSqrDist, cell->leSon );
 }
 
-bool KDTree::checkDistantPointInSubTree( const PointCoordinateType* queryPoint, ScalarType& maxSqrDist,
+bool KDTree::checkDistantPointInSubTree( const PointCoordinateType* queryPoint,
+										 ScalarType& maxSqrDist,
 										 KdCell* cell )
 {
 	if ( pointToCellSquareDistance( queryPoint, cell ) >= maxSqrDist )
@@ -512,8 +522,11 @@ bool KDTree::checkDistantPointInSubTree( const PointCoordinateType* queryPoint, 
 	return false;
 }
 
-void KDTree::distanceScanTree( const PointCoordinateType* queryPoint, ScalarType distance,
-							   ScalarType tolerance, KdCell* cell, std::vector<unsigned>& localArray )
+void KDTree::distanceScanTree( const PointCoordinateType* queryPoint,
+							   ScalarType distance,
+							   ScalarType tolerance,
+							   KdCell* cell,
+							   std::vector<unsigned>& localArray )
 {
 	ScalarType min;
 	ScalarType max;

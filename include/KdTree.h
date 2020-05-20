@@ -42,7 +42,8 @@ namespace CCCoreLib
 			\param maxDist distance above which the function doesn't consider points
 			\return true if it finds a point p such that ||p-queryPoint||<=maxDist. False otherwise
 		**/
-		bool findNearestNeighbour( const PointCoordinateType* queryPoint, unsigned& nearestPointIndex,
+		bool findNearestNeighbour( const PointCoordinateType* queryPoint,
+								   unsigned& nearestPointIndex,
 								   ScalarType maxDist );
 
 		//! Optimized version of nearest point search method
@@ -58,8 +59,10 @@ namespace CCCoreLib
 			\param points [out] array of point m_indexes. Each point stored in this array lie to distance (up to tolerance) from queryPoint
 			\return the number of matching points
 		**/
-		unsigned findPointsLyingToDistance( const PointCoordinateType* queryPoint, ScalarType distance,
-											ScalarType tolerance, std::vector<unsigned>& points );
+		unsigned findPointsLyingToDistance( const PointCoordinateType* queryPoint,
+											ScalarType distance,
+											ScalarType tolerance,
+											std::vector<unsigned>& points );
 
 	protected:
 		//! A KDTre cell struct
@@ -146,7 +149,10 @@ namespace CCCoreLib
 			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return sub tree (cell)
 		**/
-		KdCell* buildSubTree( unsigned first, unsigned last, KdCell* father, unsigned& nbBuildCell,
+		KdCell* buildSubTree( unsigned first,
+							  unsigned last,
+							  KdCell* father,
+							  unsigned& nbBuildCell,
 							  GenericProgressCallback* progressCb = nullptr );
 
 		//! Deletes a sub tree
@@ -179,7 +185,9 @@ namespace CCCoreLib
 			\param min [out] the minimal distance between the query point and the inside bounding box of cell
 			\param max [out] the maximal distance between the query point and the inside bounding box of cell
 		**/
-		void pointToCellDistances( const PointCoordinateType* queryPoint, KdCell* cell, ScalarType& min,
+		void pointToCellDistances( const PointCoordinateType* queryPoint,
+								   KdCell* cell,
+								   ScalarType& min,
 								   ScalarType& max );
 
 		//! Checks if there is a point in KdCell that is less than minDist-apart from the query point,
@@ -189,7 +197,8 @@ namespace CCCoreLib
 			\param cell kdtree-cell from which to start the research
 			\return -1 if there is no nearer point from querypoint. The nearest point index found in cell if there is one that is at most maxdist apart from querypoint
 		**/
-		int checkNearerPointInSubTree( const PointCoordinateType* queryPoint, ScalarType& maxSqrDist,
+		int checkNearerPointInSubTree( const PointCoordinateType* queryPoint,
+									   ScalarType& maxSqrDist,
 									   KdCell* cell );
 
 		//! Checks if there is a point in KdCell that is less than minDist-apart from the query point,
@@ -201,7 +210,8 @@ namespace CCCoreLib
 			\param cell kdtree-cell from which to start the research
 			\return true if there is a point in the subtree starting at cell that is close enough from the query point
 		**/
-		bool checkDistantPointInSubTree( const PointCoordinateType* queryPoint, ScalarType& maxSqrDist,
+		bool checkDistantPointInSubTree( const PointCoordinateType* queryPoint,
+										 ScalarType& maxSqrDist,
 										 KdCell* cell );
 
 		//! Recursive function which store every point lying to a given distance from the query point
@@ -211,7 +221,10 @@ namespace CCCoreLib
 			\param cell current cell to explore (used for recursion)
 			\param[out] localArray output of the algorithm. Resulting points m_indexes in associatedCloud are stored in this array
 		**/
-		void distanceScanTree( const PointCoordinateType* queryPoint, ScalarType distance,
-							   ScalarType tolerance, KdCell* cell, std::vector<unsigned>& localArray );
+		void distanceScanTree( const PointCoordinateType* queryPoint,
+							   ScalarType distance,
+							   ScalarType tolerance,
+							   KdCell* cell,
+							   std::vector<unsigned>& localArray );
 	};
 }

@@ -47,7 +47,8 @@ namespace CCCoreLib
 			\param inputOctree the cloud octree if it has already been computed
 			\return the number of components (>= 0) or an error code (< 0 - see DgmOctree::extractCCs)
 		**/
-		static int labelConnectedComponents( GenericIndexedCloudPersist* theCloud, unsigned char level,
+		static int labelConnectedComponents( GenericIndexedCloudPersist* theCloud,
+											 unsigned char level,
 											 bool sixConnexity = false,
 											 GenericProgressCallback* progressCb = nullptr,
 											 DgmOctree* inputOctree = nullptr );
@@ -87,11 +88,13 @@ namespace CCCoreLib
 			\return success
 		**/
 		static bool frontPropagationBasedSegmentation( GenericIndexedCloudPersist* theCloud,
-													   PointCoordinateType radius, ScalarType minSeedDist,
+													   PointCoordinateType radius,
+													   ScalarType minSeedDist,
 													   unsigned char octreeLevel,
 													   ReferenceCloudContainer& theSegmentedLists,
 													   GenericProgressCallback* progressCb = nullptr,
 													   DgmOctree* inputOctree = nullptr,
-													   bool applyGaussianFilter = false, float alpha = 2.0f );
+													   bool applyGaussianFilter = false,
+													   float alpha = 2.0f );
 	};
 }

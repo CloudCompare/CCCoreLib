@@ -16,7 +16,8 @@
 using namespace CCCoreLib;
 
 int AutoSegmentationTools::labelConnectedComponents( GenericIndexedCloudPersist* theCloud,
-													 unsigned char level, bool sixConnexity /*=false*/,
+													 unsigned char level,
+													 bool sixConnexity /*=false*/,
 													 GenericProgressCallback* progressCb /*=0*/,
 													 DgmOctree* inputOctree /*=0*/ )
 {
@@ -119,10 +120,15 @@ bool AutoSegmentationTools::extractConnectedComponents( GenericIndexedCloudPersi
 	return true;
 }
 
-bool AutoSegmentationTools::frontPropagationBasedSegmentation(
-	GenericIndexedCloudPersist* theCloud, PointCoordinateType radius, ScalarType minSeedDist,
-	unsigned char octreeLevel, ReferenceCloudContainer& theSegmentedLists,
-	GenericProgressCallback* progressCb, DgmOctree* inputOctree, bool applyGaussianFilter, float alpha )
+bool AutoSegmentationTools::frontPropagationBasedSegmentation( GenericIndexedCloudPersist* theCloud,
+															   PointCoordinateType radius,
+															   ScalarType minSeedDist,
+															   unsigned char octreeLevel,
+															   ReferenceCloudContainer& theSegmentedLists,
+															   GenericProgressCallback* progressCb,
+															   DgmOctree* inputOctree,
+															   bool applyGaussianFilter,
+															   float alpha )
 {
 	unsigned numberOfPoints = ( theCloud ? theCloud->size() : 0 );
 	if ( numberOfPoints == 0 )

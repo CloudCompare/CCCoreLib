@@ -274,8 +274,11 @@ int DistanceComputationTools::computeCloud2CloudDistance( GenericIndexedCloudPer
 }
 
 DistanceComputationTools::SOReturnCode DistanceComputationTools::synchronizeOctrees(
-	GenericIndexedCloudPersist* comparedCloud, GenericIndexedCloudPersist* referenceCloud,
-	DgmOctree*& comparedOctree, DgmOctree*& referenceOctree, PointCoordinateType maxDist,
+	GenericIndexedCloudPersist* comparedCloud,
+	GenericIndexedCloudPersist* referenceCloud,
+	DgmOctree*& comparedOctree,
+	DgmOctree*& referenceOctree,
+	PointCoordinateType maxDist,
 	GenericProgressCallback* progressCb /*=0*/ )
 {
 	assert( comparedCloud && referenceCloud );
@@ -1047,9 +1050,13 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 }
 
 //! Method used by computeCloud2MeshDistanceWithOctree
-void ComparePointsAndTriangles( ReferenceCloud& Yk, unsigned& remainingPoints, GenericIndexedMesh* mesh,
-								std::vector<unsigned>& trianglesToTest, std::size_t& trianglesToTestCount,
-								std::vector<ScalarType>& minDists, ScalarType maxRadius,
+void ComparePointsAndTriangles( ReferenceCloud& Yk,
+								unsigned& remainingPoints,
+								GenericIndexedMesh* mesh,
+								std::vector<unsigned>& trianglesToTest,
+								std::size_t& trianglesToTestCount,
+								std::vector<ScalarType>& minDists,
+								ScalarType maxRadius,
 								DistanceComputationTools::Cloud2MeshDistanceComputationParams& params )
 {
 	assert( mesh );
@@ -1439,7 +1446,8 @@ void cloudMeshDistCellFunc_MT( const DgmOctree::IndexAndCode& desc )
 #endif
 
 int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(
-	OctreeAndMeshIntersection* intersection, Cloud2MeshDistanceComputationParams& params,
+	OctreeAndMeshIntersection* intersection,
+	Cloud2MeshDistanceComputationParams& params,
 	GenericProgressCallback* progressCb /*=0*/ )
 {
 	assert( intersection );
@@ -2358,10 +2366,14 @@ ScalarType DistanceComputationTools::computePoint2LineSegmentDistSquared( const 
 // Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and
 // Cone-Spheres. The modifications from the paper are to compute the closest distance when the point is
 // interior to the cone. http://liris.cnrs.fr/Documents/Liris-1297.pdf
-int DistanceComputationTools::computeCloud2ConeEquation(
-	GenericIndexedCloudPersist* cloud, const CCVector3& coneP1, const CCVector3& coneP2,
-	const PointCoordinateType coneR1, const PointCoordinateType coneR2, bool signedDistances /*=true*/,
-	bool solutionType /*=false*/, double* rms /*=nullptr*/ )
+int DistanceComputationTools::computeCloud2ConeEquation( GenericIndexedCloudPersist* cloud,
+														 const CCVector3& coneP1,
+														 const CCVector3& coneP2,
+														 const PointCoordinateType coneR1,
+														 const PointCoordinateType coneR2,
+														 bool signedDistances /*=true*/,
+														 bool solutionType /*=false*/,
+														 double* rms /*=nullptr*/ )
 {
 	if ( !cloud )
 	{
@@ -2541,10 +2553,13 @@ int DistanceComputationTools::computeCloud2ConeEquation(
 // the cylinder and within the bounds of the axis solutionType 2 = interior to the cylinder and either closer
 // to an end-cap or the cylinder wall solutionType 3 = beyond the bounds of the cylinder's axis and radius
 // solutionType 4 = beyond the bounds of the cylinder's axis but within the bounds of it's radius
-int DistanceComputationTools::computeCloud2CylinderEquation(
-	GenericIndexedCloudPersist* cloud, const CCVector3& cylinderP1, const CCVector3& cylinderP2,
-	const PointCoordinateType cylinderRadius, bool signedDistances /*=true*/, bool solutionType /*=false*/,
-	double* rms /*=0*/ )
+int DistanceComputationTools::computeCloud2CylinderEquation( GenericIndexedCloudPersist* cloud,
+															 const CCVector3& cylinderP1,
+															 const CCVector3& cylinderP2,
+															 const PointCoordinateType cylinderRadius,
+															 bool signedDistances /*=true*/,
+															 bool solutionType /*=false*/,
+															 double* rms /*=0*/ )
 {
 	if ( !cloud )
 	{
@@ -2698,7 +2713,8 @@ int DistanceComputationTools::computeCloud2SphereEquation( GenericIndexedCloudPe
 
 int DistanceComputationTools::computeCloud2PlaneEquation( GenericIndexedCloudPersist* cloud,
 														  const PointCoordinateType* planeEquation,
-														  bool signedDistances /*=true*/, double* rms /*=0*/ )
+														  bool signedDistances /*=true*/,
+														  double* rms /*=0*/ )
 {
 	assert( cloud && planeEquation );
 	if ( !cloud )
@@ -2750,10 +2766,13 @@ int DistanceComputationTools::computeCloud2PlaneEquation( GenericIndexedCloudPer
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2RectangleEquation(
-	GenericIndexedCloudPersist* cloud, PointCoordinateType widthX, PointCoordinateType widthY,
-	const SquareMatrix& rotationTransform, const CCVector3& center, bool signedDist /*=true*/,
-	double* rms /*= nullptr*/ )
+int DistanceComputationTools::computeCloud2RectangleEquation( GenericIndexedCloudPersist* cloud,
+															  PointCoordinateType widthX,
+															  PointCoordinateType widthY,
+															  const SquareMatrix& rotationTransform,
+															  const CCVector3& center,
+															  bool signedDist /*=true*/,
+															  double* rms /*= nullptr*/ )
 {
 	// p3---------------------p2
 	// ^					  |
@@ -2846,7 +2865,8 @@ int DistanceComputationTools::computeCloud2RectangleEquation(
 int DistanceComputationTools::computeCloud2BoxEquation( GenericIndexedCloudPersist* cloud,
 														const CCVector3& boxDimensions,
 														const SquareMatrix& rotationTransform,
-														const CCVector3& boxCenter, bool signedDist /*=true*/,
+														const CCVector3& boxCenter,
+														bool signedDist /*=true*/,
 														double* rms /*= nullptr*/ )
 {
 	assert( cloud );
@@ -3209,7 +3229,8 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance( GenericCloud* c
 }
 
 bool DistanceComputationTools::computeGeodesicDistances( GenericIndexedCloudPersist* cloud,
-														 unsigned seedPointIndex, unsigned char octreeLevel,
+														 unsigned seedPointIndex,
+														 unsigned char octreeLevel,
 														 GenericProgressCallback* progressCb )
 {
 	assert( cloud );
@@ -3309,9 +3330,13 @@ int DistanceComputationTools::diff( GenericIndexedCloudPersist* comparedCloud,
 }
 
 int DistanceComputationTools::computeApproxCloud2CloudDistance(
-	GenericIndexedCloudPersist* comparedCloud, GenericIndexedCloudPersist* referenceCloud,
-	unsigned char octreeLevel, PointCoordinateType maxSearchDist /*=-PC_ONE*/,
-	GenericProgressCallback* progressCb /*=0*/, DgmOctree* compOctree /*=0*/, DgmOctree* refOctree /*=0*/ )
+	GenericIndexedCloudPersist* comparedCloud,
+	GenericIndexedCloudPersist* referenceCloud,
+	unsigned char octreeLevel,
+	PointCoordinateType maxSearchDist /*=-PC_ONE*/,
+	GenericProgressCallback* progressCb /*=0*/,
+	DgmOctree* compOctree /*=0*/,
+	DgmOctree* refOctree /*=0*/ )
 {
 	if ( !comparedCloud )
 	{

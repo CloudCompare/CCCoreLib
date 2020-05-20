@@ -62,7 +62,8 @@ namespace CCCoreLib
 			\return error code (0 if ok)
 		**/
 		static int computeScalarFieldGradient( GenericIndexedCloudPersist* theCloud,
-											   PointCoordinateType radius, bool euclideanDistances,
+											   PointCoordinateType radius,
+											   bool euclideanDistances,
 											   bool sameInAndOutScalarField = false,
 											   GenericProgressCallback* progressCb = nullptr,
 											   DgmOctree* theOctree = nullptr );
@@ -95,7 +96,8 @@ namespace CCCoreLib
 			\param secondCloud the second point cloud (associated to scalar values)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
-		static void multiplyScalarFields( GenericIndexedCloud* firstCloud, GenericIndexedCloud* secondCloud,
+		static void multiplyScalarFields( GenericIndexedCloud* firstCloud,
+										  GenericIndexedCloud* secondCloud,
 										  GenericProgressCallback* progressCb = nullptr );
 
 		//! Computes an histogram of the scalar field with a given number of classes
@@ -106,7 +108,8 @@ namespace CCCoreLib
 			\param numberOfClasses number of histogram classes
 			\param histo number of elements per histogram class
 		**/
-		static void computeScalarFieldHistogram( const GenericCloud* theCloud, unsigned numberOfClasses,
+		static void computeScalarFieldHistogram( const GenericCloud* theCloud,
+												 unsigned numberOfClasses,
 												 std::vector<int>& histo );
 
 		//! Compute the extreme values of a scalar field
@@ -114,7 +117,8 @@ namespace CCCoreLib
 			\param minV a field to store the minimum value
 			\param maxV a field to store the maximum value
 		**/
-		static void computeScalarFieldExtremas( const GenericCloud* theCloud, ScalarType& minV,
+		static void computeScalarFieldExtremas( const GenericCloud* theCloud,
+												ScalarType& minV,
 												ScalarType& maxV );
 
 		//! Count the number of valid values in a scalar field
@@ -131,7 +135,9 @@ namespace CCCoreLib
 			\param kmcc an array of size K which will be filled with the computed classes limits (see ScalarFieldTools::KmeanClass)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
-		static bool computeKmeans( const GenericCloud* theCloud, unsigned char K, KMeanClass kmcc[],
+		static bool computeKmeans( const GenericCloud* theCloud,
+								   unsigned char K,
+								   KMeanClass kmcc[],
 								   GenericProgressCallback* progressCb = nullptr );
 
 		//! Sets the distance value associated to a point
@@ -181,7 +187,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool computeCellGaussianFilter( const DgmOctree::octreeCell& cell, void** additionalParameters,
+		static bool computeCellGaussianFilter( const DgmOctree::octreeCell& cell,
+											   void** additionalParameters,
 											   NormalizedProgress* nProgress = nullptr );
 	};
 

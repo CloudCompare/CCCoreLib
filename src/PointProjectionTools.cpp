@@ -18,8 +18,10 @@
 
 using namespace CCCoreLib;
 
-PointCloud* PointProjectionTools::developCloudOnCylinder( GenericCloud* cloud, PointCoordinateType radius,
-														  unsigned char dim, CCVector3* center,
+PointCloud* PointProjectionTools::developCloudOnCylinder( GenericCloud* cloud,
+														  PointCoordinateType radius,
+														  unsigned char dim,
+														  CCVector3* center,
 														  GenericProgressCallback* progressCb )
 {
 	if ( !cloud )
@@ -84,8 +86,10 @@ PointCloud* PointProjectionTools::developCloudOnCylinder( GenericCloud* cloud, P
 }
 
 // deroule la liste sur un cone dont le centre est "center" et d'angle alpha en degres
-PointCloud* PointProjectionTools::developCloudOnCone( GenericCloud* cloud, unsigned char dim,
-													  PointCoordinateType baseRadius, float alpha,
+PointCloud* PointProjectionTools::developCloudOnCone( GenericCloud* cloud,
+													  unsigned char dim,
+													  PointCoordinateType baseRadius,
+													  float alpha,
 													  const CCVector3& center,
 													  GenericProgressCallback* progressCb )
 {
@@ -166,7 +170,8 @@ PointCloud* PointProjectionTools::developCloudOnCone( GenericCloud* cloud, unsig
 	return outCloud;
 }
 
-PointCloud* PointProjectionTools::applyTransformation( GenericCloud* cloud, Transformation& trans,
+PointCloud* PointProjectionTools::applyTransformation( GenericCloud* cloud,
+													   Transformation& trans,
 													   GenericProgressCallback* progressCb )
 {
 	assert( cloud );
@@ -410,7 +415,9 @@ bool PointProjectionTools::extractConvexHull2D( std::vector<IndexedCCVector2>& p
 	return true;
 }
 
-bool PointProjectionTools::segmentIntersect( const CCVector2& A, const CCVector2& B, const CCVector2& C,
+bool PointProjectionTools::segmentIntersect( const CCVector2& A,
+											 const CCVector2& B,
+											 const CCVector2& C,
 											 const CCVector2& D )
 {
 	CCVector2 AB = B - A;
@@ -515,7 +522,8 @@ namespace
 //! Finds the nearest (available) point to an edge
 /** \return The nearest point distance (or -1 if no point was found!)
  **/
-static PointCoordinateType FindNearestCandidate( unsigned& minIndex, const VertexIterator& itA,
+static PointCoordinateType FindNearestCandidate( unsigned& minIndex,
+												 const VertexIterator& itA,
 												 const VertexIterator& itB,
 												 const std::vector<Vertex2D>& points,
 												 const std::vector<HullPointFlags>& pointFlags,

@@ -24,7 +24,8 @@
 
 using namespace CCCoreLib;
 
-void RegistrationTools::FilterTransformation( const ScaledTransformation& inTrans, int filters,
+void RegistrationTools::FilterTransformation( const ScaledTransformation& inTrans,
+											  int filters,
 											  ScaledTransformation& outTrans )
 {
 	outTrans = inTrans;
@@ -144,10 +145,14 @@ struct DataCloud
 	PointCloud* CPSetPlain;
 };
 
-ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(
-	GenericIndexedCloudPersist* inputModelCloud, GenericIndexedMesh* inputModelMesh,
-	GenericIndexedCloudPersist* inputDataCloud, const Parameters& params, ScaledTransformation& transform,
-	double& finalRMS, unsigned& finalPointCount, GenericProgressCallback* progressCb /*=0*/ )
+ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register( GenericIndexedCloudPersist* inputModelCloud,
+																  GenericIndexedMesh* inputModelMesh,
+																  GenericIndexedCloudPersist* inputDataCloud,
+																  const Parameters& params,
+																  ScaledTransformation& transform,
+																  double& finalRMS,
+																  unsigned& finalPointCount,
+																  GenericProgressCallback* progressCb /*=0*/ )
 {
 	if ( !inputModelCloud || !inputDataCloud )
 	{
@@ -839,13 +844,16 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(
 	return result;
 }
 
-bool HornRegistrationTools::FindAbsoluteOrientation( GenericCloud* lCloud, GenericCloud* rCloud,
-													 ScaledTransformation& trans, bool fixedScale /*=false*/ )
+bool HornRegistrationTools::FindAbsoluteOrientation( GenericCloud* lCloud,
+													 GenericCloud* rCloud,
+													 ScaledTransformation& trans,
+													 bool fixedScale /*=false*/ )
 {
 	return RegistrationProcedure( lCloud, rCloud, trans, !fixedScale );
 }
 
-double HornRegistrationTools::ComputeRMS( GenericCloud* lCloud, GenericCloud* rCloud,
+double HornRegistrationTools::ComputeRMS( GenericCloud* lCloud,
+										  GenericCloud* rCloud,
 										  const ScaledTransformation& trans )
 {
 	assert( rCloud && lCloud );
@@ -876,7 +884,8 @@ double HornRegistrationTools::ComputeRMS( GenericCloud* lCloud, GenericCloud* rC
 
 bool RegistrationTools::RegistrationProcedure( GenericCloud* P, // data
 											   GenericCloud* X, // model
-											   ScaledTransformation& trans, bool adjustScale /*=false*/,
+											   ScaledTransformation& trans,
+											   bool adjustScale /*=false*/,
 											   ScalarField* coupleWeights /*=0*/,
 											   PointCoordinateType aPrioriScale /*=1.0f*/ )
 {
@@ -1155,10 +1164,15 @@ bool RegistrationTools::RegistrationProcedure( GenericCloud* P, // data
 	return true;
 }
 
-bool FPCSRegistrationTools::RegisterClouds( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
-											ScaledTransformation& transform, ScalarType delta,
-											ScalarType beta, PointCoordinateType overlap, unsigned nbBases,
-											unsigned nbTries, GenericProgressCallback* progressCb,
+bool FPCSRegistrationTools::RegisterClouds( GenericIndexedCloud* modelCloud,
+											GenericIndexedCloud* dataCloud,
+											ScaledTransformation& transform,
+											ScalarType delta,
+											ScalarType beta,
+											PointCoordinateType overlap,
+											unsigned nbBases,
+											unsigned nbTries,
+											GenericProgressCallback* progressCb,
 											unsigned nbMaxCandidates )
 {
 	// DGM: KDTree::buildFromCloud will call reset right away!
@@ -1305,7 +1319,8 @@ bool FPCSRegistrationTools::RegisterClouds( GenericIndexedCloud* modelCloud, Gen
 	return ( bestScore > 0 );
 }
 
-unsigned FPCSRegistrationTools::ComputeRegistrationScore( KDTree* modelTree, GenericIndexedCloud* dataCloud,
+unsigned FPCSRegistrationTools::ComputeRegistrationScore( KDTree* modelTree,
+														  GenericIndexedCloud* dataCloud,
 														  ScalarType delta,
 														  const ScaledTransformation& dataToModel )
 {
@@ -1327,8 +1342,10 @@ unsigned FPCSRegistrationTools::ComputeRegistrationScore( KDTree* modelTree, Gen
 	return score;
 }
 
-bool FPCSRegistrationTools::FindBase( GenericIndexedCloud* cloud, PointCoordinateType overlap,
-									  unsigned nbTries, Base& base )
+bool FPCSRegistrationTools::FindBase( GenericIndexedCloud* cloud,
+									  PointCoordinateType overlap,
+									  unsigned nbTries,
+									  Base& base )
 {
 	unsigned a;
 	unsigned b;
@@ -1472,7 +1489,9 @@ bool FPCSRegistrationTools::FindBase( GenericIndexedCloud* cloud, PointCoordinat
 // pair of indexes
 using IndexPair = std::pair<unsigned, unsigned>;
 
-int FPCSRegistrationTools::FindCongruentBases( KDTree* tree, ScalarType delta, const CCVector3* base[4],
+int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
+											   ScalarType delta,
+											   const CCVector3* base[4],
 											   std::vector<Base>& results )
 {
 	// Compute reference base invariants (r1, r2)
@@ -1660,9 +1679,13 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree, ScalarType delta, c
 	return static_cast<int>( results.size() );
 }
 
-bool FPCSRegistrationTools::LinesIntersections( const CCVector3& p0, const CCVector3& p1, const CCVector3& p2,
-												const CCVector3& p3, CCVector3& inter,
-												PointCoordinateType& lambda, PointCoordinateType& mu )
+bool FPCSRegistrationTools::LinesIntersections( const CCVector3& p0,
+												const CCVector3& p1,
+												const CCVector3& p2,
+												const CCVector3& p3,
+												CCVector3& inter,
+												PointCoordinateType& lambda,
+												PointCoordinateType& mu )
 {
 	CCVector3 p02;
 	CCVector3 p32;
@@ -1702,8 +1725,10 @@ bool FPCSRegistrationTools::LinesIntersections( const CCVector3& p0, const CCVec
 	return true;
 }
 
-bool FPCSRegistrationTools::FilterCandidates( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
-											  Base& reference, std::vector<Base>& candidates,
+bool FPCSRegistrationTools::FilterCandidates( GenericIndexedCloud* modelCloud,
+											  GenericIndexedCloud* dataCloud,
+											  Base& reference,
+											  std::vector<Base>& candidates,
 											  unsigned nbMaxCandidates,
 											  std::vector<ScaledTransformation>& transforms )
 {

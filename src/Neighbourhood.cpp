@@ -53,7 +53,9 @@ const PointCoordinateType* Neighbourhood::getLSPlane()
 	return ( ( m_structuresValidity & FLAG_LS_PLANE ) ? m_lsPlaneEquation : nullptr );
 }
 
-void Neighbourhood::setLSPlane( const PointCoordinateType eq[4], const CCVector3& X, const CCVector3& Y,
+void Neighbourhood::setLSPlane( const PointCoordinateType eq[4],
+								const CCVector3& X,
+								const CCVector3& Y,
 								const CCVector3& N )
 {
 	memcpy( m_lsPlaneEquation, eq, sizeof( PointCoordinateType ) * 4 );

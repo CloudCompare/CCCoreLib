@@ -167,7 +167,9 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return a reference cloud corresponding to the filtered cloud
 		**/
-		static ReferenceCloud* sorFilter( GenericIndexedCloudPersist* cloud, int knn = 6, double nSigma = 1.0,
+		static ReferenceCloud* sorFilter( GenericIndexedCloudPersist* cloud,
+										  int knn = 6,
+										  double nSigma = 1.0,
 										  DgmOctree* octree = nullptr,
 										  GenericProgressCallback* progressCb = nullptr );
 
@@ -187,10 +189,14 @@ namespace CCCoreLib
 			\return a reference cloud corresponding to the filtered cloud
 		**/
 		static ReferenceCloud* noiseFilter( GenericIndexedCloudPersist* cloud,
-											PointCoordinateType kernelRadius, double nSigma,
-											bool removeIsolatedPoints = false, bool useKnn = false,
-											int knn = 6, bool useAbsoluteError = true,
-											double absoluteError = 0.0, DgmOctree* octree = nullptr,
+											PointCoordinateType kernelRadius,
+											double nSigma,
+											bool removeIsolatedPoints = false,
+											bool useKnn = false,
+											int knn = 6,
+											bool useAbsoluteError = true,
+											double absoluteError = 0.0,
+											DgmOctree* octree = nullptr,
 											GenericProgressCallback* progressCb = nullptr );
 
 	protected:
@@ -205,7 +211,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool resampleCellAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+		static bool resampleCellAtLevel( const DgmOctree::octreeCell& cell,
+										 void** additionalParameters,
 										 NormalizedProgress* nProgress = nullptr );
 
 		//! "Cellular" function to select a unique point inside an octree cell
@@ -219,7 +226,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 	**/
-		static bool subsampleCellAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+		static bool subsampleCellAtLevel( const DgmOctree::octreeCell& cell,
+										  void** additionalParameters,
 										  NormalizedProgress* nProgress = nullptr );
 
 		//! "Cellular" function to apply the noise filter inside an octree cell
@@ -229,7 +237,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool applyNoiseFilterAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+		static bool applyNoiseFilterAtLevel( const DgmOctree::octreeCell& cell,
+											 void** additionalParameters,
 											 NormalizedProgress* nProgress = nullptr );
 
 		//! "Cellular" function to apply the SOR filter inside an octree cell
@@ -239,7 +248,8 @@ namespace CCCoreLib
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool applySORFilterAtLevel( const DgmOctree::octreeCell& cell, void** additionalParameters,
+		static bool applySORFilterAtLevel( const DgmOctree::octreeCell& cell,
+										   void** additionalParameters,
 										   NormalizedProgress* nProgress = nullptr );
 	};
 }

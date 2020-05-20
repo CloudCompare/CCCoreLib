@@ -32,7 +32,8 @@ void ScalarFieldTools::SetScalarValueInverted( const CCVector3& P, ScalarType& s
 }
 
 int ScalarFieldTools::computeScalarFieldGradient( GenericIndexedCloudPersist* theCloud,
-												  PointCoordinateType radius, bool euclideanDistances,
+												  PointCoordinateType radius,
+												  bool euclideanDistances,
 												  bool sameInAndOutScalarField /*=false*/,
 												  GenericProgressCallback* progressCb /*=0*/,
 												  DgmOctree* theCloudOctree /*=0*/ )
@@ -439,7 +440,8 @@ void ScalarFieldTools::multiplyScalarFields( GenericIndexedCloud* firstCloud,
 	}
 }
 
-void ScalarFieldTools::computeScalarFieldExtremas( const GenericCloud* theCloud, ScalarType& minV,
+void ScalarFieldTools::computeScalarFieldExtremas( const GenericCloud* theCloud,
+												   ScalarType& minV,
 												   ScalarType& maxV )
 {
 	assert( theCloud );
@@ -493,7 +495,8 @@ unsigned ScalarFieldTools::countScalarFieldValidValues( const GenericCloud* theC
 	return count;
 }
 
-void ScalarFieldTools::computeScalarFieldHistogram( const GenericCloud* theCloud, unsigned numberOfClasses,
+void ScalarFieldTools::computeScalarFieldHistogram( const GenericCloud* theCloud,
+													unsigned numberOfClasses,
 													std::vector<int>& histo )
 {
 	// reset
@@ -558,7 +561,9 @@ void ScalarFieldTools::computeScalarFieldHistogram( const GenericCloud* theCloud
 	}
 }
 
-bool ScalarFieldTools::computeKmeans( const GenericCloud* theCloud, unsigned char K, KMeanClass kmcc[],
+bool ScalarFieldTools::computeKmeans( const GenericCloud* theCloud,
+									  unsigned char K,
+									  KMeanClass kmcc[],
 									  GenericProgressCallback* progressCb )
 {
 	// valid parameters?

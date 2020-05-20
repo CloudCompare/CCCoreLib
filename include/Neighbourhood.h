@@ -69,7 +69,8 @@ namespace CCCoreLib
 			\param maxEdgeLength max edge length for output triangles (IGNORE_MAX_EDGE_LENGTH = ignored)
 			\param outputErrorStr error (if any)
 		***/
-		GenericIndexedMesh* triangulateOnPlane( bool duplicateVertices, PointCoordinateType maxEdgeLength,
+		GenericIndexedMesh* triangulateOnPlane( bool duplicateVertices,
+												PointCoordinateType maxEdgeLength,
 												std::string& outputErrorStr );
 
 		//! Fit a quadric on point set (see getQuadric) then triangulates it inside bounding box
@@ -95,7 +96,9 @@ namespace CCCoreLib
 		template <class Vec2D>
 		bool projectPointsOn2DPlane( std::vector<Vec2D>& points2D,
 									 const PointCoordinateType* planeEquation = nullptr,
-									 CCVector3* O = nullptr, CCVector3* X = nullptr, CCVector3* Y = nullptr,
+									 CCVector3* O = nullptr,
+									 CCVector3* X = nullptr,
+									 CCVector3* Y = nullptr,
 									 InputVectorsUsage vectorsUsage = None )
 		{
 			// need at least one point ;)
@@ -247,7 +250,9 @@ namespace CCCoreLib
 			\param Y local base Y vector
 			\param N normal vector
 		**/
-		void setLSPlane( const PointCoordinateType eq[4], const CCVector3& X, const CCVector3& Y,
+		void setLSPlane( const PointCoordinateType eq[4],
+						 const CCVector3& X,
+						 const CCVector3& Y,
 						 const CCVector3& N );
 
 		//! Returns best interpolating plane (Least-square) 'X' base vector

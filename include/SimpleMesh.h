@@ -43,7 +43,9 @@ namespace CCCoreLib
 			return static_cast<unsigned>( m_triIndexes.size() );
 		}
 		void getBoundingBox( CCVector3& bbMin, CCVector3& bbMax ) override;
-		void getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
+		void getTriangleVertices( unsigned triangleIndex,
+								  CCVector3& A,
+								  CCVector3& B,
 								  CCVector3& C ) const override;
 
 	public: // specific methods

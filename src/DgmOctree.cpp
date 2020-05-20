@@ -205,8 +205,10 @@ int DgmOctree::build( GenericProgressCallback* progressCb )
 	return genericBuild( progressCb );
 }
 
-int DgmOctree::build( const CCVector3& octreeMin, const CCVector3& octreeMax,
-					  const CCVector3* pointsMinFilter /*=0*/, const CCVector3* pointsMaxFilter /*=0*/,
+int DgmOctree::build( const CCVector3& octreeMin,
+					  const CCVector3& octreeMax,
+					  const CCVector3* pointsMinFilter /*=0*/,
+					  const CCVector3* pointsMaxFilter /*=0*/,
 					  GenericProgressCallback* progressCb /*=0*/ )
 {
 	if ( !m_thePointsAndTheirCellCodes.empty() )
@@ -538,8 +540,8 @@ void DgmOctree::getCellPos( CellCode code, unsigned char level, Tuple3i& cellPos
 	}
 }
 
-void DgmOctree::computeCellLimits( CellCode code, unsigned char level, CCVector3& cellMin, CCVector3& cellMax,
-								   bool isCodeTruncated ) const
+void DgmOctree::computeCellLimits(
+	CellCode code, unsigned char level, CCVector3& cellMin, CCVector3& cellMax, bool isCodeTruncated ) const
 {
 	Tuple3i cellPos;
 	getCellPos( code, level, cellPos, isCodeTruncated );
@@ -553,8 +555,11 @@ void DgmOctree::computeCellLimits( CellCode code, unsigned char level, CCVector3
 	cellMax = cellMin + CCVector3( cs, cs, cs );
 }
 
-bool DgmOctree::getPointsInCell( CellCode cellCode, unsigned char level, ReferenceCloud* subset,
-								 bool isCodeTruncated /*=false*/, bool clearOutputCloud /* = true*/ ) const
+bool DgmOctree::getPointsInCell( CellCode cellCode,
+								 unsigned char level,
+								 ReferenceCloud* subset,
+								 bool isCodeTruncated /*=false*/,
+								 bool clearOutputCloud /* = true*/ ) const
 {
 	unsigned char bitDec = GET_BIT_SHIFT( level );
 	if ( !isCodeTruncated )
@@ -621,7 +626,9 @@ static double s_binarySearchCount = 0.0;
 #endif
 
 #ifdef ADAPTATIVE_BINARY_SEARCH
-unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode, unsigned char bitDec, unsigned begin,
+unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode,
+								  unsigned char bitDec,
+								  unsigned begin,
 								  unsigned end ) const
 {
 	assert( truncatedCellCode != INVALID_CELL_CODE );
@@ -690,7 +697,9 @@ unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode, unsigned char bitD
 
 #else
 
-unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode, unsigned char bitDec, unsigned begin,
+unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode,
+								  unsigned char bitDec,
+								  unsigned begin,
 								  unsigned end ) const
 {
 	assert( truncatedCellCode != INVALID_CELL_CODE );
@@ -743,9 +752,12 @@ unsigned DgmOctree::getCellIndex( CellCode truncatedCellCode, unsigned char bitD
 }
 #endif
 
-unsigned DgmOctree::findPointNeighbourhood( const CCVector3* queryPoint, ReferenceCloud* Yk,
-											unsigned maxNumberOfNeighbors, unsigned char level,
-											double& maxSquareDist, double maxSearchDist /*=0*/,
+unsigned DgmOctree::findPointNeighbourhood( const CCVector3* queryPoint,
+											ReferenceCloud* Yk,
+											unsigned maxNumberOfNeighbors,
+											unsigned char level,
+											double& maxSquareDist,
+											double maxSearchDist /*=0*/,
 											int* finalNeighbourhoodSize /*=nullptr*/ ) const
 {
 	assert( queryPoint );
@@ -807,7 +819,8 @@ unsigned DgmOctree::findPointNeighbourhood( const CCVector3* queryPoint, Referen
 	return nnFound;
 }
 
-void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos, unsigned char level,
+void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos,
+											unsigned char level,
 											int* cellDists ) const
 {
 	const int* fillIndexes = m_fillIndexes + 6 * level;
@@ -821,8 +834,10 @@ void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos, unsigned cha
 	*_cellDists++ = fillIndexes[5] - cellPos.z;
 }
 
-void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos, unsigned char level,
-											int neighbourhoodLength, int* limits ) const
+void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos,
+											unsigned char level,
+											int neighbourhoodLength,
+											int* limits ) const
 {
 	const int* fillIndexes = m_fillIndexes + 6 * level;
 
@@ -851,8 +866,10 @@ void DgmOctree::getCellDistanceFromBorders( const Tuple3i& cellPos, unsigned cha
 	}
 }
 
-void DgmOctree::getNeighborCellsAround( const Tuple3i& cellPos, cellIndexesContainer& neighborCellsIndexes,
-										int neighbourhoodLength, unsigned char level ) const
+void DgmOctree::getNeighborCellsAround( const Tuple3i& cellPos,
+										cellIndexesContainer& neighborCellsIndexes,
+										int neighbourhoodLength,
+										unsigned char level ) const
 {
 	assert( neighbourhoodLength > 0 );
 
@@ -926,7 +943,8 @@ void DgmOctree::getNeighborCellsAround( const Tuple3i& cellPos, cellIndexesConta
 	}
 }
 
-void DgmOctree::getPointsInNeighbourCellsAround( NearestNeighboursSearchStruct& nNSS, int neighbourhoodLength,
+void DgmOctree::getPointsInNeighbourCellsAround( NearestNeighboursSearchStruct& nNSS,
+												 int neighbourhoodLength,
 												 bool getOnlyPointsWithValidScalar /*=false*/ ) const
 {
 	assert( neighbourhoodLength >= nNSS.alreadyVisitedNeighbourhoodSize );
@@ -1768,7 +1786,8 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell( NearestNeighboursSearc
 	return eligiblePoints;
 }
 
-int DgmOctree::getPointsInSphericalNeighbourhood( const CCVector3& sphereCenter, PointCoordinateType radius,
+int DgmOctree::getPointsInSphericalNeighbourhood( const CCVector3& sphereCenter,
+												  PointCoordinateType radius,
 												  NeighboursSet& neighbours,
 												  unsigned char level /*=0*/ ) const
 {
@@ -2358,7 +2377,8 @@ static double s_testedPoints = 0.0;
 // warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest
 // neighbors!
 int DgmOctree::findNeighborsInASphereStartingFromCell( NearestNeighboursSphericalSearchStruct& nNSS,
-													   double radius, bool sortValues ) const
+													   double radius,
+													   bool sortValues ) const
 {
 #ifdef TEST_CELLS_FOR_SPHERICAL_NN
 	if ( !nNSS.ready )
@@ -2656,7 +2676,8 @@ double DgmOctree::computeMeanOctreeDensity( unsigned char level ) const
 	return static_cast<double>( m_numberOfProjectedPoints ) / static_cast<double>( getCellNumber( level ) );
 }
 
-bool DgmOctree::getCellCodesAndIndexes( unsigned char level, cellsContainer& vec,
+bool DgmOctree::getCellCodesAndIndexes( unsigned char level,
+										cellsContainer& vec,
 										bool truncatedCodes /*=false*/ ) const
 {
 	try
@@ -2687,7 +2708,8 @@ bool DgmOctree::getCellCodesAndIndexes( unsigned char level, cellsContainer& vec
 	return true;
 }
 
-bool DgmOctree::getCellCodes( unsigned char level, cellCodesContainer& vec,
+bool DgmOctree::getCellCodes( unsigned char level,
+							  cellCodesContainer& vec,
 							  bool truncatedCodes /*=false*/ ) const
 {
 	try
@@ -2750,7 +2772,9 @@ bool DgmOctree::getCellIndexes( unsigned char level, cellIndexesContainer& vec )
 	return true;
 }
 
-bool DgmOctree::getPointsInCellByCellIndex( ReferenceCloud* cloud, unsigned cellIndex, unsigned char level,
+bool DgmOctree::getPointsInCellByCellIndex( ReferenceCloud* cloud,
+											unsigned cellIndex,
+											unsigned char level,
 											bool clearOutputCloud /* = true*/ ) const
 {
 	assert( cloud && cloud->getAssociatedCloud() == m_theAssociatedCloud );
@@ -2779,7 +2803,8 @@ bool DgmOctree::getPointsInCellByCellIndex( ReferenceCloud* cloud, unsigned cell
 }
 
 ReferenceCloud* DgmOctree::getPointsInCellsWithSortedCellCodes( cellCodesContainer& cellCodes,
-																unsigned char level, ReferenceCloud* subset,
+																unsigned char level,
+																ReferenceCloud* subset,
 																bool areCodesTruncated /*=false*/ ) const
 {
 	assert( subset );
@@ -2820,8 +2845,10 @@ ReferenceCloud* DgmOctree::getPointsInCellsWithSortedCellCodes( cellCodesContain
 	return subset;
 }
 
-void DgmOctree::diff( const cellCodesContainer& codesA, const cellCodesContainer& codesB,
-					  cellCodesContainer& diffA, cellCodesContainer& diffB ) const
+void DgmOctree::diff( const cellCodesContainer& codesA,
+					  const cellCodesContainer& codesB,
+					  cellCodesContainer& diffA,
+					  cellCodesContainer& diffB ) const
 {
 	if ( codesA.empty() && codesB.empty() )
 		return;
@@ -2849,8 +2876,13 @@ void DgmOctree::diff( const cellCodesContainer& codesA, const cellCodesContainer
 		diffB.push_back( *pB++ );
 }
 
-bool DgmOctree::diff( unsigned char octreeLevel, const cellsContainer& codesA, const cellsContainer& codesB,
-					  int& diffA, int& diffB, int& cellsA, int& cellsB ) const
+bool DgmOctree::diff( unsigned char octreeLevel,
+					  const cellsContainer& codesA,
+					  const cellsContainer& codesB,
+					  int& diffA,
+					  int& diffB,
+					  int& cellsA,
+					  int& cellsB ) const
 {
 	diffA = 0;
 	diffB = 0;
@@ -2965,7 +2997,9 @@ struct IndexAndCodeExt
 	}
 };
 
-int DgmOctree::extractCCs( const cellCodesContainer& cellCodes, unsigned char level, bool sixConnexity,
+int DgmOctree::extractCCs( const cellCodesContainer& cellCodes,
+						   unsigned char level,
+						   bool sixConnexity,
 						   GenericProgressCallback* progressCb ) const
 {
 	std::size_t numberOfCells = cellCodes.size();
@@ -3465,9 +3499,13 @@ void LaunchOctreeCellFunc_MT( const octreeCellDesc& desc )
 
 #endif
 
-unsigned DgmOctree::executeFunctionForAllCellsAtLevel(
-	unsigned char level, octreeCellFunc func, void** additionalParameters, bool multiThread /*=false*/,
-	GenericProgressCallback* progressCb /*=0*/, const char* functionTitle /*=0*/, int maxThreadCount /*=0*/ )
+unsigned DgmOctree::executeFunctionForAllCellsAtLevel( unsigned char level,
+													   octreeCellFunc func,
+													   void** additionalParameters,
+													   bool multiThread /*=false*/,
+													   GenericProgressCallback* progressCb /*=0*/,
+													   const char* functionTitle /*=0*/,
+													   int maxThreadCount /*=0*/ )
 {
 	if ( m_thePointsAndTheirCellCodes.empty() )
 		return 0;
@@ -3729,10 +3767,15 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(
 #define ENABLE_DOWN_TOP_TRAVERSAL
 #define ENABLE_DOWN_TOP_TRAVERSAL_MT
 
-unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(
-	unsigned char startingLevel, octreeCellFunc func, void** additionalParameters,
-	unsigned minNumberOfPointsPerCell, unsigned maxNumberOfPointsPerCell, bool multiThread /* = true*/,
-	GenericProgressCallback* progressCb /*=0*/, const char* functionTitle /*=0*/, int maxThreadCount /*=0*/ )
+unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel( unsigned char startingLevel,
+															   octreeCellFunc func,
+															   void** additionalParameters,
+															   unsigned minNumberOfPointsPerCell,
+															   unsigned maxNumberOfPointsPerCell,
+															   bool multiThread /* = true*/,
+															   GenericProgressCallback* progressCb /*=0*/,
+															   const char* functionTitle /*=0*/,
+															   int maxThreadCount /*=0*/ )
 {
 	if ( m_thePointsAndTheirCellCodes.empty() )
 		return 0;
@@ -4280,8 +4323,12 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(
 #endif
 }
 
-bool DgmOctree::rayCast( const CCVector3& rayAxis, const CCVector3& rayOrigin, double maxRadiusOrFov,
-						 bool isFOV, RayCastProcess process, std::vector<PointDescriptor>& output ) const
+bool DgmOctree::rayCast( const CCVector3& rayAxis,
+						 const CCVector3& rayOrigin,
+						 double maxRadiusOrFov,
+						 bool isFOV,
+						 RayCastProcess process,
+						 std::vector<PointDescriptor>& output ) const
 {
 	if ( m_thePointsAndTheirCellCodes.empty() )
 	{

@@ -15,8 +15,10 @@
 
 using namespace CCCoreLib;
 
-ReferenceCloud* ManualSegmentationTools::segment( GenericIndexedCloudPersist* aCloud, const Polyline* poly,
-												  bool keepInside, const float* viewMat )
+ReferenceCloud* ManualSegmentationTools::segment( GenericIndexedCloudPersist* aCloud,
+												  const Polyline* poly,
+												  bool keepInside,
+												  const float* viewMat )
 {
 	assert( poly && aCloud );
 
@@ -118,8 +120,10 @@ bool ManualSegmentationTools::isPointInsidePoly( const CCVector2& P,
 	return inside;
 }
 
-ReferenceCloud* ManualSegmentationTools::segmentReferenceCloud( ReferenceCloud* cloud, ScalarType minDist,
-																ScalarType maxDist, bool outside /*=false*/ )
+ReferenceCloud* ManualSegmentationTools::segmentReferenceCloud( ReferenceCloud* cloud,
+																ScalarType minDist,
+																ScalarType maxDist,
+																bool outside /*=false*/ )
 {
 	if ( !cloud )
 	{
@@ -148,8 +152,10 @@ ReferenceCloud* ManualSegmentationTools::segmentReferenceCloud( ReferenceCloud* 
 	return Y;
 }
 
-ReferenceCloud* ManualSegmentationTools::segment( GenericIndexedCloudPersist* cloud, ScalarType minDist,
-												  ScalarType maxDist, bool outside /*=false*/ )
+ReferenceCloud* ManualSegmentationTools::segment( GenericIndexedCloudPersist* cloud,
+												  ScalarType minDist,
+												  ScalarType maxDist,
+												  bool outside /*=false*/ )
 {
 	if ( !cloud )
 	{
@@ -183,9 +189,12 @@ ReferenceCloud* ManualSegmentationTools::segment( GenericIndexedCloudPersist* cl
 	return Y;
 }
 
-GenericIndexedMesh* ManualSegmentationTools::segmentMesh(
-	GenericIndexedMesh* theMesh, ReferenceCloud* pointIndexes, bool pointsWillBeInside,
-	GenericProgressCallback* progressCb, GenericIndexedCloud* destCloud, unsigned indexShift )
+GenericIndexedMesh* ManualSegmentationTools::segmentMesh( GenericIndexedMesh* theMesh,
+														  ReferenceCloud* pointIndexes,
+														  bool pointsWillBeInside,
+														  GenericProgressCallback* progressCb,
+														  GenericIndexedCloud* destCloud,
+														  unsigned indexShift )
 {
 	if ( !theMesh || !pointIndexes || !pointIndexes->getAssociatedCloud() )
 		return nullptr;
@@ -349,9 +358,16 @@ bool AddVertex( CCVector3d& P, PointCloud* vertices, unsigned& index )
 	return true;
 }
 
-bool ComputeEdgePoint( const CCVector3d& A, unsigned iA, const CCVector3d& B, unsigned iB,
-					   unsigned& iCoutside, unsigned& iCinside, double planeCoord, unsigned char planeDim,
-					   PointCloud* outsideVertices, PointCloud* insideVertices )
+bool ComputeEdgePoint( const CCVector3d& A,
+					   unsigned iA,
+					   const CCVector3d& B,
+					   unsigned iB,
+					   unsigned& iCoutside,
+					   unsigned& iCinside,
+					   double planeCoord,
+					   unsigned char planeDim,
+					   PointCloud* outsideVertices,
+					   PointCloud* insideVertices )
 {
 	assert( outsideVertices || insideVertices );
 
@@ -415,8 +431,10 @@ bool AddTriangle( unsigned iA, unsigned iB, unsigned iC, SimpleMesh* mesh, bool 
 	return true;
 }
 
-bool MergeOldTriangles( GenericIndexedMesh* origMesh, GenericIndexedCloudPersist* origVertices,
-						SimpleMesh* newMesh, PointCloud* newVertices,
+bool MergeOldTriangles( GenericIndexedMesh* origMesh,
+						GenericIndexedCloudPersist* origVertices,
+						SimpleMesh* newMesh,
+						PointCloud* newVertices,
 						const std::vector<unsigned>& preservedTriangleIndexes,
 						std::vector<unsigned>* origTriIndexesMap = nullptr )
 {
@@ -544,7 +562,8 @@ bool MergeOldTriangles( GenericIndexedMesh* origMesh, GenericIndexedCloudPersist
 	return true;
 }
 
-bool ImportSourceVertices( GenericIndexedCloudPersist* srcVertices, SimpleMesh* newMesh,
+bool ImportSourceVertices( GenericIndexedCloudPersist* srcVertices,
+						   SimpleMesh* newMesh,
 						   PointCloud* newVertices )
 {
 	assert( srcVertices && newMesh && newVertices );

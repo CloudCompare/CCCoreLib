@@ -92,7 +92,8 @@ namespace CCCoreLib
 		//! Reserves memory (no exception thrown)
 		CC_CORE_LIB_API bool reserveSafe( std::size_t count );
 		//! Resizes memory (no exception thrown)
-		CC_CORE_LIB_API bool resizeSafe( std::size_t count, bool initNewElements = false,
+		CC_CORE_LIB_API bool resizeSafe( std::size_t count,
+										 bool initNewElements = false,
 										 ScalarType valueForNewElements = 0 );
 
 		// Shortcuts (for backward compatibility)

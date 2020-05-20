@@ -253,8 +253,10 @@ TrueKdTree::BaseNode* TrueKdTree::split( ReferenceCloud* subset )
 }
 
 bool TrueKdTree::build(
-	double maxError, DistanceComputationTools::ERROR_MEASURES errorMeasure /*=DistanceComputationTools::RMS*/,
-	unsigned minPointCountPerCell /*=3*/, unsigned maxPointCountPerCell /*=0*/,
+	double maxError,
+	DistanceComputationTools::ERROR_MEASURES errorMeasure /*=DistanceComputationTools::RMS*/,
+	unsigned minPointCountPerCell /*=3*/,
+	unsigned maxPointCountPerCell /*=0*/,
 	GenericProgressCallback* progressCb /*=0*/ )
 {
 	if ( !m_associatedCloud )

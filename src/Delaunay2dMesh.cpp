@@ -56,7 +56,8 @@ void Delaunay2dMesh::linkMeshWith( GenericIndexedCloud* aCloud, bool passOwnersh
 	m_cloudIsOwnedByMesh = passOwnership;
 }
 
-bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D, const std::vector<int>& segments2D,
+bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D,
+								const std::vector<int>& segments2D,
 								std::string& outputErrorStr )
 {
 #if defined( CC_CORE_LIB_USES_CGAL_LIB )
@@ -120,7 +121,8 @@ bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D, const st
 #endif
 }
 
-bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D, std::size_t pointCountToUse,
+bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D,
+								std::size_t pointCountToUse,
 								std::string& outputErrorStr )
 {
 #if defined( CC_CORE_LIB_USES_CGAL_LIB )
@@ -361,7 +363,9 @@ GenericTriangle* Delaunay2dMesh::_getTriangle( unsigned triangleIndex )
 	return static_cast<GenericTriangle*>( &m_dumpTriangle );
 }
 
-void Delaunay2dMesh::getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
+void Delaunay2dMesh::getTriangleVertices( unsigned triangleIndex,
+										  CCVector3& A,
+										  CCVector3& B,
 										  CCVector3& C ) const
 {
 	assert( m_associatedCloud && triangleIndex < m_numberOfTriangles );

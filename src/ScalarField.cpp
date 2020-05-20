@@ -80,7 +80,8 @@ bool ScalarField::reserveSafe( std::size_t count )
 	return true;
 }
 
-bool ScalarField::resizeSafe( std::size_t count, bool initNewElements /*=false*/,
+bool ScalarField::resizeSafe( std::size_t count,
+							  bool initNewElements /*=false*/,
 							  ScalarType valueForNewElements /*=0*/ )
 {
 	try

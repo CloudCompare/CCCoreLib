@@ -22,8 +22,12 @@ using namespace CCCoreLib;
 static double s_UnitSphereVolume = 4.0 * M_PI / 3.0;
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersitic(
-	GeomCharacteristic c, int subOption, GenericIndexedCloudPersist* cloud, PointCoordinateType kernelRadius,
-	GenericProgressCallback* progressCb /*=nullptr*/, DgmOctree* inputOctree /*=nullptr*/ )
+	GeomCharacteristic c,
+	int subOption,
+	GenericIndexedCloudPersist* cloud,
+	PointCoordinateType kernelRadius,
+	GenericProgressCallback* progressCb /*=nullptr*/,
+	DgmOctree* inputOctree /*=nullptr*/ )
 {
 	if ( !cloud )
 	{
@@ -290,8 +294,10 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel( const DgmOctree
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoints(
-	GenericIndexedCloudPersist* cloud, double minDistanceBetweenPoints /*=1.0e-12*/,
-	GenericProgressCallback* progressCb /*=0*/, DgmOctree* inputOctree /*=0*/ )
+	GenericIndexedCloudPersist* cloud,
+	double minDistanceBetweenPoints /*=1.0e-12*/,
+	GenericProgressCallback* progressCb /*=0*/,
+	DgmOctree* inputOctree /*=0*/ )
 {
 	if ( !cloud )
 		return InvalidInput;
@@ -399,7 +405,9 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel( const DgmOctre
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeLocalDensityApprox(
-	GenericIndexedCloudPersist* cloud, Density densityType, GenericProgressCallback* progressCb /*=0*/,
+	GenericIndexedCloudPersist* cloud,
+	Density densityType,
+	GenericProgressCallback* progressCb /*=0*/,
 	DgmOctree* inputOctree /*=0*/ )
 {
 	if ( !cloud )
@@ -613,7 +621,8 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix( GenericCloud* c
 	return covMat;
 }
 
-SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix( GenericCloud* P, GenericCloud* Q,
+SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix( GenericCloud* P,
+																	  GenericCloud* Q,
 																	  const CCVector3& Gp,
 																	  const CCVector3& Gq )
 {
@@ -655,7 +664,9 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix( GenericClo
 SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(
 	GenericCloud* P, // data
 	GenericCloud* Q, // model
-	const CCVector3& Gp, const CCVector3& Gq, ScalarField* coupleWeights /*=0*/ )
+	const CCVector3& Gp,
+	const CCVector3& Gq,
+	ScalarField* coupleWeights /*=0*/ )
 {
 	assert( P && Q );
 	assert( Q->size() == P->size() );
@@ -716,7 +727,8 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(
 	return covMat;
 }
 
-bool GeometricalAnalysisTools::RefineSphereLS( GenericIndexedCloudPersist* cloud, CCVector3& center,
+bool GeometricalAnalysisTools::RefineSphereLS( GenericIndexedCloudPersist* cloud,
+											   CCVector3& center,
 											   PointCoordinateType& radius,
 											   double minRelativeCenterShift /*=1.0e-3*/ )
 {
@@ -780,8 +792,13 @@ bool GeometricalAnalysisTools::RefineSphereLS( GenericIndexedCloudPersist* cloud
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust(
-	GenericIndexedCloudPersist* cloud, double outliersRatio, CCVector3& center, PointCoordinateType& radius,
-	double& rms, GenericProgressCallback* progressCb /*=nullptr*/, double confidence /*=0.99*/,
+	GenericIndexedCloudPersist* cloud,
+	double outliersRatio,
+	CCVector3& center,
+	PointCoordinateType& radius,
+	double& rms,
+	GenericProgressCallback* progressCb /*=nullptr*/,
+	double confidence /*=0.99*/,
 	unsigned seed /*=0*/ )
 {
 	if ( !cloud )
@@ -1053,7 +1070,11 @@ int dmat_solve( int n, int rhs_num, double a[] )
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeSphereFrom4(
-	const CCVector3& A, const CCVector3& B, const CCVector3& C, const CCVector3& D, CCVector3& center,
+	const CCVector3& A,
+	const CCVector3& B,
+	const CCVector3& C,
+	const CCVector3& D,
+	CCVector3& center,
 	PointCoordinateType& radius )
 {
 	// inspired from 'tetrahedron_circumsphere_3d' by Adrian Bowyer and John Woodwark

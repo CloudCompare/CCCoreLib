@@ -58,7 +58,8 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return succes
 		**/
-		static ErrorCode ComputeCharactersitic( GeomCharacteristic c, int subOption,
+		static ErrorCode ComputeCharactersitic( GeomCharacteristic c,
+												int subOption,
 												GenericIndexedCloudPersist* cloud,
 												PointCoordinateType kernelRadius,
 												GenericProgressCallback* progressCb = nullptr,
@@ -74,7 +75,8 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success (0) or error code (<0)
 		**/
-		static ErrorCode ComputeLocalDensityApprox( GenericIndexedCloudPersist* cloud, Density densityType,
+		static ErrorCode ComputeLocalDensityApprox( GenericIndexedCloudPersist* cloud,
+													Density densityType,
 													GenericProgressCallback* progressCb = nullptr,
 													DgmOctree* inputOctree = nullptr );
 
@@ -103,7 +105,8 @@ namespace CCCoreLib
 			\param qGravityCenter the gravity center of Q
 			\return cross covariance matrix
 		**/
-		static SquareMatrixd ComputeCrossCovarianceMatrix( GenericCloud* P, GenericCloud* Q,
+		static SquareMatrixd ComputeCrossCovarianceMatrix( GenericCloud* P,
+														   GenericCloud* Q,
 														   const CCVector3& pGravityCenter,
 														   const CCVector3& qGravityCenter );
 
@@ -118,7 +121,8 @@ namespace CCCoreLib
 			\param coupleWeights weights for each (Pi,Qi) couple (optional)
 			\return weighted cross covariance matrix
 		**/
-		static SquareMatrixd ComputeWeightedCrossCovarianceMatrix( GenericCloud* P, GenericCloud* Q,
+		static SquareMatrixd ComputeWeightedCrossCovarianceMatrix( GenericCloud* P,
+																   GenericCloud* Q,
 																   const CCVector3& pGravityCenter,
 																   const CCVector3& qGravityCenter,
 																   ScalarField* coupleWeights = nullptr );
@@ -144,7 +148,8 @@ namespace CCCoreLib
 		static ErrorCode FlagDuplicatePoints(
 			GenericIndexedCloudPersist* theCloud,
 			double minDistanceBetweenPoints = std::numeric_limits<double>::epsilon(),
-			GenericProgressCallback* progressCb = nullptr, DgmOctree* inputOctree = nullptr );
+			GenericProgressCallback* progressCb = nullptr,
+			DgmOctree* inputOctree = nullptr );
 
 		//! Tries to detect a sphere in a point cloud
 		/** Inspired from "Parameter Estimation Techniques: A Tutorial with Application
@@ -160,10 +165,14 @@ namespace CCCoreLib
 			\param[in] seed if different than 0, this seed will be used for random numbers generation (instead of a random one)
 			\result success
 		**/
-		static ErrorCode DetectSphereRobust( GenericIndexedCloudPersist* cloud, double outliersRatio,
-											 CCVector3& center, PointCoordinateType& radius, double& rms,
+		static ErrorCode DetectSphereRobust( GenericIndexedCloudPersist* cloud,
+											 double outliersRatio,
+											 CCVector3& center,
+											 PointCoordinateType& radius,
+											 double& rms,
 											 GenericProgressCallback* progressCb = nullptr,
-											 double confidence = 0.99, unsigned seed = 0 );
+											 double confidence = 0.99,
+											 unsigned seed = 0 );
 
 		//! Computes the center and radius of a sphere passing through 4 points
 		/** \param[in] A first point
@@ -174,8 +183,11 @@ namespace CCCoreLib
 			\param[out] radius radius of the sphere
 			\return success
 		**/
-		static ErrorCode ComputeSphereFrom4( const CCVector3& A, const CCVector3& B, const CCVector3& C,
-											 const CCVector3& D, CCVector3& center,
+		static ErrorCode ComputeSphereFrom4( const CCVector3& A,
+											 const CCVector3& B,
+											 const CCVector3& C,
+											 const CCVector3& D,
+											 CCVector3& center,
 											 PointCoordinateType& radius );
 
 	protected:
@@ -206,7 +218,9 @@ namespace CCCoreLib
 													   NormalizedProgress* nProgress = nullptr );
 
 		//! Refines the estimation of a sphere by (iterative) least-squares
-		static bool RefineSphereLS( GenericIndexedCloudPersist* cloud, CCVector3& center,
-									PointCoordinateType& radius, double minReltaiveCenterShift = 1.0e-3 );
+		static bool RefineSphereLS( GenericIndexedCloudPersist* cloud,
+									CCVector3& center,
+									PointCoordinateType& radius,
+									double minReltaiveCenterShift = 1.0e-3 );
 	};
 }

@@ -82,7 +82,8 @@ namespace CCCoreLib
 			\param[out] stats output statistics (optional)
 			\return false if an error occurred (invalid input or not enough memory)
 		**/
-		static bool flagMeshVerticesByType( GenericIndexedMesh* mesh, ScalarField* flags,
+		static bool flagMeshVerticesByType( GenericIndexedMesh* mesh,
+											ScalarField* flags,
 											EdgeConnectivityStats* stats = nullptr );
 
 		//! Samples points on a mesh
@@ -103,7 +104,8 @@ namespace CCCoreLib
 			\param[out] triIndices triangle index for each samples point (output only - optional)
 			\return the sampled points
 		**/
-		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh,
+											   double samplingDensity,
 											   GenericProgressCallback* progressCb = nullptr,
 											   std::vector<unsigned>* triIndices = nullptr );
 
@@ -117,7 +119,8 @@ namespace CCCoreLib
 			\param[out] triIndices triangle index for each samples point (output only - optional)
 			\return the sampled points
 		**/
-		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, unsigned numberOfPoints,
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh,
+											   unsigned numberOfPoints,
 											   GenericProgressCallback* progressCb = nullptr,
 											   std::vector<unsigned>* triIndices = nullptr );
 
@@ -131,7 +134,8 @@ namespace CCCoreLib
 			\param[out] triIndices triangle index for each samples point (output only - optional)
 			\return the sampled points
 		**/
-		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
+		static PointCloud* samplePointsOnMesh( GenericMesh* mesh,
+											   double samplingDensity,
 											   unsigned theoreticNumberOfPoints,
 											   GenericProgressCallback* progressCb = nullptr,
 											   std::vector<unsigned>* triIndices = nullptr );

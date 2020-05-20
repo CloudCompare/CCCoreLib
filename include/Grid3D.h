@@ -102,8 +102,10 @@ namespace CCCoreLib
 		};
 
 		//! Intersects this grid with a mesh
-		bool intersecthWith( GenericIndexedMesh* mesh, PointCoordinateType cellLength,
-							 const CCVector3& gridMinCorner, GridElement intersectValue = 0,
+		bool intersecthWith( GenericIndexedMesh* mesh,
+							 PointCoordinateType cellLength,
+							 const CCVector3& gridMinCorner,
+							 GridElement intersectValue = 0,
 							 GenericProgressCallback* progressCb = nullptr )
 		{
 			if ( !mesh || !isInitialized() )
@@ -348,8 +350,10 @@ namespace CCCoreLib
 		}
 
 		//! Intersects this grid with a mesh
-		bool intersecthWith( GenericCloud* cloud, PointCoordinateType cellLength,
-							 const CCVector3& gridMinCorner, GridElement intersectValue = 0,
+		bool intersecthWith( GenericCloud* cloud,
+							 PointCoordinateType cellLength,
+							 const CCVector3& gridMinCorner,
+							 GridElement intersectValue = 0,
 							 GenericProgressCallback* progressCb = nullptr )
 		{
 			if ( !cloud || !isInitialized() )

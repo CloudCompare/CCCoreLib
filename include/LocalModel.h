@@ -19,7 +19,9 @@ namespace CCCoreLib
 			\param center model "center"
 			\param squaredRadius model max radius (squared)
 		**/
-		static LocalModel* New( LOCAL_MODEL_TYPES type, Neighbourhood& subset, const CCVector3& center,
+		static LocalModel* New( LOCAL_MODEL_TYPES type,
+								Neighbourhood& subset,
+								const CCVector3& center,
 								PointCoordinateType squaredRadius );
 
 		//! Destructor

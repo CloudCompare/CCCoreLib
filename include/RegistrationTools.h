@@ -42,7 +42,8 @@ namespace CCCoreLib
 			\param transformationFilters filters to be applied on the resulting transformation at each step (experimental) - see RegistrationTools::TRANSFORMATION_FILTERS flags
 			\param outTrans output transformation
 		**/
-		static void FilterTransformation( const ScaledTransformation& inTrans, int transformationFilters,
+		static void FilterTransformation( const ScaledTransformation& inTrans,
+										  int transformationFilters,
 										  ScaledTransformation& outTrans );
 
 	protected:
@@ -67,8 +68,11 @@ namespace CCCoreLib
 			\param aPrioriScale 'a priori' scale (Sa) between P and X
 			\return success
 		**/
-		static bool RegistrationProcedure( GenericCloud* P, GenericCloud* X, ScaledTransformation& trans,
-										   bool adjustScale = false, ScalarField* coupleWeights = nullptr,
+		static bool RegistrationProcedure( GenericCloud* P,
+										   GenericCloud* X,
+										   ScaledTransformation& trans,
+										   bool adjustScale = false,
+										   ScalarField* coupleWeights = nullptr,
 										   PointCoordinateType aPrioriScale = 1.0f );
 	};
 
@@ -87,8 +91,10 @@ namespace CCCoreLib
 			\param fixedScale force scale parameter to 1.0
 			\return success
 		**/
-		static bool FindAbsoluteOrientation( GenericCloud* lCloud, GenericCloud* rCloud,
-											 ScaledTransformation& trans, bool fixedScale = false );
+		static bool FindAbsoluteOrientation( GenericCloud* lCloud,
+											 GenericCloud* rCloud,
+											 ScaledTransformation& trans,
+											 bool fixedScale = false );
 
 		//! Computes RMS between two clouds given a transformation and a scale
 		/** Warning: both clouds must have the same size (and at least 3 points)
@@ -98,7 +104,8 @@ namespace CCCoreLib
 			\param trans transformation: Pr = s.R.Pl + T
 			\return RMS (or -1.0 if an error occurred)
 		**/
-		static double ComputeRMS( GenericCloud* lCloud, GenericCloud* rCloud,
+		static double ComputeRMS( GenericCloud* lCloud,
+								  GenericCloud* rCloud,
 								  const ScaledTransformation& trans );
 	};
 
@@ -197,9 +204,12 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return algorithm result
 		**/
-		static RESULT_TYPE Register( GenericIndexedCloudPersist* modelCloud, GenericIndexedMesh* modelMesh,
-									 GenericIndexedCloudPersist* dataCloud, const Parameters& params,
-									 ScaledTransformation& totalTrans, double& finalRMS,
+		static RESULT_TYPE Register( GenericIndexedCloudPersist* modelCloud,
+									 GenericIndexedMesh* modelMesh,
+									 GenericIndexedCloudPersist* dataCloud,
+									 const Parameters& params,
+									 ScaledTransformation& totalTrans,
+									 double& finalRMS,
 									 unsigned& finalPointCount,
 									 GenericProgressCallback* progressCb = nullptr );
 	};
@@ -222,9 +232,14 @@ namespace CCCoreLib
 			\param nbMaxCandidates if>0, maximal number of candidate bases allowed for each step. Otherwise the number of candidates is not bounded
 			\return false: failure ; true: success.
 		**/
-		static bool RegisterClouds( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
-									ScaledTransformation& transform, ScalarType delta, ScalarType beta,
-									PointCoordinateType overlap, unsigned nbBases, unsigned nbTries,
+		static bool RegisterClouds( GenericIndexedCloud* modelCloud,
+									GenericIndexedCloud* dataCloud,
+									ScaledTransformation& transform,
+									ScalarType delta,
+									ScalarType beta,
+									PointCoordinateType overlap,
+									unsigned nbBases,
+									unsigned nbTries,
 									GenericProgressCallback* progressCb = nullptr,
 									unsigned nbMaxCandidates = 0 );
 
@@ -265,7 +280,9 @@ namespace CCCoreLib
 			\param base the resulting base
 			\return false: failure ; true: success
 		**/
-		static bool FindBase( GenericIndexedCloud* cloud, PointCoordinateType overlap, unsigned nbTries,
+		static bool FindBase( GenericIndexedCloud* cloud,
+							  PointCoordinateType overlap,
+							  unsigned nbTries,
 							  Base& base );
 
 		/*! Find bases which are congruent to a specified 4 points base
@@ -275,7 +292,9 @@ namespace CCCoreLib
 			\param results the resulting bases
 			\return the number of bases found (number of element in the results array) or -1 is a problem occurred
 		**/
-		static int FindCongruentBases( KDTree* tree, ScalarType delta, const CCVector3* base[4],
+		static int FindCongruentBases( KDTree* tree,
+									   ScalarType delta,
+									   const CCVector3* base[4],
 									   std::vector<Base>& results );
 
 		//! Registration score computation function
@@ -286,8 +305,10 @@ namespace CCCoreLib
 			\param delta tolerance above which data points are not counted (if a point is less than delta-apart from the model cloud, then it is counted)
 			\return the number of data points which are distance-apart from the model cloud
 		**/
-		static unsigned ComputeRegistrationScore( KDTree* modelTree, GenericIndexedCloud* dataCloud,
-												  ScalarType delta, const ScaledTransformation& dataToModel );
+		static unsigned ComputeRegistrationScore( KDTree* modelTree,
+												  GenericIndexedCloud* dataCloud,
+												  ScalarType delta,
+												  const ScaledTransformation& dataToModel );
 
 		//! Find the 3D pseudo intersection between two lines
 		/** This function finds the 3D point which is the nearest from the both lines (when this point is
@@ -301,8 +322,12 @@ namespace CCCoreLib
 			\param mu [out] coeff such that p2+mu(p3-p2) is the point of [p2, p3] which is the nearest from [p0, p1]
 			\return false: no intersection was found (lines may be parallel); true: inter is the pseudo intersection
 		**/
-		static bool LinesIntersections( const CCVector3& p0, const CCVector3& p1, const CCVector3& p2,
-										const CCVector3& p3, CCVector3& inter, PointCoordinateType& lambda,
+		static bool LinesIntersections( const CCVector3& p0,
+										const CCVector3& p1,
+										const CCVector3& p2,
+										const CCVector3& p3,
+										CCVector3& inter,
+										PointCoordinateType& lambda,
 										PointCoordinateType& mu );
 
 		/**!function to keep only the N best candidates bases (by comparison with the reference base
@@ -317,8 +342,10 @@ namespace CCCoreLib
 			\param transforms array of rigid transforms that align candidates bases with the reference base
 			\return false if something went wrong
 		**/
-		static bool FilterCandidates( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
-									  Base& reference, std::vector<Base>& candidates,
+		static bool FilterCandidates( GenericIndexedCloud* modelCloud,
+									  GenericIndexedCloud* dataCloud,
+									  Base& reference,
+									  std::vector<Base>& candidates,
 									  unsigned nbMaxCandidates,
 									  std::vector<ScaledTransformation>& transforms );
 	};

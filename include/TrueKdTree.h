@@ -141,7 +141,8 @@ namespace CCCoreLib
 		**/
 		bool build( double maxError,
 					DistanceComputationTools::ERROR_MEASURES errorMeasure = DistanceComputationTools::RMS,
-					unsigned minPointCountPerCell = 3, unsigned maxPointCountPerCell = 0,
+					unsigned minPointCountPerCell = 3,
+					unsigned maxPointCountPerCell = 0,
 					GenericProgressCallback* progressCb = nullptr );
 
 		//! Clears structure

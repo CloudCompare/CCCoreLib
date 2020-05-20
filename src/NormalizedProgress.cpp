@@ -14,7 +14,8 @@ class CCCoreLib::AtomicCounter : public std::atomic_uint
 {
 };
 
-NormalizedProgress::NormalizedProgress( GenericProgressCallback* callback, unsigned totalSteps,
+NormalizedProgress::NormalizedProgress( GenericProgressCallback* callback,
+										unsigned totalSteps,
 										unsigned totalPercentage /*=100*/ )
 	: m_percent( 0 )
 	, m_step( 1 )
@@ -30,7 +31,8 @@ NormalizedProgress::~NormalizedProgress()
 	delete m_counter;
 }
 
-void NormalizedProgress::scale( unsigned totalSteps, unsigned totalPercentage /*=100*/,
+void NormalizedProgress::scale( unsigned totalSteps,
+								unsigned totalPercentage /*=100*/,
 								bool updateCurrentProgress /*=false*/ )
 {
 	if ( progressCallback )

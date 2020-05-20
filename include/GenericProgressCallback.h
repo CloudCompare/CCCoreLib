@@ -77,7 +77,8 @@ namespace CCCoreLib
 			\param totalSteps total number of steps (> 0)
 			\param totalPercentage equivalent percentage (> 0)
 		**/
-		NormalizedProgress( GenericProgressCallback* callback, unsigned totalSteps,
+		NormalizedProgress( GenericProgressCallback* callback,
+							unsigned totalSteps,
 							unsigned totalPercentage = 100 );
 
 		//! Destructor
