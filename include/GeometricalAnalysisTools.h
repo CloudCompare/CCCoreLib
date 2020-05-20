@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "DgmOctree.h"
 #include "Neighbourhood.h"
 
@@ -17,30 +17,36 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API GeometricalAnalysisTools : public CCToolbox
 	{
 	public:
-
-		enum GeomCharacteristic	{	Feature,			/**< See Neighbourhood::GeomFeature **/
-									Curvature,			/**< See Neighbourhood::CurvatureType **/
-									LocalDensity,		/**< Accurate local density (see GeometricalAnalysisTools::Density) **/
-									ApproxLocalDensity,	/**< Approximate local density (see GeometricalAnalysisTools::Density) **/
-									Roughness,			/**< Roughness **/
-									MomentOrder1		/**< 1st order moment **/
-								};
+		enum GeomCharacteristic
+		{
+			Feature,			/**< See Neighbourhood::GeomFeature **/
+			Curvature,			/**< See Neighbourhood::CurvatureType **/
+			LocalDensity,		/**< Accurate local density (see GeometricalAnalysisTools::Density) **/
+			ApproxLocalDensity, /**< Approximate local density (see GeometricalAnalysisTools::Density) **/
+			Roughness,			/**< Roughness **/
+			MomentOrder1		/**< 1st order moment **/
+		};
 
 		//! Density measurement
-		enum Density {	DENSITY_KNN = 1,	/**< The number of points inside the neighborhing sphere **/
-						DENSITY_2D,			/**< The number of points divided by the area of the circle that has the same radius as the neighborhing sphere (2D approximation) **/
-						DENSITY_3D,			/**< The number of points divided by the neighborhing sphere volume (3D) **/
-					 };
+		enum Density
+		{
+			DENSITY_KNN = 1, /**< The number of points inside the neighborhing sphere **/
+			DENSITY_2D, /**< The number of points divided by the area of the circle that has the same radius
+						   as the neighborhing sphere (2D approximation) **/
+			DENSITY_3D, /**< The number of points divided by the neighborhing sphere volume (3D) **/
+		};
 
-		enum ErrorCode {	NoError = 0,
-							InvalidInput = -1,
-							NotEnoughPoints = -2,
-							OctreeComputationFailed = -3,
-							ProcessFailed = -4,
-							UnhandledCharacteristic = -5,
-							NotEnoughMemory = -6,
-							ProcessCancelledByUser = -7
-					   };
+		enum ErrorCode
+		{
+			NoError = 0,
+			InvalidInput = -1,
+			NotEnoughPoints = -2,
+			OctreeComputationFailed = -3,
+			ProcessFailed = -4,
+			UnhandledCharacteristic = -5,
+			NotEnoughMemory = -6,
+			ProcessCancelledByUser = -7
+		};
 		//! Unified way to compute a geometric characteristic
 		/** Once the main geometric characterstic is chosen, the subOption parameter is used to specify
 			the actual feature / curvature type / local density computation algorithm if necessary.
@@ -52,12 +58,12 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return succes
 		**/
-		static ErrorCode ComputeCharactersitic(	GeomCharacteristic c,
+		static ErrorCode ComputeCharactersitic( GeomCharacteristic c,
 												int subOption,
 												GenericIndexedCloudPersist* cloud,
 												PointCoordinateType kernelRadius,
 												GenericProgressCallback* progressCb = nullptr,
-												DgmOctree* inputOctree = nullptr);
+												DgmOctree* inputOctree = nullptr );
 
 		//! Computes the local density (approximate)
 		/** Old method (based only on the distance to the nearest neighbor).
@@ -69,17 +75,17 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success (0) or error code (<0)
 		**/
-		static ErrorCode ComputeLocalDensityApprox(	GenericIndexedCloudPersist* cloud,
+		static ErrorCode ComputeLocalDensityApprox( GenericIndexedCloudPersist* cloud,
 													Density densityType,
 													GenericProgressCallback* progressCb = nullptr,
-													DgmOctree* inputOctree = nullptr);
+													DgmOctree* inputOctree = nullptr );
 
 		//! Computes the gravity center of a point cloud
 		/** \warning this method uses the cloud global iterator
 			\param theCloud cloud
 			\return gravity center
 		**/
-		static CCVector3 ComputeGravityCenter(GenericCloud* theCloud);
+		static CCVector3 ComputeGravityCenter( GenericCloud* theCloud );
 
 		//! Computes the weighted gravity center of a point cloud
 		/** \warning this method uses the cloud global iterator
@@ -87,7 +93,7 @@ namespace CCCoreLib
 			\param weights per point weights (only absolute values are considered)
 			\return gravity center
 		**/
-		static CCVector3 ComputeWeightedGravityCenter(GenericCloud* theCloud, ScalarField* weights);
+		static CCVector3 ComputeWeightedGravityCenter( GenericCloud* theCloud, ScalarField* weights );
 
 		//! Computes the cross covariance matrix between two clouds (same size)
 		/** Used in the ICP algorithm between the cloud to register and the "Closest Points Set"
@@ -99,10 +105,10 @@ namespace CCCoreLib
 			\param qGravityCenter the gravity center of Q
 			\return cross covariance matrix
 		**/
-		static SquareMatrixd ComputeCrossCovarianceMatrix(	GenericCloud* P,
-															GenericCloud* Q,
-															const CCVector3& pGravityCenter,
-															const CCVector3& qGravityCenter);
+		static SquareMatrixd ComputeCrossCovarianceMatrix( GenericCloud* P,
+														   GenericCloud* Q,
+														   const CCVector3& pGravityCenter,
+														   const CCVector3& qGravityCenter );
 
 		//! Computes the cross covariance matrix between two clouds (same size) - weighted version
 		/** Used in the ICP algorithm between the cloud to register and the "Closest Points Set"
@@ -115,11 +121,11 @@ namespace CCCoreLib
 			\param coupleWeights weights for each (Pi,Qi) couple (optional)
 			\return weighted cross covariance matrix
 		**/
-		static SquareMatrixd ComputeWeightedCrossCovarianceMatrix(	GenericCloud* P,
-																	GenericCloud* Q,
-																	const CCVector3& pGravityCenter,
-																	const CCVector3& qGravityCenter,
-																	ScalarField* coupleWeights = nullptr);
+		static SquareMatrixd ComputeWeightedCrossCovarianceMatrix( GenericCloud* P,
+																   GenericCloud* Q,
+																   const CCVector3& pGravityCenter,
+																   const CCVector3& qGravityCenter,
+																   ScalarField* coupleWeights = nullptr );
 
 		//! Computes the covariance matrix of a clouds
 		/** \warning this method uses the cloud global iterator
@@ -127,8 +133,8 @@ namespace CCCoreLib
 			\param _gravityCenter if available, its gravity center
 			\return covariance matrix
 		**/
-		static SquareMatrixd ComputeCovarianceMatrix(GenericCloud* theCloud,
-													 const PointCoordinateType* _gravityCenter = nullptr);
+		static SquareMatrixd ComputeCovarianceMatrix( GenericCloud* theCloud,
+													  const PointCoordinateType* _gravityCenter = nullptr );
 
 		//! Flag duplicate points
 		/** This method only requires an output scalar field. Duplicate points will be
@@ -139,10 +145,11 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success (0) or error code (<0)
 		**/
-		static ErrorCode FlagDuplicatePoints(	GenericIndexedCloudPersist* theCloud,
-												double minDistanceBetweenPoints = std::numeric_limits<double>::epsilon(),
-												GenericProgressCallback* progressCb = nullptr,
-												DgmOctree* inputOctree = nullptr);
+		static ErrorCode FlagDuplicatePoints(
+			GenericIndexedCloudPersist* theCloud,
+			double minDistanceBetweenPoints = std::numeric_limits<double>::epsilon(),
+			GenericProgressCallback* progressCb = nullptr,
+			DgmOctree* inputOctree = nullptr );
 
 		//! Tries to detect a sphere in a point cloud
 		/** Inspired from "Parameter Estimation Techniques: A Tutorial with Application
@@ -158,14 +165,14 @@ namespace CCCoreLib
 			\param[in] seed if different than 0, this seed will be used for random numbers generation (instead of a random one)
 			\result success
 		**/
-		static ErrorCode DetectSphereRobust(	GenericIndexedCloudPersist* cloud,
-												double outliersRatio,
-												CCVector3& center,
-												PointCoordinateType& radius,
-												double& rms,
-												GenericProgressCallback* progressCb = nullptr,
-												double confidence = 0.99,
-												unsigned seed = 0);
+		static ErrorCode DetectSphereRobust( GenericIndexedCloudPersist* cloud,
+											 double outliersRatio,
+											 CCVector3& center,
+											 PointCoordinateType& radius,
+											 double& rms,
+											 GenericProgressCallback* progressCb = nullptr,
+											 double confidence = 0.99,
+											 unsigned seed = 0 );
 
 		//! Computes the center and radius of a sphere passing through 4 points
 		/** \param[in] A first point
@@ -176,45 +183,44 @@ namespace CCCoreLib
 			\param[out] radius radius of the sphere
 			\return success
 		**/
-		static ErrorCode ComputeSphereFrom4(	const CCVector3& A,
-												const CCVector3& B,
-												const CCVector3& C,
-												const CCVector3& D,
-												CCVector3& center,
-												PointCoordinateType& radius );
+		static ErrorCode ComputeSphereFrom4( const CCVector3& A,
+											 const CCVector3& B,
+											 const CCVector3& C,
+											 const CCVector3& D,
+											 CCVector3& center,
+											 PointCoordinateType& radius );
 
 	protected:
-
 		//! Computes geom characteristic inside a cell
 		/**	\param cell structure describing the cell on which processing is applied
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool ComputeGeomCharacteristicAtLevel(	const DgmOctree::octreeCell& cell,
-														void** additionalParameters,
-														NormalizedProgress* nProgress = nullptr);
+		static bool ComputeGeomCharacteristicAtLevel( const DgmOctree::octreeCell& cell,
+													  void** additionalParameters,
+													  NormalizedProgress* nProgress = nullptr );
 		//! Computes approximate point density inside a cell
 		/**	\param cell structure describing the cell on which processing is applied
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool ComputeApproxPointsDensityInACellAtLevel(	const DgmOctree::octreeCell& cell,
-																void** additionalParameters,
-																NormalizedProgress* nProgress = nullptr);
+		static bool ComputeApproxPointsDensityInACellAtLevel( const DgmOctree::octreeCell& cell,
+															  void** additionalParameters,
+															  NormalizedProgress* nProgress = nullptr );
 
 		//! Flags duplicate points inside a cell
 		/**	\param cell structure describing the cell on which processing is applied
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool FlagDuplicatePointsInACellAtLevel(	const DgmOctree::octreeCell& cell,
-														void** additionalParameters,
-														NormalizedProgress* nProgress = nullptr);
+		static bool FlagDuplicatePointsInACellAtLevel( const DgmOctree::octreeCell& cell,
+													   void** additionalParameters,
+													   NormalizedProgress* nProgress = nullptr );
 
 		//! Refines the estimation of a sphere by (iterative) least-squares
-		static bool RefineSphereLS(	GenericIndexedCloudPersist* cloud,
+		static bool RefineSphereLS( GenericIndexedCloudPersist* cloud,
 									CCVector3& center,
 									PointCoordinateType& radius,
-									double minReltaiveCenterShift = 1.0e-3);
+									double minReltaiveCenterShift = 1.0e-3 );
 	};
 }

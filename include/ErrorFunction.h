@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCCoreLib.h"
 #include "MathTools.h"
 
@@ -24,7 +24,6 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API ErrorFunction : MathTools
 	{
 	public:
-
 		//! Computes erfc(x)
 		/** erfc(x) = 2/sqrt(pi)*integral(exp(-t^2),t,x,inf)
 					= exp(-x^2)/sqrt(pi) * [1/x+ (1/2)/x+ (2/2)/x+ (3/2)/x+ (4/2)/x+ ...]
@@ -34,7 +33,7 @@ namespace CCCoreLib
 			\param x a real variable
 			\return erfc(x)
 		**/
-		static double erfc(double x);
+		static double erfc( double x );
 
 		//! Computes erf(x)
 		/** erf(x) = 2/sqrt(pi)*integral(exp(-t^2),t,0,x)
@@ -43,6 +42,6 @@ namespace CCCoreLib
 			\param x a real variable
 			\return erf(x)
 		**/
-		static double erf(double x);
+		static double erf( double x );
 	};
 }

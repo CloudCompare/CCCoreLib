@@ -3,18 +3,17 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCGeom.h"
 
 namespace CCCoreLib
 {
 	//! A generic triangle interface
 	/** Returns (temporary) references to each vertex.
-	**/
+	 **/
 	class CC_CORE_LIB_API GenericTriangle
 	{
 	public:
-
 		//! Default destructor
 		virtual ~GenericTriangle() = default;
 

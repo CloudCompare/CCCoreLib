@@ -5,7 +5,7 @@
 
 #include <vector>
 
-//Local
+// Local
 #include "CCToolbox.h"
 #include "CCTypes.h"
 
@@ -20,13 +20,12 @@ namespace CCCoreLib
 	/** Several algorithms of the AutoSegmentationTools toolbox return a collection of subsets of points
 		corresponding to each segmented part. Such a collection is generally stored in this type of container.
 	**/
-	using ReferenceCloudContainer = std::vector<ReferenceCloud *>;
+	using ReferenceCloudContainer = std::vector<ReferenceCloud*>;
 
 	//! Several point cloud auto-segmentation algorithms (Connected Components, Front propagation, etc.)
 	class CC_CORE_LIB_API AutoSegmentationTools : public CCToolbox
 	{
 	public:
-
 		//! Labels connected components from a point cloud
 		/** The algorithm is described in Daniel Girardeau-Montaut's PhD manuscript
 			(Chapter 3, section 3.2.4). The main parameter is the maximal distance
@@ -48,11 +47,11 @@ namespace CCCoreLib
 			\param inputOctree the cloud octree if it has already been computed
 			\return the number of components (>= 0) or an error code (< 0 - see DgmOctree::extractCCs)
 		**/
-		static int labelConnectedComponents(GenericIndexedCloudPersist* theCloud,
-											unsigned char level,
-											bool sixConnexity = false,
-											GenericProgressCallback* progressCb = nullptr,
-											DgmOctree* inputOctree = nullptr);
+		static int labelConnectedComponents( GenericIndexedCloudPersist* theCloud,
+											 unsigned char level,
+											 bool sixConnexity = false,
+											 GenericProgressCallback* progressCb = nullptr,
+											 DgmOctree* inputOctree = nullptr );
 
 		//! Extracts connected components from a point cloud
 		/** This method shloud only be called after the connected components have been
@@ -64,9 +63,11 @@ namespace CCCoreLib
 			\param ccc the extracted connected compenents (as a list of subsets of points)
 			\return success
 		**/
-		static bool extractConnectedComponents(GenericIndexedCloudPersist* theCloud, ReferenceCloudContainer& ccc);
+		static bool extractConnectedComponents( GenericIndexedCloudPersist* theCloud,
+												ReferenceCloudContainer& ccc );
 
-		//! Segment a point cloud by propagating fronts constrained by values of the point cloud associated scalar field
+		//! Segment a point cloud by propagating fronts constrained by values of the point cloud associated
+		//! scalar field
 		/** The algorithm is described in Daniel Girardeau-Montaut's PhD manuscript
 			(Chapter 3, section 3.3). It consists mainly in propagating a front on
 			the surface implicitly represented by the point cloud and making this
@@ -86,14 +87,14 @@ namespace CCCoreLib
 			\param alpha the gaussian filter kernel size (needed only if a gaussian filtering pass is required)
 			\return success
 		**/
-		static bool frontPropagationBasedSegmentation(	GenericIndexedCloudPersist* theCloud,
-														PointCoordinateType radius,
-														ScalarType minSeedDist,
-														unsigned char octreeLevel,
-														ReferenceCloudContainer& theSegmentedLists,
-														GenericProgressCallback* progressCb = nullptr,
-														DgmOctree* inputOctree = nullptr,
-														bool applyGaussianFilter = false,
-														float alpha = 2.0f);
+		static bool frontPropagationBasedSegmentation( GenericIndexedCloudPersist* theCloud,
+													   PointCoordinateType radius,
+													   ScalarType minSeedDist,
+													   unsigned char octreeLevel,
+													   ReferenceCloudContainer& theSegmentedLists,
+													   GenericProgressCallback* progressCb = nullptr,
+													   DgmOctree* inputOctree = nullptr,
+													   bool applyGaussianFilter = false,
+													   float alpha = 2.0f );
 	};
 }

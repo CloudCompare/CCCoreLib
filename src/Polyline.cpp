@@ -5,13 +5,13 @@
 
 using namespace CCCoreLib;
 
-Polyline::Polyline(GenericIndexedCloudPersist* associatedCloud)
-	: ReferenceCloud(associatedCloud)
-	, m_isClosed(false)
+Polyline::Polyline( GenericIndexedCloudPersist* associatedCloud )
+	: ReferenceCloud( associatedCloud )
+	, m_isClosed( false )
 {
 }
 
-void Polyline::clear(bool /*unusedParam*/)
+void Polyline::clear( bool /*unusedParam*/ )
 {
 	ReferenceCloud::clear();
 	m_isClosed = false;

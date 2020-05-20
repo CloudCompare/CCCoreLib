@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "GenericIndexedCloudPersist.h"
 #include "PointCloudTpl.h"
 

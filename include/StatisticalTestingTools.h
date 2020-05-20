@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCToolbox.h"
 #include "DgmOctree.h"
 
@@ -19,7 +19,6 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API StatisticalTestingTools : public CCToolbox
 	{
 	public:
-
 		//! Computes the Chi2 distance on a sample of scalar values
 		/** The Chi2 distance is computed between an empiric distribution generated from a
 			set of scalar values (with a specific number of classes), and a theoretical distribution.
@@ -40,15 +39,15 @@ namespace CCCoreLib
 			\param[out] npis [optional] array containing the theoretical probabilities for each class (its size should be equal to the initial number of classes)
 			\return the Chi2 distance (or -1.0 if an error occurred)
 		**/
-		static double computeAdaptativeChi2Dist(const GenericDistribution* distrib,
-												const GenericCloud* cloud,
-												unsigned numberOfClasses,
-												unsigned &finalNumberOfClasses,
-												bool noClassCompression = false,
-												const ScalarType* histoMin = nullptr,
-												const ScalarType* histoMax = nullptr,
-												unsigned* histoValues = nullptr,
-												double* npis = nullptr);
+		static double computeAdaptativeChi2Dist( const GenericDistribution* distrib,
+												 const GenericCloud* cloud,
+												 unsigned numberOfClasses,
+												 unsigned& finalNumberOfClasses,
+												 bool noClassCompression = false,
+												 const ScalarType* histoMin = nullptr,
+												 const ScalarType* histoMax = nullptr,
+												 unsigned* histoValues = nullptr,
+												 double* npis = nullptr );
 
 		//! Computes the Chi2 fractile
 		/** Returns the max Chi2 Distance for a given "confidence" probability and a given number of
@@ -57,7 +56,7 @@ namespace CCCoreLib
 			\param d the number of d.o.l.
 			\return the Chi2 fractile
 		**/
-		static double computeChi2Fractile(double p, int d);
+		static double computeChi2Fractile( double p, int d );
 
 		//! Computes the Chi2 confidence probability
 		/** Returns the Chi2 confidence probability for a given Chi2 distance value and a given
@@ -66,7 +65,7 @@ namespace CCCoreLib
 			\param d the number of d.o.l.
 			\return the Chi2 confidence probability
 		**/
-		static double computeChi2Probability(double chi2result, int d);
+		static double computeChi2Probability( double chi2result, int d );
 
 		//! Classfies the point cloud in two category by locally applying a statistical (Chi2) test
 		/** This algorithm is described in Daniel Girardeau-Montaut's PhD manuscript (Chapter 3.
@@ -89,28 +88,28 @@ namespace CCCoreLib
 			\param inputOctree the cloud octree if it has already be computed
 			\return the distance threshold for filtering (or -1 if someting went wrong during the process)
 		**/
-		static double testCloudWithStatisticalModel(const GenericDistribution* distrib,
-													GenericIndexedCloudPersist* theCloud,
-													unsigned numberOfNeighbours,
-													double pTrust,
-													GenericProgressCallback* progressCb = nullptr,
-													DgmOctree* inputOctree = nullptr);
+		static double testCloudWithStatisticalModel( const GenericDistribution* distrib,
+													 GenericIndexedCloudPersist* theCloud,
+													 unsigned numberOfNeighbours,
+													 double pTrust,
+													 GenericProgressCallback* progressCb = nullptr,
+													 DgmOctree* inputOctree = nullptr );
 
 	protected:
-
 		//! Computes (locally) the Chi2 distance inside an octree cell
 		/** Additional parameters are:
 			- (GenericDistribution*) the theoretical noise distribution
 			- (int) the size of a neighbourhood for local analysis
 			- (int) the number of classes for the Chi2 distance computation
-			- (unsigned*) a pre-allocated array (of a size equal to the number of classes)for computation acceleration
+			- (unsigned*) a pre-allocated array (of a size equal to the number of classes)for computation
+		acceleration
 			- (bool) specifies whether negative values should be included in computation
 			\param cell structure describing the cell on which processing is applied
 			\param additionalParameters see method description
 			\param nProgress optional (normalized) progress notification (per-point)
 		**/
-		static bool computeLocalChi2DistAtLevel(const DgmOctree::octreeCell& cell,
-												void** additionalParameters,
-												NormalizedProgress* nProgress = nullptr);
+		static bool computeLocalChi2DistAtLevel( const DgmOctree::octreeCell& cell,
+												 void** additionalParameters,
+												 NormalizedProgress* nProgress = nullptr );
 	};
 }

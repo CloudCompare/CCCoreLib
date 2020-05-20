@@ -5,7 +5,7 @@
 
 #include <functional>
 
-//Local
+// Local
 #include "CCGeom.h"
 
 namespace CCCoreLib
@@ -16,12 +16,11 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API GenericMesh
 	{
 	public:
-
 		//! Default destructor
 		virtual ~GenericMesh() = default;
 
 		//! Generic function to apply to a triangle (used by foreach)
-		using genericTriangleAction = std::function<void (GenericTriangle &)>;
+		using genericTriangleAction = std::function<void( GenericTriangle& )>;
 
 		//! Returns the number of triangles
 		/**	Virtual method to request the mesh size
@@ -33,7 +32,7 @@ namespace CCCoreLib
 		/**	Virtual method to apply a function to the whole mesh
 			\param action function to apply (see GenericMesh::genericTriangleAction)
 		**/
-		virtual void forEach(genericTriangleAction action) = 0;
+		virtual void forEach( genericTriangleAction action ) = 0;
 
 		//! Returns the mesh bounding-box
 		/**	Virtual method to request the mesh bounding-box limits. It is equivalent to
@@ -41,11 +40,11 @@ namespace CCCoreLib
 			\param bbMin lower bounding-box limits (Xmin,Ymin,Zmin)
 			\param bbMax higher bounding-box limits (Xmax,Ymax,Zmax)
 		**/
-		virtual void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) = 0;
+		virtual void getBoundingBox( CCVector3& bbMin, CCVector3& bbMax ) = 0;
 
 		//! Places the mesh iterator at the beginning
 		/**	Virtual method to handle the mesh global iterator
-		**/
+		 **/
 		virtual void placeIteratorAtBeginning() = 0;
 
 		//! Returns the next triangle (relatively to the global iterator position)
@@ -54,6 +53,6 @@ namespace CCCoreLib
 			this method is called. The returned object can be temporary.
 			\return a triangle
 		**/
-		virtual GenericTriangle* _getNextTriangle() = 0; //temporary
+		virtual GenericTriangle* _getNextTriangle() = 0; // temporary
 	};
 }

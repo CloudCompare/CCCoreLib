@@ -3,7 +3,7 @@
 
 #pragma once
 
-//Local
+// Local
 #include "Neighbourhood.h"
 
 namespace CCCoreLib
@@ -20,7 +20,6 @@ namespace CCCoreLib
 	class CC_CORE_LIB_API ManualSegmentationTools : public CCToolbox
 	{
 	public:
-
 		//! Extracts the points that fall inside/outside of a 2D polyline once projected on the screen
 		/** The camera parameters of the screen must be transmitted to this method,
 			as well as the polyline (generally drawn on the screen by a user)
@@ -31,7 +30,10 @@ namespace CCCoreLib
 			\param viewMat the optional 4x4 visualization matrix (OpenGL style)
 			\return a cloud structure containing references to the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segment(GenericIndexedCloudPersist* aCloud, const Polyline* poly, bool keepInside, const float* viewMat = nullptr);
+		static ReferenceCloud* segment( GenericIndexedCloudPersist* aCloud,
+										const Polyline* poly,
+										bool keepInside,
+										const float* viewMat = nullptr );
 
 		//! Selects the points which associated scalar value fall inside or outside a specified interval
 		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
@@ -41,7 +43,10 @@ namespace CCCoreLib
 			\param outside whether to select the points inside or outside
 			\return a new cloud structure containing the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segmentReferenceCloud(ReferenceCloud * cloud, ScalarType minDist, ScalarType maxDist, bool outside);
+		static ReferenceCloud* segmentReferenceCloud( ReferenceCloud* cloud,
+													  ScalarType minDist,
+													  ScalarType maxDist,
+													  bool outside );
 
 		//! Selects the points which associated scalar value fall inside or outside a specified interval
 		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
@@ -51,22 +56,24 @@ namespace CCCoreLib
 			\param outside whether to select the points inside or outside
 			\return a new cloud structure containing the extracted points (references to - no duplication)
 		**/
-		static ReferenceCloud* segment(GenericIndexedCloudPersist* cloud, ScalarType minDist, ScalarType maxDist, bool outside = false);
-
-
-		//! Tests if a point is inside a polygon (2D)
-		/** \param P a 2D point
-			\param polyVertices polygon vertices (considered as ordered 2D poyline vertices)
-			\return true if P is inside poly
-		**/
-		static bool isPointInsidePoly(const CCVector2& P, const GenericIndexedCloud* polyVertices);
+		static ReferenceCloud* segment( GenericIndexedCloudPersist* cloud,
+										ScalarType minDist,
+										ScalarType maxDist,
+										bool outside = false );
 
 		//! Tests if a point is inside a polygon (2D)
 		/** \param P a 2D point
 			\param polyVertices polygon vertices (considered as ordered 2D poyline vertices)
 			\return true if P is inside poly
 		**/
-		static bool isPointInsidePoly(const CCVector2& P, const std::vector<CCVector2>& polyVertices);
+		static bool isPointInsidePoly( const CCVector2& P, const GenericIndexedCloud* polyVertices );
+
+		//! Tests if a point is inside a polygon (2D)
+		/** \param P a 2D point
+			\param polyVertices polygon vertices (considered as ordered 2D poyline vertices)
+			\return true if P is inside poly
+		**/
+		static bool isPointInsidePoly( const CCVector2& P, const std::vector<CCVector2>& polyVertices );
 
 		//! Segments a mesh knowing which vertices should be kept or not
 		/** This method takes as input a set of vertex indexes and creates a new mesh
@@ -84,12 +91,12 @@ namespace CCCoreLib
 			\param indexShift optionally, a shift can be added to all vertex indexes of the new mesh
 			\return a new mesh structure, or 0 if something went wrong
 		**/
-		static GenericIndexedMesh* segmentMesh(	GenericIndexedMesh* theMesh,
+		static GenericIndexedMesh* segmentMesh( GenericIndexedMesh* theMesh,
 												ReferenceCloud* pointsIndexes,
 												bool pointsWillBeInside,
 												GenericProgressCallback* progressCb = nullptr,
 												GenericIndexedCloud* destCloud = nullptr,
-												unsigned indexShift = 0);
+												unsigned indexShift = 0 );
 
 		//! Input/output parameters for the segmentMeshWitAAPlane method
 		struct MeshCutterParams
@@ -98,37 +105,38 @@ namespace CCCoreLib
 			SimpleMesh* outsideMesh;
 			bool generateOutsideMesh;
 			double epsilon;
-			//for infinite plane intersection
+			// for infinite plane intersection
 			unsigned char planeOrthoDim;
 			double planeCoord;
-			//for box intersection
+			// for box intersection
 			CCVector3d bbMin, bbMax;
-			//for the reprojection of triangle features
+			// for the reprojection of triangle features
 			bool trackOrigIndexes;
 			std::vector<unsigned> origTriIndexesMapInside;
 			std::vector<unsigned> origTriIndexesMapOutside;
 
 			MeshCutterParams()
-				: insideMesh(nullptr)
-				, outsideMesh(nullptr)
-				, generateOutsideMesh(false)
-				, epsilon(ZERO_TOLERANCE_D)
-				, planeOrthoDim(0)
-				, planeCoord(0)
-				, bbMin(0, 0, 0)
-				, bbMax(0, 0, 0)
-				, trackOrigIndexes(false)
-			{}
+				: insideMesh( nullptr )
+				, outsideMesh( nullptr )
+				, generateOutsideMesh( false )
+				, epsilon( ZERO_TOLERANCE_D )
+				, planeOrthoDim( 0 )
+				, planeCoord( 0 )
+				, bbMin( 0, 0, 0 )
+				, bbMax( 0, 0, 0 )
+				, trackOrigIndexes( false )
+			{
+			}
 		};
 
-		static bool segmentMeshWithAAPlane(GenericIndexedMesh* mesh,
-										   GenericIndexedCloudPersist* vertices,
-										   MeshCutterParams& ioParams,
-										   GenericProgressCallback* progressCb = nullptr);
+		static bool segmentMeshWithAAPlane( GenericIndexedMesh* mesh,
+											GenericIndexedCloudPersist* vertices,
+											MeshCutterParams& ioParams,
+											GenericProgressCallback* progressCb = nullptr );
 
-		static bool segmentMeshWithAABox(GenericIndexedMesh* mesh,
-										 GenericIndexedCloudPersist* vertices,
-										 MeshCutterParams& ioParams,
-										 GenericProgressCallback* progressCb = nullptr);
+		static bool segmentMeshWithAABox( GenericIndexedMesh* mesh,
+										  GenericIndexedCloudPersist* vertices,
+										  MeshCutterParams& ioParams,
+										  GenericProgressCallback* progressCb = nullptr );
 	};
 }

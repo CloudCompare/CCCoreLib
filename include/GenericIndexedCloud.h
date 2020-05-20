@@ -3,14 +3,14 @@
 
 #pragma once
 
-//Local
+// Local
 #include "GenericCloud.h"
 
 namespace CCCoreLib
 {
 	//! A generic 3D point cloud with index-based point access
 	/** Implements the GenericCloud interface.
-	**/
+	 **/
 	class CC_CORE_LIB_API GenericIndexedCloud : virtual public GenericCloud
 	{
 
@@ -30,7 +30,7 @@ namespace CCCoreLib
 			\param index of the requested point (between 0 and the cloud size minus 1)
 			\return the requested point (undefined behavior if index is invalid)
 		**/
-		virtual const CCVector3* getPoint(unsigned index) const = 0;
+		virtual const CCVector3* getPoint( unsigned index ) const = 0;
 
 		//! Returns the ith point
 		/**	Virtual method to request a point with a specific index.
@@ -38,6 +38,6 @@ namespace CCCoreLib
 			\param index of the requested point (between 0 and the cloud size minus 1)
 			\param P output point
 		**/
-		virtual void getPoint(unsigned index, CCVector3& P) const = 0;
+		virtual void getPoint( unsigned index, CCVector3& P ) const = 0;
 	};
 }

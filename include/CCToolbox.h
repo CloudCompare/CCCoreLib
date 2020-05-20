@@ -3,12 +3,14 @@
 
 #pragma once
 
-//Local
+// Local
 #include "CCCoreLib.h"
 
 namespace CCCoreLib
 {
 	//! Empty class - for classification purpose only
-	class CC_CORE_LIB_API CCToolbox	{};
+	class CC_CORE_LIB_API CCToolbox
+	{
+	};
 
 }
