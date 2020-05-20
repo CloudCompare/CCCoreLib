@@ -160,23 +160,21 @@ KDTree::KdCell* KDTree::buildSubTree( unsigned first, unsigned last, KdCell* fat
 		const CCVector3* P = m_associatedCloud->getPoint( m_indexes[split] );
 		cell->cuttingCoordinate = P->u[dim];
 		// recursively build the other two sub trees
-		// trap the memory issues. At this point, none of the cell sons can be set to 0. Otherwise
-		// there has been memory allocation failure.
+		// trap the memory issues. At this point, none of the cell sons can be set to 0. Otherwise there has
+		// been memory allocation failure.
 		cell->leSon = cell->gSon = nullptr;
 		cell->leSon = buildSubTree( first, split, cell, nbBuildCell, progressCb );
 		if ( cell->leSon == nullptr )
 		{
 			deleteSubTree( cell );
-			// the tree beyond the current cell will be deleted when noticing that this cell is set
-			// to 0
+			// the tree beyond the current cell will be deleted when noticing that this cell is set to 0
 			return nullptr;
 		}
 		cell->gSon = buildSubTree( split + 1, last, cell, nbBuildCell, progressCb );
 		if ( cell->gSon == nullptr )
 		{
 			deleteSubTree( cell );
-			// the tree beyond the current cell will be deleted when noticing that this cell is set
-			// to 0
+			// the tree beyond the current cell will be deleted when noticing that this cell is set to 0
 			return nullptr;
 		}
 	}
@@ -194,8 +192,8 @@ bool KDTree::findNearestNeighbour( const PointCoordinateType* queryPoint, unsign
 
 	maxDist *= maxDist;
 
-	// Go down the tree to find which cell contains the query point (at most log2(N) tests where N
-	// is the total number of points in the cloud)
+	// Go down the tree to find which cell contains the query point (at most log2(N) tests where N is the
+	// total number of points in the cloud)
 	KdCell* cellPtr = m_root;
 	while ( cellPtr->leSon != nullptr || cellPtr->gSon != nullptr )
 	{
@@ -205,8 +203,8 @@ bool KDTree::findNearestNeighbour( const PointCoordinateType* queryPoint, unsign
 			cellPtr = cellPtr->gSon;
 	}
 
-	// Once we found the cell containing the query point, the nearest neighbour has great chances to
-	// lie in this cell
+	// Once we found the cell containing the query point, the nearest neighbour has great chances to lie in
+	// this cell
 	bool found = false;
 	for ( unsigned i = 0; i < cellPtr->nbPoints; i++ )
 	{
@@ -220,8 +218,7 @@ bool KDTree::findNearestNeighbour( const PointCoordinateType* queryPoint, unsign
 		}
 	}
 
-	// Go up in the tree to check that neighbours cells do not contain a nearer point than the one
-	// we found
+	// Go up in the tree to check that neighbours cells do not contain a nearer point than the one we found
 	while ( cellPtr != nullptr )
 	{
 		KdCell* prevPtr = cellPtr;
@@ -257,8 +254,8 @@ bool KDTree::findPointBelowDistance( const PointCoordinateType* queryPoint, Scal
 	maxDist *= maxDist;
 
 	KdCell* cellPtr = m_root;
-	// Go down the tree to find which cell contains the query point (at most log2(N) tests where N
-	// is the total number of points in the cloud)
+	// Go down the tree to find which cell contains the query point (at most log2(N) tests where N is the
+	// total number of points in the cloud)
 	while ( !( cellPtr->leSon == nullptr && cellPtr->gSon == nullptr ) )
 	{
 		if ( queryPoint[cellPtr->cuttingDim] <= cellPtr->cuttingCoordinate )
@@ -267,8 +264,7 @@ bool KDTree::findPointBelowDistance( const PointCoordinateType* queryPoint, Scal
 			cellPtr = cellPtr->gSon;
 	}
 
-	// Once we found the cell containing the query point, there are great chance to find a point if
-	// it exists
+	// Once we found the cell containing the query point, there are great chance to find a point if it exists
 	for ( unsigned i = 0; i < cellPtr->nbPoints; i++ )
 	{
 		const CCVector3* p = m_associatedCloud->getPoint( m_indexes[cellPtr->startingPointIndex + i] );
@@ -377,8 +373,7 @@ ScalarType KDTree::pointToCellSquareDistance( const PointCoordinateType* queryPo
 	PointCoordinateType dy;
 	PointCoordinateType dz;
 
-	// Each d(x)(y)(z) represents the distance to the nearest bounding box plane (if the point is
-	// outside)
+	// Each d(x)(y)(z) represents the distance to the nearest bounding box plane (if the point is outside)
 	if ( cell->inbbmin.x <= queryPoint[0] && queryPoint[0] <= cell->inbbmax.x )
 		dx = 0;
 	else
@@ -529,8 +524,8 @@ void KDTree::distanceScanTree( const PointCoordinateType* queryPoint, ScalarType
 	{
 		if ( ( cell->leSon != nullptr ) && ( cell->gSon != nullptr ) )
 		{
-			// This case shall always happen (the other case is for leaves that contain more than
-			// one point - bucket KDtree)
+			// This case shall always happen (the other case is for leaves that contain more than one point -
+			// bucket KDtree)
 			if ( cell->nbPoints == 1 )
 			{
 				localArray.push_back( m_indexes[cell->startingPointIndex] );

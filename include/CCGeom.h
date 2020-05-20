@@ -70,8 +70,8 @@ public:
 		return ( x * v.x ) + ( y * v.y );
 	}
 	//! Cross product
-	/** \return a positive value if (u,v) makes a counter-clockwise turn, negative for clockwise
-	 *turn, and zero if the vectors are parallel
+	/** \return a positive value if (u,v) makes a counter-clockwise turn, negative for clockwise turn, and
+	  *zero if the vectors are parallel
 	 **/
 	inline Type cross( const Vector2Tpl& v ) const
 	{

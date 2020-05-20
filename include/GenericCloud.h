@@ -11,8 +11,7 @@
 
 namespace CCCoreLib
 {
-	//! A generic 3D point cloud interface for data communication between library and client
-	//! applications
+	//! A generic 3D point cloud interface for data communication between library and client applications
 	class CC_CORE_LIB_API GenericCloud
 	{
 
@@ -46,13 +45,14 @@ namespace CCCoreLib
 		virtual void getBoundingBox( CCVector3& bbMin, CCVector3& bbMax ) = 0;
 
 		//! Returns a given point visibility state (relatively to a sensor for instance)
-		/**	Generic method to request a point visibility (should be overloaded if this functionality
-		is required). The point visibility is such as defined in Daniel Girardeau-Montaut's PhD
-		manuscript (see Chapter 2, section 2-3-3). In this case, a ground based laser sensor model
-		should be used to determine it. This method is called before performing any point-to-cloud
-		comparison. If the result is not POINT_VISIBLE, then the comparison won't be performed and
-		the scalar field value associated to this point will be this visibility value. \param P the
-		3D point to test \return visibility (default: POINT_VISIBLE)
+		/**	Generic method to request a point visibility (should be overloaded if this functionality is
+		required). The point visibility is such as defined in Daniel Girardeau-Montaut's PhD manuscript (see
+		Chapter 2, section 2-3-3). In this case, a ground based laser sensor model should be used to determine
+		it. This method is called before performing any point-to-cloud comparison. If the result is not
+			POINT_VISIBLE, then the comparison won't be performed and the scalar field value associated
+			to this point will be this visibility value.
+			\param P the 3D point to test
+			\return visibility (default: POINT_VISIBLE)
 		**/
 		virtual inline unsigned char testVisibility( const CCVector3& P ) const
 		{

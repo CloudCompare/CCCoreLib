@@ -36,8 +36,7 @@ GenericIndexedCloud* CloudSamplingTools::resampleCloudWithOctree( GenericIndexed
 			return nullptr;
 	}
 
-	// look for the Octree level that gives the number of cells (= points) closest to the desired
-	// value
+	// look for the Octree level that gives the number of cells (= points) closest to the desired value
 	unsigned char bestLevel = octree->findBestLevelForAGivenCellNumber( newNumberOfPoints );
 
 	GenericIndexedCloud* sampledCloud =
@@ -747,8 +746,8 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel( const DgmOctree::octreeCell& c
 		cell.points->getPoint( i, nNSS.queryPoint );
 
 		// look for neighbors (either inside a sphere or the k nearest ones)
-		// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-		// actual nearest neighbors (neighborCount)!
+		// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest
+		// neighbors (neighborCount)!
 		unsigned neighborCount = 0;
 
 		if ( useKnn )

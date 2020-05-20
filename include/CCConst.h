@@ -41,15 +41,14 @@ namespace CCCoreLib
 
 	//! ZERO_TOLERANCE_D is used to set or compare a double variable to "close to zero".
 	//! It is defined as std::numeric_limits<float>::epsilon() because using
-	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our
-	//! purposes.
+	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our purposes.
 	constexpr double ZERO_TOLERANCE_D = static_cast<double>( ZERO_TOLERANCE_F );
 
 	//! ZERO_TOLERANCE_SCALAR is used to set or compare a ScalarType variable to "close to zero".
 	constexpr ScalarType ZERO_TOLERANCE_SCALAR = std::numeric_limits<ScalarType>::epsilon();
 
-	//! ZERO_TOLERANCE_POINT_COORDINATE is used to set or compare a PointCoordinateType variable to
-	//! "close to zero".
+	//! ZERO_TOLERANCE_POINT_COORDINATE is used to set or compare a PointCoordinateType variable to "close to
+	//! zero".
 	constexpr ScalarType ZERO_TOLERANCE_POINT_COORDINATE =
 		std::numeric_limits<PointCoordinateType>::epsilon();
 
@@ -80,8 +79,8 @@ namespace CCCoreLib
 		CHAMFER_345 = 1	 //!< Chamfer distance <3-4-5>
 	};
 
-	//! Types of local models (no model, least square best fitting plan, Delaunay 2D1/2
-	//! triangulation, height function)
+	//! Types of local models (no model, least square best fitting plan, Delaunay 2D1/2 triangulation, height
+	//! function)
 	enum LOCAL_MODEL_TYPES
 	{
 		NO_MODEL = 0, //!< No local model

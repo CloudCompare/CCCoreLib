@@ -99,10 +99,9 @@ namespace CCCoreLib
 			sampled on the triangle will simply be Ni.
 			\param mesh the mesh to be sampled
 			\param samplingDensity the sampling surface density
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \param[out]
-		triIndices triangle index for each samples point (output only - optional) \return the
-		sampled points
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param[out] triIndices triangle index for each samples point (output only - optional)
+			\return the sampled points
 		**/
 		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
 											   GenericProgressCallback* progressCb = nullptr,
@@ -114,10 +113,9 @@ namespace CCCoreLib
 			points to sample (approximative).
 			\param mesh the mesh to be sampled
 			\param numberOfPoints the desired number of points on the whole mesh
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \param[out]
-		triIndices triangle index for each samples point (output only - optional) \return the
-		sampled points
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param[out] triIndices triangle index for each samples point (output only - optional)
+			\return the sampled points
 		**/
 		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, unsigned numberOfPoints,
 											   GenericProgressCallback* progressCb = nullptr,
@@ -129,10 +127,9 @@ namespace CCCoreLib
 			\param mesh the mesh to be sampled
 			\param samplingDensity the sampling surfacical density
 			\param theoreticNumberOfPoints the approximated number of points that will be sampled
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \param[out]
-		triIndices triangle index for each samples point (output only - optional) \return the
-		sampled points
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param[out] triIndices triangle index for each samples point (output only - optional)
+			\return the sampled points
 		**/
 		static PointCloud* samplePointsOnMesh( GenericMesh* mesh, double samplingDensity,
 											   unsigned theoreticNumberOfPoints,

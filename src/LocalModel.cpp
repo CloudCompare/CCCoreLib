@@ -197,8 +197,8 @@ LocalModel* LocalModel::New( LOCAL_MODEL_TYPES type, Neighbourhood& subset, cons
 
 		GenericMesh* tri = subset.triangulateOnPlane(
 			Neighbourhood::DUPLICATE_VERTICES, Neighbourhood::IGNORE_MAX_EDGE_LENGTH,
-			errorStr ); //'subset' is potentially associated to a volatile ReferenceCloud, so
-						// we must duplicate vertices!
+			errorStr ); //'subset' is potentially associated to a volatile ReferenceCloud, so we must
+						//duplicate vertices!
 		if ( tri )
 		{
 			return new DelaunayLocalModel( tri, center, squaredRadius );

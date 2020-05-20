@@ -36,12 +36,11 @@ namespace CCCoreLib
 			SKIP_TRANSLATION = 56,
 		};
 
-		//! 'Filters' a transformation by constraining it along certain rotation axes and
-		//! translation directions
+		//! 'Filters' a transformation by constraining it along certain rotation axes and translation
+		//! directions
 		/**	\param inTrans input transformation
-			\param transformationFilters filters to be applied on the resulting transformation at
-		each step (experimental) - see RegistrationTools::TRANSFORMATION_FILTERS flags \param
-		outTrans output transformation
+			\param transformationFilters filters to be applied on the resulting transformation at each step (experimental) - see RegistrationTools::TRANSFORMATION_FILTERS flags
+			\param outTrans output transformation
 		**/
 		static void FilterTransformation( const ScaledTransformation& inTrans, int transformationFilters,
 										  ScaledTransformation& outTrans );
@@ -74,14 +73,12 @@ namespace CCCoreLib
 	};
 
 	//! Horn point cloud registration algorithm
-	/** See 'Closed-form solution of absolute orientation using unit quaternions', B.K.P. Horn,
-	 *1987.
+	/** See 'Closed-form solution of absolute orientation using unit quaternions', B.K.P. Horn, 1987.
 	 **/
 	class CC_CORE_LIB_API HornRegistrationTools : public RegistrationTools
 	{
 	public:
-		//! Returns "absolute orientation" (scale + transformation) between two set of (unordered)
-		//! points
+		//! Returns "absolute orientation" (scale + transformation) between two set of (unordered) points
 		/** Warning: both clouds must have the same size (and at least 3 points)
 			Output transformation is from the left (L) to the right (R) coordinate system
 			\param lCloud left cloud {Pl}
@@ -151,8 +148,8 @@ namespace CCCoreLib
 			//! Convergence type
 			CONVERGENCE_TYPE convType;
 
-			//! The minimum error (RMS) reduction between two consecutive steps to continue process
-			//! (ignored if convType is not MAX_ERROR_CONVERGENCE)
+			//! The minimum error (RMS) reduction between two consecutive steps to continue process (ignored
+			//! if convType is not MAX_ERROR_CONVERGENCE)
 			double minRMSDecrease;
 
 			//! The maximum number of iteration (ignored if convType is not MAX_ITER_CONVERGENCE)
@@ -161,16 +158,15 @@ namespace CCCoreLib
 			//! Whether to release the scale parameter during the registration procedure or not
 			bool adjustScale;
 
-			//! If true, the algorithm will automatically ignore farthest points from the reference,
-			//! for better convergence
+			//! If true, the algorithm will automatically ignore farthest points from the reference, for
+			//! better convergence
 			bool filterOutFarthestPoints;
 
-			//! Maximum number of points per cloud (they are randomly resampled below this limit
-			//! otherwise)
+			//! Maximum number of points per cloud (they are randomly resampled below this limit otherwise)
 			unsigned samplingLimit;
 
-			//! Theoretical overlap ratio (at each iteration, only this percentage (between 0 and 1)
-			//! will be used for registration
+			//! Theoretical overlap ratio (at each iteration, only this percentage (between 0 and 1) will be
+			//! used for registration
 			double finalOverlapRatio;
 
 			//! Weights for model points (i.e. only if the model entity is a cloud) (optional)
@@ -179,8 +175,8 @@ namespace CCCoreLib
 			//! Weights for data points (optional)
 			ScalarField* dataWeights;
 
-			//! Filters to be applied on the resulting transformation at each step (experimental) -
-			//! see RegistrationTools::TRANSFORMATION_FILTERS flags
+			//! Filters to be applied on the resulting transformation at each step (experimental) - see
+			//! RegistrationTools::TRANSFORMATION_FILTERS flags
 			int transformationFilters;
 
 			//! Maximum number of threads to use (0 = max)
@@ -191,13 +187,15 @@ namespace CCCoreLib
 		/** This method implements the ICP algorithm (Besl et al.).
 			\warning Be sure to activate an INPUT/OUTPUT scalar field on the point cloud.
 			\warning The mesh is always the reference/model entity.
-			\param modelCloud the reference cloud or the vertices of the reference mesh --> won't
-		move \param modelMesh the reference mesh (optional) --> won't move \param dataCloud the
-		cloud to register --> will move \param params ICP parameters \param[out] totalTrans the
-		resulting transformation (once the algorithm has converged) \param[out] finalRMS final error
-		(RMS) \param[out] finalPointCount number of points used to compute the final RMS \param
-		progressCb the client application can get some notification of the process progress through
-		this callback mechanism (see GenericProgressCallback) \return algorithm result
+			\param modelCloud the reference cloud or the vertices of the reference mesh --> won't move
+			\param modelMesh the reference mesh (optional) --> won't move
+			\param dataCloud the cloud to register --> will move
+			\param params ICP parameters
+			\param[out] totalTrans the resulting transformation (once the algorithm has converged)
+			\param[out] finalRMS final error (RMS)
+			\param[out] finalPointCount number of points used to compute the final RMS
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return algorithm result
 		**/
 		static RESULT_TYPE Register( GenericIndexedCloudPersist* modelCloud, GenericIndexedMesh* modelMesh,
 									 GenericIndexedCloudPersist* dataCloud, const Parameters& params,
@@ -206,24 +204,23 @@ namespace CCCoreLib
 									 GenericProgressCallback* progressCb = nullptr );
 	};
 
-	//! Four Points Congruent Sets (4PCS) registration algorithm (Dror Aiger, Niloy J. Mitra, Daniel
-	//! Cohen-Or)
+	//! Four Points Congruent Sets (4PCS) registration algorithm (Dror Aiger, Niloy J. Mitra, Daniel Cohen-Or)
 	class CC_CORE_LIB_API FPCSRegistrationTools : public RegistrationTools
 	{
 	public:
 		//! Registers two point clouds
-		/** Implements the 4 Points Congruent Sets Algorithm (Dror Aiger, Niloy J. Mitra, Daniel
-		Cohen-Or \param modelCloud the reference cloud (won't move) \param dataCloud the cloud to
-		register (will move) \param transform the resulting transformation (output) \param delta
-		maximal distance to the reference cloud for the data points to be considered as registered
+		/** Implements the 4 Points Congruent Sets Algorithm (Dror Aiger, Niloy J. Mitra, Daniel Cohen-Or
+			\param modelCloud the reference cloud (won't move)
+			\param dataCloud the cloud to register (will move)
+			\param transform the resulting transformation (output)
+			\param delta maximal distance to the reference cloud for the data points to be considered as registered
 			\param beta is used for bases selection (error tolerance)
 			\param overlap estimation of the two clouds overlap rate
 			\param nbBases number of iteration for the algorithm
 			\param nbTries number of tries to find a base in the reference cloud
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \param
-		nbMaxCandidates if>0, maximal number of candidate bases allowed for each step. Otherwise the
-		number of candidates is not bounded \return false: failure ; true: success.
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param nbMaxCandidates if>0, maximal number of candidate bases allowed for each step. Otherwise the number of candidates is not bounded
+			\return false: failure ; true: success.
 		**/
 		static bool RegisterClouds( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
 									ScaledTransformation& transform, ScalarType delta, ScalarType beta,
@@ -276,8 +273,7 @@ namespace CCCoreLib
 			\param delta used for the tolerance when searching for congruent bases
 			\param base the reference base made of 4 points
 			\param results the resulting bases
-			\return the number of bases found (number of element in the results array) or -1 is a
-		problem occurred
+			\return the number of bases found (number of element in the results array) or -1 is a problem occurred
 		**/
 		static int FindCongruentBases( KDTree* tree, ScalarType delta, const CCVector3* base[4],
 									   std::vector<Base>& results );
@@ -286,40 +282,40 @@ namespace CCCoreLib
 		/**!
 			\param modelTree KD-tree containing the model point cloud
 			\param dataCloud data point cloud
-			\param dataToModel transformation that, applied to data points, register model and data
-		clouds \param delta tolerance above which data points are not counted (if a point is less
-		than delta-apart from the model cloud, then it is counted) \return the number of data points
-		which are distance-apart from the model cloud
+			\param dataToModel transformation that, applied to data points, register model and data clouds
+			\param delta tolerance above which data points are not counted (if a point is less than delta-apart from the model cloud, then it is counted)
+			\return the number of data points which are distance-apart from the model cloud
 		**/
 		static unsigned ComputeRegistrationScore( KDTree* modelTree, GenericIndexedCloud* dataCloud,
 												  ScalarType delta, const ScaledTransformation& dataToModel );
 
 		//! Find the 3D pseudo intersection between two lines
-		/** This function finds the 3D point which is the nearest from the both lines (when this
-		point is unique, i.e. when the lines are not parallel) \param p0 first of the two distinct
-		points defining the first line (lying on the line) \param p1 second of the two distinct
-		points defining the first line (lying on the line) \param p2 first of the two distinct
-		points defining the second line \param p3 first of the two distinct points defining the
-		second line \param inter [out] is the computed intersection (function output) \param lambda
-		[out] coeff such that p0+lambda(p1-p0) is the point of [p0, p1] which is the nearest from
-		[p2, p3] \param mu [out] coeff such that p2+mu(p3-p2) is the point of [p2, p3] which is the
-		nearest from [p0, p1] \return false: no intersection was found (lines may be parallel);
-		true: inter is the pseudo intersection
+		/** This function finds the 3D point which is the nearest from the both lines (when this point is
+		unique, i.e. when the lines are not parallel)
+			\param p0 first of the two distinct points defining the first line (lying on the line)
+			\param p1 second of the two distinct points defining the first line (lying on the line)
+			\param p2 first of the two distinct points defining the second line
+			\param p3 first of the two distinct points defining the second line
+			\param inter [out] is the computed intersection (function output)
+			\param lambda [out] coeff such that p0+lambda(p1-p0) is the point of [p0, p1] which is the nearest from [p2, p3]
+			\param mu [out] coeff such that p2+mu(p3-p2) is the point of [p2, p3] which is the nearest from [p0, p1]
+			\return false: no intersection was found (lines may be parallel); true: inter is the pseudo intersection
 		**/
 		static bool LinesIntersections( const CCVector3& p0, const CCVector3& p1, const CCVector3& p2,
 										const CCVector3& p3, CCVector3& inter, PointCoordinateType& lambda,
 										PointCoordinateType& mu );
 
 		/**!function to keep only the N best candidates bases (by comparison with the reference base
-		invariants) Let B1 and B2 be 2 candidates, R be the reference, B1 and B2 aligned with R. B1
-		is better than B2 if the distance between B1 and R points is smaller than distance between
-		B2 and R points. This function also computes and store the rigid transforms that align
-		candidates with reference base \param modelCloud the model point cloud to work on \param
-		dataCloud the data point cloud to work on \param reference reference base \param candidates
-		array of candidates bases. At the end of the function, this array contains the nbMaxBases
-		best candidates only \param nbMaxCandidates maximal number of candidates allowed (if 0,
-		number of candidates is not bounded) \param transforms array of rigid transforms that align
-		candidates bases with the reference base \return false if something went wrong
+		invariants) Let B1 and B2 be 2 candidates, R be the reference, B1 and B2 aligned with R. B1 is better
+		than B2 if the distance between B1 and R points is smaller than distance between B2 and R points. This
+		function also computes and store the rigid transforms that align candidates with reference base
+			\param modelCloud the model point cloud to work on
+			\param dataCloud the data point cloud to work on
+			\param reference reference base
+			\param candidates array of candidates bases. At the end of the function, this array contains the nbMaxBases best candidates only
+			\param nbMaxCandidates maximal number of candidates allowed (if 0, number of candidates is not bounded)
+			\param transforms array of rigid transforms that align candidates bases with the reference base
+			\return false if something went wrong
 		**/
 		static bool FilterCandidates( GenericIndexedCloud* modelCloud, GenericIndexedCloud* dataCloud,
 									  Base& reference, std::vector<Base>& candidates,

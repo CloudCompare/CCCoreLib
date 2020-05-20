@@ -88,8 +88,7 @@ TrueKdTree::BaseNode* TrueKdTree::split( ReferenceCloud* subset )
 	if ( !planeEquation )
 	{
 		// an error occurred during LS plane computation?! (maybe the (3) points are aligned)
-		// we return an invalid Leaf (so as the above level understands that it's not a memory
-		// issue)
+		// we return an invalid Leaf (so as the above level understands that it's not a memory issue)
 		delete subset;
 		PointCoordinateType fakePlaneEquation[4] = { 0, 0, 0, 0 };
 		return new Leaf( nullptr, fakePlaneEquation, static_cast<ScalarType>( -1 ) );
@@ -104,8 +103,8 @@ TrueKdTree::BaseNode* TrueKdTree::split( ReferenceCloud* subset )
 																					m_errorMeasure )
 							: 0 );
 
-		// we can't split cells with less than twice the minimum number of points per cell! (and min
-		// >= 3 so as to fit a plane)
+		// we can't split cells with less than twice the minimum number of points per cell! (and min >= 3 so
+		// as to fit a plane)
 		bool isLeaf = ( error <= m_maxError || count < 2 * m_minPointCountPerCell );
 		if ( isLeaf )
 		{
@@ -149,8 +148,7 @@ TrueKdTree::BaseNode* TrueKdTree::split( ReferenceCloud* subset )
 	// we must check that the split value is the 'first one'
 	if ( s_sortedCoordsForSplit[splitCount - 1] == s_sortedCoordsForSplit[splitCount] )
 	{
-		if ( s_sortedCoordsForSplit[2] != s_sortedCoordsForSplit[splitCount] ) // can we go
-																			   // backward?
+		if ( s_sortedCoordsForSplit[2] != s_sortedCoordsForSplit[splitCount] ) // can we go backward?
 		{
 			while ( /*splitCount>0 &&*/ s_sortedCoordsForSplit[splitCount - 1] ==
 					s_sortedCoordsForSplit[splitCount] )
@@ -297,9 +295,8 @@ bool TrueKdTree::build(
 	// launch recursive process
 	m_maxError = maxError;
 	m_minPointCountPerCell = std::max<unsigned>( 3, minPointCountPerCell );
-	m_maxPointCountPerCell =
-		std::max<unsigned>( 2 * minPointCountPerCell,
-							maxPointCountPerCell ); // the max number of point per cell can't be < 2*min
+	m_maxPointCountPerCell = std::max<unsigned>(
+		2 * minPointCountPerCell, maxPointCountPerCell ); // the max number of point per cell can't be < 2*min
 	m_errorMeasure = errorMeasure;
 	m_root = split( subset );
 

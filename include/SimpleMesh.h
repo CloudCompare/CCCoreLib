@@ -24,8 +24,7 @@ namespace CCCoreLib
 	public: // constructors
 		//! SimpleMesh Constructor
 		/** \param _theVertices the point cloud containing the vertices
-			\param linkVerticesWithMesh specifies if the vertex cloud should be deleted when the
-		SimpleMesh object is destructed
+			\param linkVerticesWithMesh specifies if the vertex cloud should be deleted when the SimpleMesh object is destructed
 		**/
 		SimpleMesh( GenericIndexedCloud* _theVertices, bool linkVerticesWithMesh = false );
 

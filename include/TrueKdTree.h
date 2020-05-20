@@ -47,8 +47,8 @@ namespace CCCoreLib
 			}
 
 		public:
-			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much
-			// alignment padding!
+			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment
+			// padding!
 			BaseNode* parent; // 8 bytes
 
 		protected:
@@ -61,8 +61,8 @@ namespace CCCoreLib
 		class Node : public BaseNode
 		{
 		public:
-			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much
-			// alignment padding!
+			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment
+			// padding!
 			PointCoordinateType splitValue; // 4 bytes
 			BaseNode* leftChild;			// 8 bytes
 			BaseNode* rightChild;			// 8 bytes
@@ -90,8 +90,8 @@ namespace CCCoreLib
 		class Leaf : public BaseNode
 		{
 		public:
-			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much
-			// alignment padding!
+			// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment
+			// padding!
 			ReferenceCloud* points;			// 8 bytes
 			PointCoordinateType planeEq[4]; // 16 bytes
 			ScalarType error;				// 4 bytes
@@ -136,9 +136,8 @@ namespace CCCoreLib
 		/** \param maxError maximum error per cell (relatively to the best LS plane fit)
 			\param errorMeasure error measurement
 			\param minPointCountPerCell minimum number of points per cell (can't be smaller than 3)
-			\param maxPointCountPerCell maximum number of points per cell (speed-up - ignored if <
-		6) \param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback)
+			\param maxPointCountPerCell maximum number of points per cell (speed-up - ignored if < 6)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
 		bool build( double maxError,
 					DistanceComputationTools::ERROR_MEASURES errorMeasure = DistanceComputationTools::RMS,

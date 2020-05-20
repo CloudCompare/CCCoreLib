@@ -70,9 +70,8 @@ namespace CCCoreLib
 			\param radius the cylinder radius
 			\param dim the dimension along which the cylinder axis is aligned (X=0, Y=1, Z=2)
 			\param center a 3D point (as a 3 values array) belonging to the cylinder axis
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \return the
-		"developed" cloud
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return the "developed" cloud
 		**/
 		static PointCloud* developCloudOnCylinder( GenericCloud* cloud, PointCoordinateType radius,
 												   unsigned char dim = 2, CCVector3* center = nullptr,
@@ -85,10 +84,9 @@ namespace CCCoreLib
 			\param dim the dimension along which the cone axis is aligned (X=0, Y=1, Z=2)
 			\param baseRadius the radius of the base of the cone
 			\param alpha the angle of the cone "opening"
-			\param center the 3D point corresponding to the intersection between the cone axis and
-		its base \param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \return the
-		"developed" cloud
+			\param center the 3D point corresponding to the intersection between the cone axis and its base
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return the "developed" cloud
 		**/
 		static PointCloud* developCloudOnCone( GenericCloud* cloud, unsigned char dim,
 											   PointCoordinateType baseRadius, float alpha,
@@ -98,9 +96,8 @@ namespace CCCoreLib
 		//! Applys a geometrical transformation to a point cloud
 		/** \param cloud the point cloud to be "transformed"
 			\param trans the geometrical transformation
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \return the
-		"transformed" cloud
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return the "transformed" cloud
 		**/
 		static PointCloud* applyTransformation( GenericCloud* cloud, Transformation& trans,
 												GenericProgressCallback* progressCb = nullptr );
@@ -120,9 +117,10 @@ namespace CCCoreLib
 			may present however several topological aberrations ;).
 			\param cloud a point cloud
 			\param type the triangulation strategy
-			\param maxEdgeLength max edge length for output triangles (IGNORE_MAX_EDGE_LENGTH =
-		ignored) \param dim projection dimension (for axis-aligned meshes) \param outputErrorStr
-		error (if any) \return a mesh
+			\param maxEdgeLength max edge length for output triangles (IGNORE_MAX_EDGE_LENGTH = ignored)
+			\param dim projection dimension (for axis-aligned meshes)
+			\param outputErrorStr error (if any)
+			\return a mesh
 		**/
 		static GenericIndexedMesh* computeTriangulation( GenericIndexedCloudPersist* cloud,
 														 TRIANGULATION_TYPES type,
@@ -169,8 +167,8 @@ namespace CCCoreLib
 			Implementation of Andrew's monotone chain 2D convex hull algorithm.
 			Asymptotic complexity: O(n log n).
 			(retrieved from
-		http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain)
-			WARNING: the input 'points' set will be sorted!
+		http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain) WARNING:
+		the input 'points' set will be sorted!
 			\param points input set of points
 			\param hullPoints output points (on the convex hull)
 			\return success
@@ -184,8 +182,8 @@ namespace CCCoreLib
 			Calls extractConvexHull2D (see associated warnings).
 			\param points input set of points
 			\param hullPoints output points (on the convex hull)
-			\param maxSquareLength maximum square length (ignored if <= 0, in which case the method
-		simply returns the convex hull!) \return success
+			\param maxSquareLength maximum square length (ignored if <= 0, in which case the method simply returns the convex hull!)
+			\return success
 		**/
 		static bool extractConcaveHull2D( std::vector<IndexedCCVector2>& points,
 										  std::list<IndexedCCVector2*>& hullPoints,

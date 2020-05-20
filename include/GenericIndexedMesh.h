@@ -69,8 +69,8 @@ namespace CCCoreLib
 		virtual void getTriangleVertices( unsigned triangleIndex, CCVector3& A, CCVector3& B,
 										  CCVector3& C ) const = 0;
 
-		//! Returns the indexes of the vertices of the next triangle (relatively to the global
-		//! iterator position)
+		//! Returns the indexes of the vertices of the next triangle (relatively to the global iterator
+		//! position)
 		/**	\return the triangle indexes (or 0 if the global iterator is out of bounds)
 		 **/
 		virtual VerticesIndexes* getNextTriangleVertIndexes() = 0;

@@ -17,9 +17,10 @@ namespace CCCoreLib
 			, sign( 0, 0, 0 )
 		{
 			dir.normalize();
-			invDir = Vector3Tpl<T>( 1 / rayAxis.x, 1 / rayAxis.y,
-									1 / rayAxis.z ); // +/-infinity is acceptable here because we
-													 // are mainly interested in the sign
+			invDir = Vector3Tpl<T>(
+				1 / rayAxis.x, 1 / rayAxis.y,
+				1 / rayAxis
+						.z ); // +/-infinity is acceptable here because we are mainly interested in the sign
 			sign = Tuple3i( invDir.x < 0, invDir.y < 0, invDir.z < 0 );
 		}
 

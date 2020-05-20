@@ -164,8 +164,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(
 	// DATA CLOUD (will move)
 	DataCloud data;
 	{
-		// we also want to use the same number of points for registration as initially defined by
-		// the user!
+		// we also want to use the same number of points for registration as initially defined by the user!
 		unsigned dataSamplingLimit =
 			params.finalOverlapRatio != 1.0
 				? static_cast<unsigned>( params.samplingLimit / params.finalOverlapRatio )
@@ -512,8 +511,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(
 			}
 
 			if ( !filteredData.cloud->reserve(
-					 pointCount ) // should be maxOverlapCount in theory, but there may be
-								  // several points with the same value as maxOverlapDist!
+					 pointCount ) // should be maxOverlapCount in theory, but there may be several points with
+								  // the same value as maxOverlapDist!
 				 || ( filteredData.CPSetRef && !filteredData.CPSetRef->reserve( pointCount ) ) ||
 				 ( filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve( pointCount ) ) ||
 				 ( filteredData.weights && !filteredData.weights->reserveSafe( pointCount ) ) )
@@ -606,8 +605,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(
 				}
 			}
 
-			// 12/11/2008 - A.BEY: ICP guarantees only the decrease of the squared distances sum
-			// (not the distances sum)
+			// 12/11/2008 - A.BEY: ICP guarantees only the decrease of the squared distances sum (not the
+			// distances sum)
 			double meanSquareError = ( wiSum != 0 ? static_cast<ScalarType>( meanSquareValue / wiSum ) : 0 );
 
 			double rms = sqrt( meanSquareError );
@@ -1109,14 +1108,12 @@ bool RegistrationTools::RegistrationProcedure( GenericCloud* P, // data
 			return false;
 		}
 
-		// as Besl says, the best rotation corresponds to the eigenvector associated to the biggest
-		// eigenvalue
+		// as Besl says, the best rotation corresponds to the eigenvector associated to the biggest eigenvalue
 		double qR[4];
 		double maxEigValue = 0;
 		Jacobi<double>::GetMaxEigenValueAndVector( eigVectors, eigValues, maxEigValue, qR );
 
-		// these eigenvalue and eigenvector correspond to a quaternion --> we get the corresponding
-		// matrix
+		// these eigenvalue and eigenvector correspond to a quaternion --> we get the corresponding matrix
 		trans.R.initFromQuaternion( qR );
 
 		if ( adjustScale )
@@ -1125,8 +1122,8 @@ bool RegistrationTools::RegistrationProcedure( GenericCloud* P, // data
 			double acc_num = 0.0;
 			double acc_denom = 0.0;
 
-			// now deduce the scale (refer to "Point Set Registration with Integrated Scale
-			// Estimation", Zinsser et. al, PRIP 2005)
+			// now deduce the scale (refer to "Point Set Registration with Integrated Scale Estimation",
+			// Zinsser et. al, PRIP 2005)
 			X->placeIteratorAtBeginning();
 			P->placeIteratorAtBeginning();
 
@@ -1144,8 +1141,7 @@ bool RegistrationTools::RegistrationProcedure( GenericCloud* P, // data
 				acc_denom += a_tilde.dot( a_tilde );
 			}
 
-			// DGM: acc_2 can't be 0 because we already have checked that the bbox is not a single
-			// point!
+			// DGM: acc_2 can't be 0 because we already have checked that the bbox is not a single point!
 			assert( acc_denom > 0.0 );
 			trans.s = static_cast<PointCoordinateType>( std::abs( acc_num / acc_denom ) );
 		}
@@ -1430,8 +1426,8 @@ bool FPCSRegistrationTools::FindBase( GenericIndexedCloud* cloud, PointCoordinat
 			continue;
 		// Compute distance to the plane (cloud[a], cloud[b], cloud[c])
 		f = std::abs( ( x * p3->x ) + ( y * p3->y ) + ( z * p3->z ) + w );
-		// keep the point which is the closest to the plane, while being as far as possible from the
-		// other three points
+		// keep the point which is the closest to the plane, while being as far as possible from the other
+		// three points
 		f = ( f + 1.0f ) / ( sqrt( d0 ) + sqrt( d1 ) + sqrt( d2 ) );
 		if ( ( best < 0. ) || ( f < best ) )
 		{

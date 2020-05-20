@@ -17,14 +17,12 @@ namespace CCCoreLib
 	class ReferenceCloud;
 
 	//! A standard container to store several subsets of points
-	/** Several algorithms of the AutoSegmentationTools toolbox return a collection of subsets of
-	points corresponding to each segmented part. Such a collection is generally stored in this type
-	of container.
+	/** Several algorithms of the AutoSegmentationTools toolbox return a collection of subsets of points
+		corresponding to each segmented part. Such a collection is generally stored in this type of container.
 	**/
 	using ReferenceCloudContainer = std::vector<ReferenceCloud*>;
 
-	//! Several point cloud auto-segmentation algorithms (Connected Components, Front propagation,
-	//! etc.)
+	//! Several point cloud auto-segmentation algorithms (Connected Components, Front propagation, etc.)
 	class CC_CORE_LIB_API AutoSegmentationTools : public CCToolbox
 	{
 	public:
@@ -45,10 +43,9 @@ namespace CCCoreLib
 			\param theCloud the point cloud to label
 			\param level the level of subdivision of the octree (between 1 and MAX_OCTREE_LEVEL)
 			\param sixConnexity indicates if the CC's 3D connexity should be 6 (26 otherwise)
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback) \param inputOctree
-		the cloud octree if it has already been computed \return the number of components (>= 0) or
-		an error code (< 0 - see DgmOctree::extractCCs)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param inputOctree the cloud octree if it has already been computed
+			\return the number of components (>= 0) or an error code (< 0 - see DgmOctree::extractCCs)
 		**/
 		static int labelConnectedComponents( GenericIndexedCloudPersist* theCloud, unsigned char level,
 											 bool sixConnexity = false,
@@ -68,8 +65,8 @@ namespace CCCoreLib
 		static bool extractConnectedComponents( GenericIndexedCloudPersist* theCloud,
 												ReferenceCloudContainer& ccc );
 
-		//! Segment a point cloud by propagating fronts constrained by values of the point cloud
-		//! associated scalar field
+		//! Segment a point cloud by propagating fronts constrained by values of the point cloud associated
+		//! scalar field
 		/** The algorithm is described in Daniel Girardeau-Montaut's PhD manuscript
 			(Chapter 3, section 3.3). It consists mainly in propagating a front on
 			the surface implicitly represented by the point cloud and making this
@@ -79,17 +76,15 @@ namespace CCCoreLib
 			on a gridded structure (the octree in this case).
 			Warning: be sure to activate an OUTPUT scalar field on the input cloud
 			\param theCloud the point cloud to segment
-			\param minSeedDist the minimum value associated to the point where to start the
-		propagation from ("security" value) \param radius spherical neighborhood size (or 0 for
-		automatic size) \param octreeLevel level of subdivision where to apply the gridding (the
-		greater it is, the smaller and numerous the segmented parts will be) \param
-		theSegmentedLists the segmented parts (as a list of subsets of points) \param
-		applyGaussianFilter to specify if a gaussian filter should be applied after computing the
-		scalar field gradient (to smooth the results) \param progressCb the client application can
-		get some notification of the process progress through this callback mechanism (see
-		GenericProgressCallback) \param inputOctree the cloud octree if it has already be computed
-			\param alpha the gaussian filter kernel size (needed only if a gaussian filtering pass
-		is required) \return success
+			\param minSeedDist the minimum value associated to the point where to start the propagation from ("security" value)
+			\param radius spherical neighborhood size (or 0 for automatic size)
+			\param octreeLevel level of subdivision where to apply the gridding (the greater it is, the smaller and numerous the segmented parts will be)
+			\param theSegmentedLists the segmented parts (as a list of subsets of points)
+			\param applyGaussianFilter to specify if a gaussian filter should be applied after computing the scalar field gradient (to smooth the results)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param inputOctree the cloud octree if it has already be computed
+			\param alpha the gaussian filter kernel size (needed only if a gaussian filtering pass is required)
+			\return success
 		**/
 		static bool frontPropagationBasedSegmentation( GenericIndexedCloudPersist* theCloud,
 													   PointCoordinateType radius, ScalarType minSeedDist,

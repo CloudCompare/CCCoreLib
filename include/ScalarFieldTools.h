@@ -56,10 +56,9 @@ namespace CCCoreLib
 			\param theCloud a point cloud (associated to scalar values)
 			\param radius spherical neighborhood size (or 0 for automatic size)
 			\param euclideanDistances indicates if the scalar values are euclidean distances
-			\param sameInAndOutScalarField specifies that the 'in' and 'out' scalar field of the
-		input point cloud are the same structure \param progressCb the client application can get
-		some notification of the process progress through this callback mechanism (see
-		GenericProgressCallback) \param theOctree the octree, if it has already been computed
+			\param sameInAndOutScalarField specifies that the 'in' and 'out' scalar field of the input point cloud are the same structure
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param theOctree the octree, if it has already been computed
 			\return error code (0 if ok)
 		**/
 		static int computeScalarFieldGradient( GenericIndexedCloudPersist* theCloud,
@@ -73,15 +72,16 @@ namespace CCCoreLib
 			As 99% of the gaussian distribution is between -3*sigma and +3*sigma
 			around the mean value, this filter will only look for neighbouring
 			points (around each point) in a sphere of radius 3*sigma.
-			It also permits to use the filter as a bilateral filter. Where the wights are computed
-		also considering the distance of the neighbor's scalar value from the current point scalar
-		value. (weighted with gaussian as distances are) Warning: this method assumes the input
-		scalar field is different from output. \param sigma filter variance \param theCloud a point
-		cloud (associated to scalar values) \param sigmaSF the sigma for the bilateral filter. when
-		different than -1 turns the gaussian filter into a bilateral filter \param progressCb the
-		client application can get some notification of the process progress through this callback
-		mechanism (see GenericProgressCallback) \param theOctree the octree, if it has already been
-		computed \return success
+			It also permits to use the filter as a bilateral filter. Where the wights are computed also
+		considering the distance of the neighbor's scalar value from the current point scalar value. (weighted
+		with gaussian as distances are) Warning: this method assumes the input scalar field is different from
+		output.
+			\param sigma filter variance
+			\param theCloud a point cloud (associated to scalar values)
+			\param sigmaSF the sigma for the bilateral filter. when different than -1 turns the gaussian filter into a bilateral filter
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param theOctree the octree, if it has already been computed
+			\return success
 		**/
 		static bool applyScalarFieldGaussianFilter( PointCoordinateType sigma,
 													GenericIndexedCloudPersist* theCloud,
@@ -93,8 +93,7 @@ namespace CCCoreLib
 		/** The first scalar field is updated (S1 = S1*S2).
 			\param firstCloud the first point cloud (associated to scalar values)
 			\param secondCloud the second point cloud (associated to scalar values)
-			\param progressCb the client application can get some notification of the process
-		progress through this callback mechanism (see GenericProgressCallback)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
 		static void multiplyScalarFields( GenericIndexedCloud* firstCloud, GenericIndexedCloud* secondCloud,
 										  GenericProgressCallback* progressCb = nullptr );
@@ -129,10 +128,8 @@ namespace CCCoreLib
 			algorithm will converge and produce K classes.
 			\param theCloud a point cloud (associated to scalar values)
 			\param K the number of classes
-			\param kmcc an array of size K which will be filled with the computed classes limits
-		(see ScalarFieldTools::KmeanClass) \param progressCb the client application can get some
-		notification of the process progress through this callback mechanism (see
-		GenericProgressCallback)
+			\param kmcc an array of size K which will be filled with the computed classes limits (see ScalarFieldTools::KmeanClass)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
 		static bool computeKmeans( const GenericCloud* theCloud, unsigned char K, KMeanClass kmcc[],
 								   GenericProgressCallback* progressCb = nullptr );
@@ -171,14 +168,13 @@ namespace CCCoreLib
 												void** additionalParameters,
 												NormalizedProgress* nProgress = nullptr );
 
-		//! "Cellular" function to apply a gaussian filter on the scalar values of points inside an
-		//! octree cell
+		//! "Cellular" function to apply a gaussian filter on the scalar values of points inside an octree
+		//! cell
 		/** This function is meant to be applied to all cells of the octree
-			The method also permits to use a bilateral behaviour for the filter. This is
-		automatically switched on if its sigmaSF parameter in additionalParameters is different than
-		-1 (it is of the form DgmOctree::localFunctionPtr). See
-		ScalarFieldTools::applyScalarFieldGaussianFilter. Method parameters (defined in
-		"additionalParameters") are :
+			The method also permits to use a bilateral behaviour for the filter. This is automatically
+		switched on if its sigmaSF parameter in additionalParameters is different than -1 (it is of the form
+		DgmOctree::localFunctionPtr). See ScalarFieldTools::applyScalarFieldGaussianFilter. Method parameters
+		(defined in "additionalParameters") are :
 			- (PointCoordinateType*) sigma
 			- (std::vector<ScalarType>*) the smoothed values
 			\param cell structure describing the cell on which processing is applied

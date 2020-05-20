@@ -34,11 +34,12 @@ const signed char BackwardNeighbours111[14 * 4] = { 0, 0,  0,  0, 1,  0, 0,	 1,	
 													1, -1, 1,  1, -1, 0, 1,	 1,	 0,	 0, 1, 1,  1, 0,
 													1, 1,  -1, 1, 1,  1, 0,	 1,	 1,	 1, 1, 1,  1, 1 };
 
-// ChamferDistanceTransform::GridElement ChamferDistanceTransform::propagateDistance(	unsigned
-// iStart, 																					unsigned jStart, 																					unsigned
-// kStart, bool forward, const signed char neighbours[14][4],
-//																					NormalizedProgress*
-// normProgress/*=0*/)
+// ChamferDistanceTransform::GridElement ChamferDistanceTransform::propagateDistance(	unsigned iStart,
+//																					unsigned jStart,
+//																					unsigned kStart,
+//																					bool forward,
+//																					const signed char
+//neighbours[14][4], 																					NormalizedProgress* normProgress/*=0*/)
 //{
 //	assert(!m_grid.empty());
 //
@@ -65,13 +66,12 @@ const signed char BackwardNeighbours111[14 * 4] = { 0, 0,  0,  0, 1,  0, 0,	 1,	
 //		{
 //			for (unsigned i=0; i<m_innerSize.x; ++i)
 //			{
-//				GridElement minVal = _grid[neighborShift[0]] +
-// static_cast<GridElement>(neighbours[0][3]);
+//				GridElement minVal = _grid[neighborShift[0]] + static_cast<GridElement>(neighbours[0][3]);
 //
 //				for (unsigned char v=1; v<14; ++v)
 //				{
 //					GridElement neighborVal = _grid[neighborShift[v]] +
-// static_cast<GridElement>(neighbours[v][3]); 					minVal = std::min(minVal, neighborVal);
+//static_cast<GridElement>(neighbours[v][3]); 					minVal = std::min(minVal, neighborVal);
 //				}
 //
 //				*_grid = minVal;

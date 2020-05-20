@@ -13,8 +13,8 @@ using namespace CCCoreLib;
 FastMarchingForPropagation::FastMarchingForPropagation()
 	: FastMarching()
 	, m_jumpCoef( 0 ) // resistance a l'avancement du front, en fonction de Cell->f (ici, pas de resistance)
-	, m_detectionThreshold( Cell::T_INF() ) // saut relatif de la valeur d'arrivee qui arrete la
-											// propagation (ici, "desactive")
+	, m_detectionThreshold(
+		  Cell::T_INF() ) // saut relatif de la valeur d'arrivee qui arrete la propagation (ici, "desactive")
 {
 }
 

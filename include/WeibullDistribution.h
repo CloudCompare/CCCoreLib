@@ -79,8 +79,8 @@ namespace CCCoreLib
 	protected:
 		//! Compute each Chi2 class limits
 		/** This method is used (internally) to accelerate the Chi2 distance computation.
-			\param numberOfClasses the number of classes that will be used for Chi2 distance
-		computation \return success
+			\param numberOfClasses the number of classes that will be used for Chi2 distance computation
+			\return success
 		**/
 		virtual bool setChi2ClassesPositions( unsigned numberOfClasses );
 

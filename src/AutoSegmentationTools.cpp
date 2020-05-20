@@ -60,8 +60,8 @@ bool AutoSegmentationTools::extractConnectedComponents( GenericIndexedCloudPersi
 		return false;
 	}
 
-	// components should have already been labeled and labels should have been stored in the active
-	// scalar field!
+	// components should have already been labeled and labels should have been stored in the active scalar
+	// field!
 	if ( !theCloud->isScalarFieldEnabled() )
 	{
 		return false;

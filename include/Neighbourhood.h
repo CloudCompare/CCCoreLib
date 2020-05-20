@@ -14,8 +14,8 @@ namespace CCCoreLib
 {
 	class GenericIndexedMesh;
 
-	//! A specific point could structure to handle subsets of points, provided with several
-	//! geometric processings
+	//! A specific point could structure to handle subsets of points, provided with several geometric
+	//! processings
 	/** Typically suited for "nearest neighbours".
 		It implements the GenericIndexCloud interface by
 		inheriting the ReferenceCloud class.
@@ -65,9 +65,9 @@ namespace CCCoreLib
 
 		//! Applies 2D Delaunay triangulation
 		/** Cloud selection is first projected on the best least-square plane.
-			\param duplicateVertices whether to duplicate vertices (a new point cloud is created) or
-		to use the associated one) \param maxEdgeLength max edge length for output triangles
-		(IGNORE_MAX_EDGE_LENGTH = ignored) \param outputErrorStr error (if any)
+			\param duplicateVertices whether to duplicate vertices (a new point cloud is created) or to use the associated one)
+			\param maxEdgeLength max edge length for output triangles (IGNORE_MAX_EDGE_LENGTH = ignored)
+			\param outputErrorStr error (if any)
 		***/
 		GenericIndexedMesh* triangulateOnPlane( bool duplicateVertices, PointCoordinateType maxEdgeLength,
 												std::string& outputErrorStr );
@@ -85,10 +85,11 @@ namespace CCCoreLib
 		//! Projects points on the best fitting LS plane
 		/** Projected points are stored in the points2D vector.
 			\param points2D output set
-			\param planeEquation custom plane equation (otherwise the default Neighbouhood's one is
-		used) \param O if set, the local plane base origin will be output here \param X if set, the
-		local plane base X vector will be output here \param Y if set, the local plane base Y vector
-		will be output here \param useOXYasBase whether O, X and Y should be used as input base
+			\param planeEquation custom plane equation (otherwise the default Neighbouhood's one is used)
+			\param O if set, the local plane base origin will be output here
+			\param X if set, the local plane base X vector will be output here
+			\param Y if set, the local plane base Y vector will be output here
+			\param useOXYasBase whether O, X and Y should be used as input base
 			\return success
 		**/
 		template <class Vec2D>
@@ -173,10 +174,9 @@ namespace CCCoreLib
 		}
 
 		//! Geometric feature computed from eigen values/vectors
-		/** Most of them are defined in "Contour detection in unstructured 3D point clouds", Hackel
-		et al, 2016 PCA1 and PCA2 are defined in "3D terrestrial lidar data classification of
-		complex natural scenes using a multi-scale dimensionality criterion: Applications in
-		geomorphology", Brodu and Lague, 2012
+		/** Most of them are defined in "Contour detection in unstructured 3D point clouds", Hackel et al,
+		2016 PCA1 and PCA2 are defined in "3D terrestrial lidar data classification of complex natural scenes
+		using a multi-scale dimensionality criterion: Applications in geomorphology", Brodu and Lague, 2012
 		**/
 		enum GeomFeature
 		{
@@ -215,8 +215,8 @@ namespace CCCoreLib
 		ScalarType computeRoughness( const CCVector3& P );
 
 		//! Computes the curvature of a set of point (by fitting a 2.5D quadric)
-		/** \return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation
-		failed \warning The curvature value is always unsigned
+		/** \return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation failed
+			\warning The curvature value is always unsigned
 		**/
 		ScalarType computeCurvature( const CCVector3& P, CurvatureType cType );
 
@@ -256,8 +256,8 @@ namespace CCCoreLib
 		**/
 		const CCVector3* getLSPlaneX();
 		//! Returns best interpolating plane (Least-square) 'Y' base vector
-		/** This corresponds to the second largest eigen value (i.e. the second largest cloud
-		dimension) \return 0 if computation failed
+		/** This corresponds to the second largest eigen value (i.e. the second largest cloud dimension)
+			\return 0 if computation failed
 		**/
 		const CCVector3* getLSPlaneY();
 		//! Returns best interpolating plane (Least-square) normal vector
@@ -285,8 +285,7 @@ namespace CCCoreLib
 		//! Computes the covariance matrix
 		SquareMatrixd computeCovarianceMatrix();
 
-		//! Returns the set 'radius' (i.e. the distance between the gravity center and the its
-		//! farthest point)
+		//! Returns the set 'radius' (i.e. the distance between the gravity center and the its farthest point)
 		PointCoordinateType computeLargestRadius();
 
 	protected:

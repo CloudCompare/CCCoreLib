@@ -214,8 +214,8 @@ int DistanceComputationTools::computeCloud2CloudDistance( GenericIndexedCloudPer
 	}
 
 	// if necessary we try to guess the best octree level for distances computation
-	if ( params.octreeLevel == 0 && referenceOctree ) // DGM: referenceOctree can be 0 if the input
-													  // entities bounding-boxes are disjoint!
+	if ( params.octreeLevel == 0 &&
+		 referenceOctree ) // DGM: referenceOctree can be 0 if the input entities bounding-boxes are disjoint!
 	{
 		params.octreeLevel = comparedOctree->findBestLevelForComparisonWithOctree( referenceOctree );
 	}
@@ -312,8 +312,7 @@ DistanceComputationTools::SOReturnCode DistanceComputationTools::synchronizeOctr
 
 	if ( maxDist > 0 )
 	{
-		// we reduce the bounding box to the intersection of both bounding-boxes enlarged by
-		// 'maxDist'
+		// we reduce the bounding box to the intersection of both bounding-boxes enlarged by 'maxDist'
 		for ( unsigned char k = 0; k < 3; k++ )
 		{
 			minD.u[k] = std::max( minD.u[k], std::max( minsA.u[k], minsB.u[k] ) - maxDist );
@@ -453,16 +452,16 @@ bool DistanceComputationTools::computeCellHausdorffDistance( const DgmOctree::oc
 	// and we deduce its center
 	referenceOctree->computeCellCenter( nNSS.cellPos, cell.level, nNSS.cellCenter );
 
-	// for each point of the current cell (compared octree) we look for its nearest neighbour in the
-	// reference cloud
+	// for each point of the current cell (compared octree) we look for its nearest neighbour in the reference
+	// cloud
 	unsigned pointCount = cell.points->size();
 	for ( unsigned i = 0; i < pointCount; i++ )
 	{
 		cell.points->getPoint( i, nNSS.queryPoint );
 
 		if ( params->CPSet || referenceCloud->testVisibility( nNSS.queryPoint ) ==
-								  POINT_VISIBLE ) // to build the closest point set up we must
-												  // process the point whatever its visibility is!
+								  POINT_VISIBLE ) // to build the closest point set up we must process the
+												  // point whatever its visibility is!
 		{
 			double squareDist = referenceOctree->findTheNearestNeighborStartingFromCell( nNSS );
 			if ( squareDist >= 0 )
@@ -542,8 +541,8 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 	// and we deduce its center
 	referenceOctree->computeCellCenter( nNSS.cellPos, cell.level, nNSS.cellCenter );
 
-	// structures for determining the nearest neighbours of the 'nearest neighbour' (to compute the
-	// local model) either inside a sphere or the k nearest
+	// structures for determining the nearest neighbours of the 'nearest neighbour' (to compute the local
+	// model) either inside a sphere or the k nearest
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS_Model;
 	nNSS_Model.level = cell.level;
 	if ( params->useSphericalSearchForLocalModel )
@@ -559,8 +558,8 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 	// already computed models
 	std::vector<const LocalModel*> models;
 
-	// for each point of the current cell (compared octree) we look for its nearest neighbour in the
-	// reference cloud
+	// for each point of the current cell (compared octree) we look for its nearest neighbour in the reference
+	// cloud
 	unsigned pointCount = cell.points->size();
 	for ( unsigned i = 0; i < pointCount; ++i )
 	{
@@ -569,8 +568,8 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 
 		cell.points->getPoint( i, nNSS.queryPoint );
 		if ( params->CPSet || referenceCloud->testVisibility( nNSS.queryPoint ) ==
-								  POINT_VISIBLE ) // to build the closest point set up we must
-												  // process the point whatever its visibility is!
+								  POINT_VISIBLE ) // to build the closest point set up we must process the
+												  // point whatever its visibility is!
 		{
 			// first, we look for the nearest point to "_queryPoint" in the reference cloud
 			double squareDistToNearestPoint = referenceOctree->findTheNearestNeighborStartingFromCell( nNSS );
@@ -606,15 +605,15 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 				{
 					nNSS_Model.queryPoint = nearestPoint;
 
-					// update cell pos information (as the nearestPoint may not be inside the same
-					// cell as the actual query point!)
+					// update cell pos information (as the nearestPoint may not be inside the same cell as the
+					// actual query point!)
 					{
 						bool inbounds = false;
 						Tuple3i cellPos;
 						referenceOctree->getTheCellPosWhichIncludesThePoint( &nearestPoint, cellPos,
 																			 cell.level, inbounds );
-						// if the cell is different or the structure has not yet been initialized,
-						// we reset it!
+						// if the cell is different or the structure has not yet been initialized, we reset
+						// it!
 						if ( cellPos.x != nNSS_Model.cellPos.x || cellPos.y != nNSS_Model.cellPos.y ||
 							 cellPos.z != nNSS_Model.cellPos.z )
 						{
@@ -632,10 +631,9 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 					unsigned kNN = 0;
 					if ( params->useSphericalSearchForLocalModel )
 					{
-						// we only need to sort neighbours if we want to use the
-						// 'reuseExistingLocalModels' optimization warning: there may be more points
-						// at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors
-						// (kNN)!
+						// we only need to sort neighbours if we want to use the 'reuseExistingLocalModels'
+						// optimization warning: there may be more points at the end of
+						// nNSS.pointsInNeighbourhood than the actual nearest neighbors (kNN)!
 						kNN = referenceOctree->findNeighborsInASphereStartingFromCell(
 							nNSS_Model, static_cast<PointCoordinateType>( params->radiusForLocalModel ),
 							params->reuseExistingLocalModels );
@@ -655,8 +653,8 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 						// Neighbours are sorted, so the farthest is at the end. It also gives us
 						// an approximation of the model 'size'
 						const double& maxSquareDist = nNSS_Model.pointsInNeighbourhood[kNN - 1].squareDistd;
-						if ( maxSquareDist > 0 ) // DGM: with duplicate points, all neighbors can be
-												 // at the same place :(
+						if ( maxSquareDist >
+							 0 ) // DGM: with duplicate points, all neighbors can be at the same place :(
 						{
 							lm = LocalModel::New( params->localModel, Z, nearestPoint,
 												  static_cast<PointCoordinateType>( maxSquareDist ) );
@@ -762,8 +760,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(
 // Internal structure used by DistanceComputationTools::computeCloud2MeshDistance
 struct CellToTest
 {
-	// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment
-	// padding!
+	// Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment padding!
 
 	//! Cell position
 	Tuple3i pos; // 12 bytes
@@ -878,8 +875,8 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 
 			// we deduce the smallest bounding 'octree' cell
 			//(not a real octree cell in fact as its starting position is anywhere in the grid
-			// and it can even 'outbounds' the grid, i.e. currentCell.pos.u[k]+currentCell.cellSize
-			// > octreeLength)
+			// and it can even 'outbounds' the grid, i.e. currentCell.pos.u[k]+currentCell.cellSize >
+			// octreeLength)
 			static const double LOG_2 = log( 2.0 );
 			_currentCell->level =
 				octreeLevel -
@@ -923,8 +920,7 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 								{
 									triList = new TriangleList();
 									// triList->cellCode =
-									// DgmOctree::GenerateTruncatedCellCode(currentCellPos,
-									// octreeLevel);
+									// DgmOctree::GenerateTruncatedCellCode(currentCellPos, octreeLevel);
 								}
 
 								// add the triangle to the current 'intersecting triangles' list
@@ -942,8 +938,8 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 				{
 					int halfCellSize = ( _currentCell->cellSize >> 1 );
 
-					// compute the position of each cell 'neighbors' relatively to the triangle
-					// (3*3*3 = 27, including the cell itself)
+					// compute the position of each cell 'neighbors' relatively to the triangle (3*3*3 = 27,
+					// including the cell itself)
 					char pointsPosition[27];
 					{
 						char* _pointsPosition = pointsPosition;
@@ -997,8 +993,7 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 					for ( int i = 0; i < 2; ++i )
 					{
 						_newCell->pos.x = currentCellPos.x + i * halfCellSize;
-						// quick test to determine if the cube is potentially intersecting the
-						// triangle's bbox
+						// quick test to determine if the cube is potentially intersecting the triangle's bbox
 						if ( static_cast<int>( _newCell->pos.x ) + halfCellSize >= minPos.x &&
 							 static_cast<int>( _newCell->pos.x ) <= maxPos.x )
 						{
@@ -1021,12 +1016,12 @@ int DistanceComputationTools::intersectMeshWithOctree( OctreeAndMeshIntersection
 													   _pointsPosition[9] + _pointsPosition[10] +
 													   _pointsPosition[12] + _pointsPosition[13];
 
-											// if all the sub-cube vertices are not on the same
-											// side, then the triangle may intersect the cell
+											// if all the sub-cube vertices are not on the same side, then the
+											// triangle may intersect the cell
 											if ( std::abs( sum ) < 8 )
 											{
-												// we make newCell point on next cell in array (we
-												// copy current info by the way)
+												// we make newCell point on next cell in array (we copy
+												// current info by the way)
 												cellsToTest[++cellsToTestCount] = *_newCell;
 												_newCell = &cellsToTest[cellsToTestCount];
 											}
@@ -1284,8 +1279,8 @@ void cloudMeshDistCellFunc_MT( const DgmOctree::IndexAndCode& desc )
 	{
 		// coordinates of the current point
 		const CCVector3* tempPt = Yk.getCurrentPointCoordinates();
-		// distance du bord le plus proche = taille de la cellule - distance la plus grande par
-		// rapport au centre de la cellule
+		// distance du bord le plus proche = taille de la cellule - distance la plus grande par rapport au
+		// centre de la cellule
 		minDists[j] = DgmOctree::ComputeMinDistanceToCellBorder( *tempPt, cellLength, cellCenter );
 		Yk.forwardIterator();
 	}
@@ -1449,8 +1444,8 @@ int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(
 {
 	assert( intersection );
 	assert( !params.signedDistances ||
-			!intersection->distanceTransform ); // signed distances are not compatible with
-												// Distance Transform acceleration
+			!intersection->distanceTransform ); // signed distances are not compatible with Distance Transform
+												// acceleration
 	assert( !params.multiThread ||
 			params.maxSearchDist <= 0 ); // maxSearchDist is not compatible with parallel processing
 	if ( !intersection )
@@ -1925,8 +1920,8 @@ int DistanceComputationTools::computeCloud2MeshDistance( GenericIndexedCloudPers
 	}
 	if ( params.CPSet )
 	{
-		// Closest Point Set determination is incompatible with distance map approximation and max
-		// search distance
+		// Closest Point Set determination is incompatible with distance map approximation and max search
+		// distance
 		params.useDistanceMap = false;
 		params.maxSearchDist = 0;
 	}
@@ -2010,8 +2005,7 @@ int DistanceComputationTools::computeCloud2MeshDistance( GenericIndexedCloudPers
 		}
 	}
 
-	// if the user (or the current cloud/mesh configuration) requires that we use a Distance
-	// Transform
+	// if the user (or the current cloud/mesh configuration) requires that we use a Distance Transform
 	if ( params.useDistanceMap )
 	{
 		intersection.distanceTransform = new SaitoSquaredDistanceTransform;
@@ -2361,9 +2355,9 @@ ScalarType DistanceComputationTools::computePoint2LineSegmentDistSquared( const 
 }
 
 // This algorithm is a modification of the distance computation between a point and a cone from
-// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept
-// Spheres and Cone-Spheres. The modifications from the paper are to compute the closest distance
-// when the point is interior to the cone. http://liris.cnrs.fr/Documents/Liris-1297.pdf
+// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and
+// Cone-Spheres. The modifications from the paper are to compute the closest distance when the point is
+// interior to the cone. http://liris.cnrs.fr/Documents/Liris-1297.pdf
 int DistanceComputationTools::computeCloud2ConeEquation(
 	GenericIndexedCloudPersist* cloud, const CCVector3& coneP1, const CCVector3& coneP2,
 	const PointCoordinateType coneR1, const PointCoordinateType coneR2, bool signedDistances /*=true*/,
@@ -2460,8 +2454,7 @@ int DistanceComputationTools::computeCloud2ConeEquation(
 					{
 						y = sqrt( yy ) - coneR1;
 						ry = y * side[0] - x * side[1]; // rotated y value (distance from the coneside axis)
-						d = std::min( axisLength - x,
-									  x ); // determine whether closer to either radii
+						d = std::min( axisLength - x, x ); // determine whether closer to either radii
 						d = std::min( d, static_cast<double>( std::abs( ry ) ) ); // or to side
 						d = -d;													  // negative inside
 					}
@@ -2542,12 +2535,11 @@ int DistanceComputationTools::computeCloud2ConeEquation(
 }
 
 // This algorithm is a modification of the distance computation between a point and a cylinder from
-// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept
-// Spheres and Cone-Spheres. The modifications from the paper are to compute the closest distance
-// when the point is interior to the capped cylinder. http://liris.cnrs.fr/Documents/Liris-1297.pdf
-// solutionType 1 = exterior to the cylinder and within the bounds of the axis
-// solutionType 2 = interior to the cylinder and either closer to an end-cap or the cylinder wall
-// solutionType 3 = beyond the bounds of the cylinder's axis and radius
+// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and
+// Cone-Spheres. The modifications from the paper are to compute the closest distance when the point is
+// interior to the capped cylinder. http://liris.cnrs.fr/Documents/Liris-1297.pdf solutionType 1 = exterior to
+// the cylinder and within the bounds of the axis solutionType 2 = interior to the cylinder and either closer
+// to an end-cap or the cylinder wall solutionType 3 = beyond the bounds of the cylinder's axis and radius
 // solutionType 4 = beyond the bounds of the cylinder's axis but within the bounds of it's radius
 int DistanceComputationTools::computeCloud2CylinderEquation(
 	GenericIndexedCloudPersist* cloud, const CCVector3& cylinderP1, const CCVector3& cylinderP2,
@@ -2592,8 +2584,8 @@ int DistanceComputationTools::computeCloud2CylinderEquation(
 			{
 				if ( !solutionType )
 				{
-					d = sqrt( yy ) - cylinderRadius; // exterior to the cylinder and within the
-													 // bounds of the axis
+					d = sqrt( yy ) -
+						cylinderRadius; // exterior to the cylinder and within the bounds of the axis
 				}
 				else
 				{
@@ -2605,8 +2597,8 @@ int DistanceComputationTools::computeCloud2CylinderEquation(
 				if ( !solutionType )
 				{
 					d = -std::min( std::abs( sqrt( yy ) - cylinderRadius ),
-								   std::abs( h - x ) ); // interior to the cylinder and either
-														// closer to an end-cap or the cylinder wall
+								   std::abs( h - x ) ); // interior to the cylinder and either closer to an
+														// end-cap or the cylinder wall
 				}
 				else
 				{
@@ -2634,8 +2626,8 @@ int DistanceComputationTools::computeCloud2CylinderEquation(
 			{
 				if ( !solutionType )
 				{
-					d = x - h; // beyond the bounds of the cylinder's axis but within the bounds of
-							   // it's radius
+					d = x - h; // beyond the bounds of the cylinder's axis but within the bounds of it's
+							   // radius
 				}
 				else
 				{

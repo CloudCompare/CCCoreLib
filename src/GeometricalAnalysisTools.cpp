@@ -196,8 +196,8 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel( const DgmOctree
 		cell.points->getPoint( i, nNSS.queryPoint );
 
 		// look for neighbors in a sphere
-		// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-		// actual nearest neighbors (neighborCount)!
+		// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest
+		// neighbors (neighborCount)!
 		unsigned neighborCount =
 			cell.parentOctree->findNeighborsInASphereStartingFromCell( nNSS, radius, false );
 
@@ -244,8 +244,8 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel( const DgmOctree
 				}
 				// the query point should be in the nearest neighbors set!
 				assert( localIndex < neighborCount );
-				if ( localIndex + 1 < neighborCount ) // no need to swap with another point if it's
-													  // already at the end!
+				if ( localIndex + 1 <
+					 neighborCount ) // no need to swap with another point if it's already at the end!
 				{
 					std::swap( nNSS.pointsInNeighbourhood[localIndex],
 							   nNSS.pointsInNeighbourhood[neighborCount - 1] );
@@ -370,8 +370,8 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel( const DgmOctre
 			cell.points->getPoint( i, nNSS.queryPoint );
 
 			// look for neighbors in a sphere
-			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-			// actual nearest neighbors (neighborCount)!
+			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual
+			// nearest neighbors (neighborCount)!
 			unsigned neighborCount = cell.parentOctree->findNeighborsInASphereStartingFromCell(
 				nNSS, minDistBetweenPoints, false );
 			if ( neighborCount > 1 ) // the point itself lies in the neighborhood
@@ -833,8 +833,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		progressCb->start();
 	}
 
-	// now we are going to randomly extract a subset of 4 points and test the resulting sphere each
-	// time
+	// now we are going to randomly extract a subset of 4 points and test the resulting sphere each time
 	if ( seed == 0 )
 	{
 		std::random_device randomGenerator; // non-deterministic generator

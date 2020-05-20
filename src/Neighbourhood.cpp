@@ -216,8 +216,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	{
 		SquareMatrixd covMat = computeCovarianceMatrix();
 
-		// we determine plane normal by computing the smallest eigen value of M = 1/n *
-		// S[(p-µ)*(p-µ)']
+		// we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
 		SquareMatrixd eigVectors;
 		std::vector<double> eigValues;
 		if ( !Jacobi<double>::ComputeEigenValuesAndVectors( covMat, eigVectors, eigValues, true ) )
@@ -317,8 +316,9 @@ bool Neighbourhood::computeQuadric()
 	assert( G );
 
 	// get the best projection axis
-	Tuple3ub idx( 0 /*x*/, 1 /*y*/, 2 /*z*/ ); // default configuration: z is the "normal"
-											   // direction, we use (x,y) as the base plane
+	Tuple3ub idx(
+		0 /*x*/, 1 /*y*/,
+		2 /*z*/ ); // default configuration: z is the "normal" direction, we use (x,y) as the base plane
 	const PointCoordinateType nxx = lsPlane[0] * lsPlane[0];
 	const PointCoordinateType nyy = lsPlane[1] * lsPlane[1];
 	const PointCoordinateType nzz = lsPlane[2] * lsPlane[2];
@@ -486,10 +486,13 @@ bool Neighbourhood::computeQuadric()
 	// first guess for X: plane equation (a0.x+a1.y+a2.z=a3 --> z = a3/a2 - a0/a2.x - a1/a2.y)
 	double X0[6] = {
 		static_cast<double>(
-			/*lsPlane[3]/lsPlane[idx.z]*/ 0 ), // DGM: warning, points have already been recentred
-											   // around the gravity center! So forget about a3
+			/*lsPlane[3]/lsPlane[idx.z]*/ 0 ), // DGM: warning, points have already been recentred around the
+											   // gravity center! So forget about a3
 		static_cast<double>( -lsPlane[idx.x] / lsPlane[idx.z] ),
-		static_cast<double>( -lsPlane[idx.y] / lsPlane[idx.z] ), 0, 0, 0
+		static_cast<double>( -lsPlane[idx.y] / lsPlane[idx.z] ),
+		0,
+		0,
+		0
 	};
 
 	// special case: a0 = a1 = a2 = 0! //happens for perfectly flat surfaces!
@@ -539,9 +542,9 @@ bool Neighbourhood::compute3DQuadric( double quadricEquation[10] )
 		return false;
 	}
 
-	// computes a 3D quadric of the form ax2 +by2 +cz2 + 2exy + 2fyz + 2gzx + 2lx + 2my + 2nz + d =
-	// 0 "THREE-DIMENSIONAL SURFACE CURVATURE ESTIMATION USING QUADRIC SURFACE PATCHES", I. Douros &
-	// B. Buxton, University College London
+	// computes a 3D quadric of the form ax2 +by2 +cz2 + 2exy + 2fyz + 2gzx + 2lx + 2my + 2nz + d = 0
+	//"THREE-DIMENSIONAL SURFACE CURVATURE ESTIMATION USING QUADRIC SURFACE PATCHES", I. Douros & B. Buxton,
+	//University College London
 
 	// we get centroid
 	const CCVector3* G = getGravityCenter();
@@ -790,8 +793,7 @@ ScalarType Neighbourhood::computeMomentOrder1( const CCVector3& P )
 	}
 
 	Jacobi<double>::SortEigenValuesAndVectors(
-		eigVectors,
-		eigValues ); // sort the eigenvectors in decreasing order of their associated eigenvalues
+		eigVectors, eigValues ); // sort the eigenvectors in decreasing order of their associated eigenvalues
 
 	double m1 = 0.0;
 	double m2 = 0.0;
@@ -828,8 +830,7 @@ double Neighbourhood::computeFeature( GeomFeature feature )
 	}
 
 	Jacobi<double>::SortEigenValuesAndVectors(
-		eigVectors,
-		eigValues ); // sort the eigenvectors in decreasing order of their associated eigenvalues
+		eigVectors, eigValues ); // sort the eigenvectors in decreasing order of their associated eigenvalues
 
 	// shortcuts
 	const double& l1 = eigValues[0];
@@ -1002,8 +1003,7 @@ ScalarType Neighbourhood::computeCurvature( const CCVector3& P, CurvatureType cT
 			return pointCount == 3 ? 0 : NAN_VALUE;
 		}
 
-		// we determine plane normal by computing the smallest eigen value of M = 1/n *
-		// S[(p-µ)*(p-µ)']
+		// we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
 		SquareMatrixd covMat = computeCovarianceMatrix();
 		CCVector3d e( 0, 0, 0 );
 

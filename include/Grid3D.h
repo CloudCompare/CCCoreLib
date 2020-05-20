@@ -240,8 +240,8 @@ namespace CCCoreLib
 						{
 							int halfCellSize = ( _currentCell->cellSize >> 1 );
 
-							// compute the position of each neighbor cell relatively to the triangle
-							// (3*3*3 = 27, including the cell itself)
+							// compute the position of each neighbor cell relatively to the triangle (3*3*3 =
+							// 27, including the cell itself)
 							char pointsPosition[27];
 							{
 								char* _pointsPosition = pointsPosition;
@@ -294,8 +294,8 @@ namespace CCCoreLib
 							for ( int i = 0; i < 2; ++i )
 							{
 								_newCell->pos.x = currentCellPos.x + i * halfCellSize;
-								// quick test to determine if the cube is potentially intersecting
-								// the triangle's bbox
+								// quick test to determine if the cube is potentially intersecting the
+								// triangle's bbox
 								if ( static_cast<int>( _newCell->pos.x ) + halfCellSize >= minPos.x &&
 									 static_cast<int>( _newCell->pos.x ) <= maxPos.x )
 								{
@@ -319,13 +319,11 @@ namespace CCCoreLib
 															   _pointsPosition[9] + _pointsPosition[10] +
 															   _pointsPosition[12] + _pointsPosition[13];
 
-													// if not all the vertices of this sub-cube are
-													// on the same side, then the triangle may
-													// intersect the sub-cube
+													// if not all the vertices of this sub-cube are on the
+													// same side, then the triangle may intersect the sub-cube
 													if ( sum > -8 && sum < 8 )
 													{
-														// we make newCell point on next cell in
-														// array
+														// we make newCell point on next cell in array
 														cellsToTest[++cellsToTestCount] = *_newCell;
 														_newCell = &cellsToTest[cellsToTestCount];
 													}

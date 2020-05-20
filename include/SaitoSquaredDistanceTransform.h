@@ -3,8 +3,7 @@
 
 #pragma once
 
-// Inspired from bil_edt.cxx (VXL) by Ricardo Fabbri (rfabbri), Brown University
-// (rfabbri@lems.brown.edu)
+// Inspired from bil_edt.cxx (VXL) by Ricardo Fabbri (rfabbri), Brown University  (rfabbri@lems.brown.edu)
 
 // Local
 #include "Grid3D.h"

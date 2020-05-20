@@ -166,8 +166,8 @@ bool ScalarFieldTools::computeMeanGradientOnPatch( const DgmOctree::octreeCell& 
 			cell.points->getPoint( i, nNSS.queryPoint );
 
 			// we extract the point's neighbors
-			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-			// actual nearest neighbors (k)!
+			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual
+			// nearest neighbors (k)!
 			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell( nNSS, radius, true );
 
 			// if more than one neighbour (the query point itself)
@@ -190,11 +190,11 @@ bool ScalarFieldTools::computeMeanGradientOnPatch( const DgmOctree::octreeCell& 
 							double deltaValue = static_cast<double>( v2 - v1 );
 							if ( !euclideanDistances || deltaValue * deltaValue < 1.01 * norm2 )
 							{
-								deltaValue /= norm2;			  // we divide by 'norm' to get the normalized
-																  // direction, and by 'norm' again to get the
-																  // gradient (hence we use the squared norm)
-								sum.x += deltaPos.x * deltaValue; // warning: here 'deltaValue'=
-																  // deltaValue / squaredNorm(deltaPos) ;)
+								deltaValue /=
+									norm2; // we divide by 'norm' to get the normalized direction, and by
+										   // 'norm' again to get the gradient (hence we use the squared norm)
+								sum.x += deltaPos.x * deltaValue; // warning: here 'deltaValue'= deltaValue /
+																  // squaredNorm(deltaPos) ;)
 								sum.y += deltaPos.y * deltaValue;
 								sum.z += deltaPos.z * deltaValue;
 								++counter;
@@ -290,11 +290,11 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter( PointCoordinateType sigma
 	return success;
 }
 
-// FONCTION "CELLULAIRE" DE CALCUL DU FILTRE GAUSSIEN (PAR PROJECTION SUR LE PLAN AUX MOINDRES
-// CARRES) DETAIL DES PARAMETRES ADDITIONNELS (2) :
+// FONCTION "CELLULAIRE" DE CALCUL DU FILTRE GAUSSIEN (PAR PROJECTION SUR LE PLAN AUX MOINDRES CARRES)
+// DETAIL DES PARAMETRES ADDITIONNELS (2) :
 // [0] -> (PointCoordinateType*) sigma : gauss function sigma
-// [1] -> (PointCoordinateType*) sigmaSF : used when in "bilateral modality" - if -1 pure gaussian
-// filtering is performed
+// [1] -> (PointCoordinateType*) sigmaSF : used when in "bilateral modality" - if -1 pure gaussian filtering
+// is performed
 bool ScalarFieldTools::computeCellGaussianFilter( const DgmOctree::octreeCell& cell,
 												  void** additionalParameters,
 												  NormalizedProgress* nProgress /*=0*/ )
@@ -349,8 +349,8 @@ bool ScalarFieldTools::computeCellGaussianFilter( const DgmOctree::octreeCell& c
 		{
 			// we get the points inside a spherical neighbourhood (radius: '3*sigma')
 			cell.points->getPoint( i, nNSS.queryPoint );
-			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-			// actual nearest neighbors (k)!
+			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual
+			// nearest neighbors (k)!
 			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell( nNSS, radius, false );
 
 			// each point adds a contribution weighted by its distance to the sphere center
@@ -386,8 +386,8 @@ bool ScalarFieldTools::computeCellGaussianFilter( const DgmOctree::octreeCell& c
 
 			// we get the points inside a spherical neighbourhood (radius: '3*sigma')
 			cell.points->getPoint( i, nNSS.queryPoint );
-			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the
-			// actual nearest neighbors (k)!
+			// warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual
+			// nearest neighbors (k)!
 			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell( nNSS, radius, false );
 
 			// each point adds a contribution weighted by its distance to the sphere center

@@ -9,8 +9,7 @@
 
 namespace CCCoreLib
 {
-	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar
-	//! fields
+	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar fields
 	class CC_CORE_LIB_API PointCloud : public PointCloudTpl<GenericIndexedCloudPersist>
 	{
 	public:

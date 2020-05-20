@@ -24,8 +24,8 @@ namespace CCCoreLib
 		using EigenValues = std::vector<Scalar>;
 
 		//! Computes the eigenvalues and eigenvectors of a given square matrix
-		/** It uses Rutishauser's modfications of the classical Jacobi rotation method with
-		threshold pivoting.
+		/** It uses Rutishauser's modfications of the classical Jacobi rotation method with threshold
+		pivoting.
 
 		Note: this code is inspired from John Burkardt's 'jacobi_eigenvalue' code
 		See https://people.sc.fsu.edu/~jburkardt/cpp_src/jacobi_eigenvalue/jacobi_eigenvalue.cpp
@@ -235,8 +235,7 @@ namespace CCCoreLib
 				for ( unsigned ip = 0; ip < n; ip++ )
 				{
 					b[ip] = d[ip] = matrix.m_values[ip][ip]; // Initialize b and d to the diagonal of a.
-					z[ip] = 0; // This vector will accumulate terms of the form tapq as in equation
-							   // (11.1.14)
+					z[ip] = 0; // This vector will accumulate terms of the form tapq as in equation (11.1.14)
 				}
 			}
 
@@ -252,8 +251,8 @@ namespace CCCoreLib
 					}
 				}
 
-				if ( sm == 0 ) // The normal return, which relies on quadratic convergence to
-							   // machine underflow.
+				if ( sm ==
+					 0 ) // The normal return, which relies on quadratic convergence to machine underflow.
 				{
 					if ( absoluteValues )
 					{
@@ -276,8 +275,7 @@ namespace CCCoreLib
 					for ( unsigned iq = ip + 1; iq < n; iq++ )
 					{
 						Scalar g = std::abs( matrix.m_values[ip][iq] ) * 100;
-						// After four sweeps, skip the rotation if the off-diagonal element is
-						// small.
+						// After four sweeps, skip the rotation if the off-diagonal element is small.
 						if ( i > 4 &&
 							 static_cast<float>( std::abs( d[ip] ) + g ) ==
 								 static_cast<float>( std::abs( d[ip] ) ) &&

@@ -671,8 +671,7 @@ bool PointProjectionTools::extractConcaveHull2D( std::vector<IndexedCCVector2>& 
 					if ( itB == hullPoints.end() )
 						itB = hullPoints.begin();
 
-					// we will only process the edges that are longer than the maximum specified
-					// length
+					// we will only process the edges that are longer than the maximum specified length
 					if ( ( **itB - **itA ).norm2() > maxSquareEdgeLength )
 					{
 						unsigned nearestPointIndex = 0;
@@ -849,8 +848,7 @@ bool PointProjectionTools::extractConcaveHull2D( std::vector<IndexedCCVector2>& 
 
 void PointProjectionTools::Transformation::apply( GenericIndexedCloudPersist& cloud ) const
 {
-	// always apply the scale before everything (applying before or after rotation does not changes
-	// anything)
+	// always apply the scale before everything (applying before or after rotation does not changes anything)
 	if ( GreaterThanEpsilon( std::abs( s - 1.0 ) ) )
 	{
 		for ( unsigned i = 0; i < cloud.size(); ++i )

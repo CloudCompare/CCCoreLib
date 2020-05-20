@@ -219,8 +219,7 @@ bool CCMiscTools::TriBoxOverlap( const CCVector3& boxcenter, const CCVector3& bo
 	/*  compute plane equation of triangle: normal*0+d=0 */
 
 	// PointCoordinateType normal[3];
-	CCVector3::vcross( e0, e1,
-					   /*normal*/ e2 ); // DGM: we use 'e2' instead of 'normal' to save heap memory
+	CCVector3::vcross( e0, e1, /*normal*/ e2 ); // DGM: we use 'e2' instead of 'normal' to save heap memory
 	{
 		// PointCoordinateType vmin[3],vmax[3]; //DGM: we use e0 and e1 instead of vmin and vmax
 		if ( /*normal*/ e2[0] > 0 )
@@ -352,8 +351,7 @@ bool CCMiscTools::TriBoxOverlapd( const CCVector3d& boxcenter, const CCVector3d&
 	/*  compute plane equation of triangle: normal*0+d=0 */
 
 	// double normal[3];
-	CCVector3d::vcross( e0, e1,
-						/*normal*/ e2 ); // DGM: we use 'e2' instead of 'normal' to save heap memory
+	CCVector3d::vcross( e0, e1, /*normal*/ e2 ); // DGM: we use 'e2' instead of 'normal' to save heap memory
 	{
 		// double vmin[3],vmax[3]; //DGM: we use e0 and e1 instead of vmin and vmax
 		if ( /*normal*/ e2[0] > 0 )

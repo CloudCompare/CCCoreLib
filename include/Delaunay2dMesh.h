@@ -64,9 +64,11 @@ namespace CCCoreLib
 								std::string& outputErrorStr );
 
 		//! Removes the triangles falling outside of a given (2D) polygon
-		/** \param vertices2D vertices of the mesh as 2D points (typically the one used to
-		triangulate the mesh!) \param polygon2D vertices of the 2D boundary polygon (ordered) \param
-		removeOutside whether to remove triangles outside (default) or inside \return success
+		/** \param vertices2D vertices of the mesh as 2D points (typically the one used to triangulate the
+		mesh!)
+			\param polygon2D vertices of the 2D boundary polygon (ordered)
+			\param removeOutside whether to remove triangles outside (default) or inside
+			\return success
 		**/
 		virtual bool removeOuterTriangles( const std::vector<CCVector2>& vertices2D,
 										   const std::vector<CCVector2>& polygon2D,

@@ -11,8 +11,7 @@ namespace CCCoreLib
 {
 	class AtomicCounter;
 
-	//! A generic progress indicator interface to notify algorithms progress to the client
-	//! application
+	//! A generic progress indicator interface to notify algorithms progress to the client application
 	class CC_CORE_LIB_API GenericProgressCallback
 	{
 	public:
@@ -41,14 +40,12 @@ namespace CCCoreLib
 		virtual void setInfo( const char* infoStr ) = 0;
 
 		//! Notifies the fact that every information has been sent and that the process begins
-		/** Once start() is called, the progress bar and other informations could be displayed (for
-		 *example).
+		/** Once start() is called, the progress bar and other informations could be displayed (for example).
 		 **/
 		virtual void start() = 0;
 
 		//! Notifies the fact that the process has ended
-		/** Once end() is called, the progress bar and other informations could be hidden (for
-		 *example).
+		/** Once end() is called, the progress bar and other informations could be hidden (for example).
 		 **/
 		virtual void stop() = 0;
 

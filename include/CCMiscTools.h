@@ -24,8 +24,7 @@ namespace CCCoreLib
 		/** The cube dimensions will be equal to the largest box dimension.
 			\param dimMin the upper-left corner of the rectangle
 			\param dimMax the lower-right corner of the rectangle
-			\param enlargeFactor the resulting box can be automatically enlarged if this parameter
-		is greater than 0
+			\param enlargeFactor the resulting box can be automatically enlarged if this parameter is greater than 0
 		**/
 		static void MakeMinAndMaxCubical( CCVector3& dimMin, CCVector3& dimMax, double enlargeFactor = 0.01 );
 

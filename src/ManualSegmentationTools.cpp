@@ -195,8 +195,8 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(
 	unsigned numberOfIndexes = pointIndexes->size();
 
 	// we determine for each point if it is used in the output mesh or not
-	//(and we compute its new index by the way: 0 means that the point is not used, otherwise its
-	// index will be newPointIndexes-1)
+	//(and we compute its new index by the way: 0 means that the point is not used, otherwise its index will
+	//be newPointIndexes-1)
 	std::vector<unsigned> newPointIndexes;
 	{
 		try
@@ -252,8 +252,8 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(
 			bool triangleIsOnTheRightSide = true;
 
 			const VerticesIndexes* tsi =
-				theMesh->getNextTriangleVertIndexes(); // DGM: getNextTriangleVertIndexes is
-													   // faster for mesh groups!
+				theMesh->getNextTriangleVertIndexes(); // DGM: getNextTriangleVertIndexes is faster for mesh
+													   // groups!
 			int newVertexIndexes[3];
 
 			// VERSION: WE KEEP THE TRIANGLE ONLY IF ITS 3 VERTICES ARE INSIDE
@@ -724,8 +724,8 @@ bool ManualSegmentationTools::segmentMeshWithAAPlane( GenericIndexedMesh* mesh,
 			case 1: // 2 vertices 'in' the plane
 			{
 				// the triangle is either on one side or another ;)
-				// const std::vector<unsigned char>& nonEmptySet = (insideVertices.empty() ?
-				// outsideVertices : insideVertices); assert(nonEmptySet.size() != 0);
+				// const std::vector<unsigned char>& nonEmptySet = (insideVertices.empty() ? outsideVertices :
+				// insideVertices); assert(nonEmptySet.size() != 0);
 				if ( minusVertIndexes.empty() )
 				{
 					// the only vertex far from the plane is on the 'plus' side
@@ -1254,8 +1254,8 @@ bool ManualSegmentationTools::segmentMeshWithAABox( GenericIndexedMesh* origMesh
 							ioParams.origTriIndexesMapInside.push_back( origTriIndex );
 							if ( ioParams.generateOutsideMesh )
 								ioParams.origTriIndexesMapOutside.push_back( origTriIndex );
-							// the third triangle has been added either to the 'inside' or to the
-							// 'outside' mesh
+							// the third triangle has been added either to the 'inside' or to the 'outside'
+							// mesh
 							if ( !leftIsInside )
 								ioParams.origTriIndexesMapInside.push_back( origTriIndex );
 							else if ( ioParams.generateOutsideMesh )

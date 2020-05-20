@@ -13,8 +13,7 @@ namespace CCCoreLib
 	class GenericCloud;
 	class ScalarField;
 
-	//! Several algorithms to compute point-clouds geometric characteristics  (curvature, density,
-	//! etc.)
+	//! Several algorithms to compute point-clouds geometric characteristics  (curvature, density, etc.)
 	class CC_CORE_LIB_API GeometricalAnalysisTools : public CCToolbox
 	{
 	public:
@@ -23,8 +22,7 @@ namespace CCCoreLib
 			Feature,			/**< See Neighbourhood::GeomFeature **/
 			Curvature,			/**< See Neighbourhood::CurvatureType **/
 			LocalDensity,		/**< Accurate local density (see GeometricalAnalysisTools::Density) **/
-			ApproxLocalDensity, /**< Approximate local density (see
-								   GeometricalAnalysisTools::Density) **/
+			ApproxLocalDensity, /**< Approximate local density (see GeometricalAnalysisTools::Density) **/
 			Roughness,			/**< Roughness **/
 			MomentOrder1		/**< 1st order moment **/
 		};
@@ -33,9 +31,9 @@ namespace CCCoreLib
 		enum Density
 		{
 			DENSITY_KNN = 1, /**< The number of points inside the neighborhing sphere **/
-			DENSITY_2D,		 /**< The number of points divided by the area of the circle that has the
-								same radius as the neighborhing sphere (2D approximation) **/
-			DENSITY_3D,		 /**< The number of points divided by the neighborhing sphere volume (3D) **/
+			DENSITY_2D, /**< The number of points divided by the area of the circle that has the same radius
+						   as the neighborhing sphere (2D approximation) **/
+			DENSITY_3D, /**< The number of points divided by the neighborhing sphere volume (3D) **/
 		};
 
 		enum ErrorCode
@@ -50,14 +48,15 @@ namespace CCCoreLib
 			ProcessCancelledByUser = -7
 		};
 		//! Unified way to compute a geometric characteristic
-		/** Once the main geometric characterstic is chosen, the subOption parameter is used to
-		specify the actual feature / curvature type / local density computation algorithm if
-		necessary. \param c geometric characterstic \param subOption feature / curvature type /
-		local density computation algorithm or nothing (0) \param cloud cloud to compute the
-		characteristic on \param kernelRadius neighbouring sphere radius \param progressCb client
-		application can get some notification of the process progress through this callback
-		mechanism (see GenericProgressCallback) \param inputOctree if not set as input, octree will
-		be automatically computed. \return succes
+		/** Once the main geometric characterstic is chosen, the subOption parameter is used to specify
+			the actual feature / curvature type / local density computation algorithm if necessary.
+			\param c geometric characterstic
+			\param subOption feature / curvature type / local density computation algorithm or nothing (0)
+			\param cloud cloud to compute the characteristic on
+			\param kernelRadius neighbouring sphere radius
+			\param progressCb client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param inputOctree if not set as input, octree will be automatically computed.
+			\return succes
 		**/
 		static ErrorCode ComputeCharactersitic( GeomCharacteristic c, int subOption,
 												GenericIndexedCloudPersist* cloud,
@@ -67,13 +66,13 @@ namespace CCCoreLib
 
 		//! Computes the local density (approximate)
 		/** Old method (based only on the distance to the nearest neighbor).
-			\warning As only one neighbor is extracted, the DENSITY_KNN type corresponds in fact to
-		the (inverse) distance to the nearest neighbor. \warning This method assumes the input
-		scalar field is different from the output one. \param cloud processed cloud \param
-		densityType the 'type' of density to compute \param progressCb client application can get
-		some notification of the process progress through this callback mechanism (see
-		GenericProgressCallback) \param inputOctree if not set as input, octree will be
-		automatically computed. \return success (0) or error code (<0)
+			\warning As only one neighbor is extracted, the DENSITY_KNN type corresponds in fact to the (inverse) distance to the nearest neighbor.
+			\warning This method assumes the input scalar field is different from the output one.
+			\param cloud processed cloud
+			\param densityType the 'type' of density to compute
+			\param progressCb client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param inputOctree if not set as input, octree will be automatically computed.
+			\return success (0) or error code (<0)
 		**/
 		static ErrorCode ComputeLocalDensityApprox( GenericIndexedCloudPersist* cloud, Density densityType,
 													GenericProgressCallback* progressCb = nullptr,
@@ -138,9 +137,9 @@ namespace CCCoreLib
 			associated to scalar value 1 (and 0 for the others).
 			\param theCloud processed cloud
 			\param minDistanceBetweenPoints min distance between (output) points
-			\param progressCb client application can get some notification of the process progress
-		through this callback mechanism (see GenericProgressCallback) \param inputOctree if not set
-		as input, octree will be automatically computed. \return success (0) or error code (<0)
+			\param progressCb client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param inputOctree if not set as input, octree will be automatically computed.
+			\return success (0) or error code (<0)
 		**/
 		static ErrorCode FlagDuplicatePoints(
 			GenericIndexedCloudPersist* theCloud,
@@ -157,9 +156,9 @@ namespace CCCoreLib
 			\param[out] radius radius of the detected sphere
 			\param[out] rms residuals RMS for the detected sphere
 			\param[in] progressCb for progress notification (optional)
-			\param[in] confidence probability that the detected sphere is the right one (strictly
-		below 1) \param[in] seed if different than 0, this seed will be used for random numbers
-		generation (instead of a random one) \result success
+			\param[in] confidence probability that the detected sphere is the right one (strictly below 1)
+			\param[in] seed if different than 0, this seed will be used for random numbers generation (instead of a random one)
+			\result success
 		**/
 		static ErrorCode DetectSphereRobust( GenericIndexedCloudPersist* cloud, double outliersRatio,
 											 CCVector3& center, PointCoordinateType& radius, double& rms,

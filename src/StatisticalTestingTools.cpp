@@ -218,8 +218,8 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(
 			if ( minIt->pi >= minPi ) // all classes are bigger than the minimum requirement
 				break;
 
-			// otherwise we must merge the smallest class with its neighbor (to make the classes
-			// repartition more equilibrated)
+			// otherwise we must merge the smallest class with its neighbor (to make the classes repartition
+			// more equilibrated)
 			Chi2ClassList::iterator smallestIt;
 			{
 				Chi2ClassList::iterator nextIt = minIt;
@@ -366,8 +366,7 @@ double StatisticalTestingTools::testCloudWithStatisticalModel( const GenericDist
 		{
 			// theoretical Chi2 fractile
 			maxChi2 = computeChi2Fractile( pTrust, numberOfChi2Classes - 1 );
-			maxChi2 = sqrt( maxChi2 ); // on travaille avec les racines carrees des distances du
-									   // Chi2
+			maxChi2 = sqrt( maxChi2 ); // on travaille avec les racines carrees des distances du Chi2
 		}
 	}
 
@@ -452,8 +451,8 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel( const DgmOctree::octr
 				histoMax, histoValues ) );
 			// STRICT VERSION (ultra-precise test)
 			// double Chi2Dist = static_cast<ScalarType>(computeAdaptativeChi2Dist(statModel,
-			// &neighboursCloud, numberOfChi2Classes, finalNumberOfChi2Classes, false, histoMin,
-			// histoMax, histoValues));
+			// &neighboursCloud, numberOfChi2Classes, finalNumberOfChi2Classes, false, histoMin, histoMax,
+			// histoValues));
 
 			D = ( Chi2Dist >= 0.0 ? static_cast<ScalarType>( sqrt( Chi2Dist ) ) : NAN_VALUE );
 		}

@@ -62,8 +62,8 @@ bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D, const st
 #if defined( CC_CORE_LIB_USES_CGAL_LIB )
 	// CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
-	// We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the
-	// original point index.
+	// We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the original
+	// point index.
 	using Vb = CGAL::Triangulation_vertex_base_with_info_2<std::size_t, K>;
 	using Fb = CGAL::Constrained_triangulation_face_base_2<K>;
 	using Itag = CGAL::No_intersection_tag; // This tag could ben changed if we decide to handle intersection
@@ -126,8 +126,8 @@ bool Delaunay2dMesh::buildMesh( const std::vector<CCVector2>& points2D, std::siz
 #if defined( CC_CORE_LIB_USES_CGAL_LIB )
 	// CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
-	// We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the
-	// original point index.
+	// We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the original
+	// point index.
 	using Vb = CGAL::Triangulation_vertex_base_with_info_2<std::size_t, K>;
 	using Tds = CGAL::Triangulation_data_structure_2<Vb>;
 	using DT = CGAL::Delaunay_triangulation_2<K, Tds>;
@@ -205,8 +205,7 @@ bool Delaunay2dMesh::removeOuterTriangles( const std::vector<CCVector2>& vertice
 	if ( !m_triIndexes || m_numberOfTriangles == 0 )
 		return false;
 
-	// we expect the same number of 2D points as the actual number of points in the associated mesh
-	// (if any)
+	// we expect the same number of 2D points as the actual number of points in the associated mesh (if any)
 	if ( m_associatedCloud && static_cast<std::size_t>( m_associatedCloud->size() ) != vertices2D.size() )
 		return false;
 

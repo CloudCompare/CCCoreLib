@@ -71,9 +71,9 @@ double MeshSamplingTools::computeMeshVolume( GenericMesh* mesh )
 		const CCVector3 B = *tri->_getB() - origin;
 		const CCVector3 C = *tri->_getC() - origin;
 
-		// see "EFFICIENT FEATURE EXTRACTION FOR 2D/3D OBJECTS IN MESH REPRESENTATION" by Cha Zhang
-		// and Tsuhan Chen (2001) We compute the (signed) volume of the tetrahedron defined by each
-		// triangle and the origin
+		// see "EFFICIENT FEATURE EXTRACTION FOR 2D/3D OBJECTS IN MESH REPRESENTATION" by Cha Zhang and Tsuhan
+		// Chen (2001) We compute the (signed) volume of the tetrahedron defined by each triangle and the
+		// origin
 		double signedVol =
 			( -static_cast<double>( C.x * B.y * A.z ) + static_cast<double>( B.x * C.y * A.z ) +
 			  static_cast<double>( C.x * A.y * B.z ) - static_cast<double>( A.x * C.y * B.z ) -
@@ -384,8 +384,8 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh( GenericMesh* mesh, double sam
 			for ( unsigned i = 0; i < pointsToAdd; ++i )
 			{
 				// we generate random points as in:
-				//'Greg Turk. Generating random points in triangles. In A. S. Glassner, editor,
-				// Graphics Gems, pages 24-28. Academic Press, 1990.'
+				//'Greg Turk. Generating random points in triangles. In A. S. Glassner, editor, Graphics Gems,
+				//pages 24-28. Academic Press, 1990.'
 				double x = dist( gen );
 				double y = dist( gen );
 

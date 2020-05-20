@@ -49,7 +49,7 @@ BreakConstructorInitializersBeforeComma: true
 BreakConstructorInitializers: BeforeColon
 BreakStringLiterals: true
 ColumnLimit: 110
-CommentPragmas: '^ IWYU pragma:'
+CommentPragmas:  '^\\[A-Za-z]+'
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4

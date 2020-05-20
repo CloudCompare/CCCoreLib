@@ -560,8 +560,8 @@ namespace CCCoreLib
 				w = ( m_values[1][0] - m_values[0][1] ) / S;
 			}
 
-			// normalize the quaternion if the matrix is not a clean rigid body matrix or if it has
-			// scaler information.
+			// normalize the quaternion if the matrix is not a clean rigid body matrix or if it has scaler
+			// information.
 			double len = sqrt( w * w + x * x + y * y + z * z );
 			if ( len != 0 )
 			{

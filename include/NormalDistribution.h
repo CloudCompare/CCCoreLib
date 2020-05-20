@@ -72,16 +72,16 @@ namespace CCCoreLib
 			only the values close enough to the mean (in terms of nSigma times the initial
 			variance) are kept to make a second and more robust evaluation of the parameters.
 			\param values the scalar values
-			\param nSigma the values filtering interval size ([mu -nSigma * stddev : mu + nSigma *
-		stddev]) \return the validity of the computed parameters
+			\param nSigma the values filtering interval size ([mu -nSigma * stddev : mu + nSigma * stddev])
+			\return the validity of the computed parameters
 		**/
 		bool computeRobustParameters( const ScalarContainer& values, double nSigma );
 
 	protected:
 		//! Compute each Chi2 class limits
 		/** This method is used (internally) to accelerate the Chi2 distance computation.
-			\param numberOfClasses the number of classes that will be used for Chi2 distance
-		computation \return success
+			\param numberOfClasses the number of classes that will be used for Chi2 distance computation
+			\return success
 		**/
 		virtual bool setChi2ClassesPositions( unsigned numberOfClasses );
 

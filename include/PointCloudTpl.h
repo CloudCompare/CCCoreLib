@@ -13,8 +13,7 @@
 
 namespace CCCoreLib
 {
-	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar
-	//! fields
+	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar fields
 	template <class T, typename StringType = const char*> class PointCloudTpl : public T
 	{
 		static_assert( std::is_base_of<GenericIndexedCloudPersist, T>::value,
@@ -312,8 +311,7 @@ namespace CCCoreLib
 
 		//! Returns the name of a specific scalar field
 		/** \param index a scalar field index
-			\return a pointer to a string structure (null-terminated array of characters), or 0 if
-		the index is invalid.
+			\return a pointer to a string structure (null-terminated array of characters), or 0 if the index is invalid.
 		**/
 		const char* getScalarFieldName( int index ) const
 		{
@@ -400,8 +398,7 @@ namespace CCCoreLib
 
 		//! Creates a new scalar field and registers it
 		/** Warnings:
-			- the name must be unique (the method will fail if a SF with the same name already
-		exists)
+			- the name must be unique (the method will fail if a SF with the same name already exists)
 			- this method DOES resize the scalar field to match the current cloud size
 			\param uniqueName scalar field name (must be unique)
 			\return index of this new scalar field (or -1 if an error occurred)
