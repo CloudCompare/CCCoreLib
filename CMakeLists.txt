@@ -97,6 +97,14 @@ if ( CCACHE_PROGRAM )
 	)
 endif()
 
+# GTE
+add_subdirectory( extern/GTE )
+
+target_link_libraries( CCCoreLib
+	PUBLIC
+        GTE_Math
+)
+
 # Main sources and includes
 add_subdirectory( include )
 add_subdirectory( src )
@@ -276,6 +284,7 @@ install(
 export(
 	TARGETS
 		CCCoreLib
+		GTE_Math
 	NAMESPACE
 		CCCoreLib::
 	FILE
