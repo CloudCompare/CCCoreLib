@@ -13,6 +13,11 @@
 #include <CGAL/Delaunay_triangulation_2.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
+#else
+#include <Mathematics/Vector2.h>
+#include <Mathematics/ArbitraryPrecision.h>
+#include <Mathematics/Delaunay2.h>
+#include <Mathematics/ConstrainedDelaunay2.h>
 #endif
 
 
@@ -40,7 +45,7 @@ bool Delaunay2dMesh::Available()
 #if defined(CC_CORE_LIB_USES_CGAL_LIB)
 	return true;
 #else
-	return false;
+	return true;
 #endif
 }
 
@@ -61,6 +66,7 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 								const std::vector<int>& segments2D,
 								std::string &outputErrorStr )
 {
+	std::size_t constrCount = segments2D.size();
 #if defined(CC_CORE_LIB_USES_CGAL_LIB)
 	//CGAL boilerplate
 	using K = CGAL::Exact_predicates_inexact_constructions_kernel;
@@ -73,7 +79,6 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	using cgalPoint = CDT::Point;
 
 	std::vector< std::pair<cgalPoint, std::size_t > > constraints;
-	std::size_t constrCount = segments2D.size();
 
 	try
 	{
@@ -114,8 +119,46 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	m_globalIteratorEnd = m_triIndexes + 3*m_numberOfTriangles;
 	return true;
 #else
-	outputErrorStr = "CGAL library not supported";
-	return false;
+	gte::ConstrainedDelaunay2<PointCoordinateType, gte::BSNumber<gte::UIntegerFP32<5>>> cDelaunay;
+	std::vector<gte::Vector2<float>> cDVertices;
+	cDVertices.resize(points2D.size());
+	for (std::size_t i = 0; i < points2D.size(); i++)
+	{
+		cDVertices[i][0] = points2D[i].x;
+		cDVertices[i][1] = points2D[i].y;
+	}
+
+	int numVertices = static_cast<int>(cDVertices.size());
+	cDelaunay(numVertices, &cDVertices[0], 0.001f);
+
+	if (cDelaunay.GetDimension() != 2)
+	{
+		outputErrorStr = "Degenerate point set.";
+		return false;
+	}
+
+	for (std::size_t i = 0; i < constrCount - 1; ++i)
+	{
+		std::vector<int> outEdge;
+		cDelaunay.Insert({ segments2D[i], segments2D[i + 1] }, outEdge);
+	}
+
+	std::vector<int> const& indices = cDelaunay.GetIndices();
+	m_triIndexes = new int[indices.size()];
+	//std::size_t numTriangles = cDelaunay.GetNumTriangles();
+	m_numberOfTriangles = cDelaunay.GetNumTriangles();
+
+	if (m_numberOfTriangles > 0) {
+
+		for (std::size_t i = 0; i < indices.size(); ++i)
+		{
+			m_triIndexes[i] = indices[i];
+		};
+	}
+
+	m_globalIterator = m_triIndexes;
+	m_globalIteratorEnd = m_triIndexes + 3 * m_numberOfTriangles;
+	return true;
 #endif
 }
 
@@ -192,8 +235,40 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	m_globalIteratorEnd = m_triIndexes + 3*m_numberOfTriangles;
 	return true;
 #else
-	outputErrorStr = "CGAL library not supported";
-	return false;
+	gte::Delaunay2<PointCoordinateType, gte::BSNumber<gte::UIntegerFP32<35>>> ucDelaunay;
+	std::vector<gte::Vector2<float>> ucDVertices;
+
+	ucDVertices.resize(points2D.size());
+	for (std::size_t i = 0; i < points2D.size(); i++)
+	{
+		ucDVertices[i][0] = points2D[i].x;
+		ucDVertices[i][1] = points2D[i].y;
+	}
+
+	int numVertices = static_cast<int>(ucDVertices.size());
+	ucDelaunay(numVertices, &ucDVertices[0], 0);
+
+	if (ucDelaunay.GetDimension() != 2)
+	{
+		outputErrorStr = "Degenerate point set.";
+		return false;
+	}
+
+	std::vector<int> const& indices = ucDelaunay.GetIndices();
+	m_triIndexes = new int[indices.size()];
+	m_numberOfTriangles = ucDelaunay.GetNumTriangles();
+
+	if (m_numberOfTriangles > 0) {
+
+		for (int i = 0; i < indices.size(); ++i)
+		{
+			m_triIndexes[i] = indices[i];
+		};
+	}
+
+	m_globalIterator = m_triIndexes;
+	m_globalIteratorEnd = m_triIndexes + 3 * m_numberOfTriangles;
+	return true;
 #endif
 }
 
