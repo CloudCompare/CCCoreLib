@@ -145,15 +145,12 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 
 	std::vector<int> const& indices = cDelaunay.GetIndices();
 	m_triIndexes = new int[indices.size()];
-	//std::size_t numTriangles = cDelaunay.GetNumTriangles();
+
 	m_numberOfTriangles = cDelaunay.GetNumTriangles();
 
-	if (m_numberOfTriangles > 0) {
-
-		for (std::size_t i = 0; i < indices.size(); ++i)
-		{
-			m_triIndexes[i] = indices[i];
-		};
+	if (m_numberOfTriangles > 0)
+	{
+		std::copy( indices.begin(), indices.end(), m_triIndexes );
 	}
 
 	m_globalIterator = m_triIndexes;
@@ -258,12 +255,9 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	m_triIndexes = new int[indices.size()];
 	m_numberOfTriangles = ucDelaunay.GetNumTriangles();
 
-	if (m_numberOfTriangles > 0) {
-
-		for (int i = 0; i < indices.size(); ++i)
-		{
-			m_triIndexes[i] = indices[i];
-		};
+	if (m_numberOfTriangles > 0)
+	{
+		std::copy( indices.begin(), indices.end(), m_triIndexes );
 	}
 
 	m_globalIterator = m_triIndexes;
