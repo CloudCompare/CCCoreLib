@@ -203,7 +203,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				return ICP_ERROR_NOT_ENOUGH_MEMORY;
 			}
 			//we use the input weights
-			data.weights = params.dataWeights;
+			data.weights = new ScalarField(*params.dataWeights);
+			sfGarbage.add(data.weights);
 		}
 
 		//eventually we'll need a scalar field on the data cloud
