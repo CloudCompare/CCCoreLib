@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
-// Copyright Â© EDF R&D / TELECOM ParisTech (ENST-TSI)
+// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 #pragma once
 
@@ -83,6 +83,12 @@ namespace CCCoreLib
 
 		bool enableScalarField() override
 		{
+			if (m_points.empty() && m_points.capacity() == 0)
+			{
+				//on must call resize or reserve on the cloud first
+				return false;
+			}
+
 			ScalarField* currentInScalarField = getCurrentInScalarField();
 
 			if (!currentInScalarField)
@@ -113,7 +119,16 @@ namespace CCCoreLib
 				m_currentOutScalarFieldIndex = m_currentInScalarFieldIndex;
 			}
 
-			return currentInScalarField->resizeSafe(m_points.size());
+			if (m_points.empty())
+			{
+				//if the cloud is empty, with a reserved capacity, we do the same on the SF
+				return currentInScalarField->reserveSafe(m_points.capacity());
+			}
+			else
+			{
+				//otherwise we resize the SF with the current number of points so that they match
+				return currentInScalarField->resizeSafe(m_points.size());
+			}
 		}
 
 		bool isScalarFieldEnabled() const override
@@ -247,8 +262,8 @@ namespace CCCoreLib
 		{
 			//NaN coordinates check
 			if (	P.x != P.x
-					||	P.y != P.y
-					||	P.z != P.z)
+				||	P.y != P.y
+				||	P.z != P.z)
 			{
 				//replace NaN point by (0, 0, 0)
 				CCVector3 fakeP(0, 0, 0);
@@ -460,9 +475,9 @@ namespace CCCoreLib
 		//! Swaps two points (and their associated scalar values!)
 		virtual void swapPoints(unsigned firstIndex, unsigned secondIndex)
 		{
-			if (firstIndex == secondIndex
-					|| firstIndex >= m_points.size()
-					|| secondIndex >= m_points.size())
+			if (	firstIndex == secondIndex
+				||	firstIndex >= m_points.size()
+				||	secondIndex >= m_points.size())
 			{
 				return;
 			}
