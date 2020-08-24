@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
-// Copyright Â© EDF R&D / TELECOM ParisTech (ENST-TSI)
+// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 #include <ScalarFieldTools.h>
 
@@ -240,7 +240,7 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 		return false;
 
 	unsigned n = theCloud->size();
-	if (n==0)
+	if (n == 0)
 		return false;
 
 	DgmOctree* theOctree = nullptr;
@@ -249,7 +249,7 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 	else
 	{
 		theOctree = new DgmOctree(theCloud);
-		if (theOctree->build(progressCb)<1)
+		if (theOctree->build(progressCb) < 1)
 		{
 			delete theOctree;
 			return false;
@@ -260,7 +260,12 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(3.0f*sigma);
 
 	//output scalar field should be different than input one
-	theCloud->enableScalarField();
+	if (!theCloud->enableScalarField())
+	{
+		if (!theCloudOctree)
+			delete theOctree;
+		return false;
+	}
 
 	if (progressCb)
 	{
@@ -319,9 +324,9 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 	//structures pour la recherche de voisinages SPECIFIQUES
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
 	nNSS.level = cell.level;
-	nNSS.prepare(radius,cell.parentOctree->getCellSize(nNSS.level));
-	cell.parentOctree->getCellPos(cell.truncatedCode,cell.level,nNSS.cellPos,true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos,cell.level,nNSS.cellCenter);
+	nNSS.prepare(radius, cell.parentOctree->getCellSize(nNSS.level));
+	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
+	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
 
 	//we already know the points lying in the first cell (this is the one we are treating :)
 	try
@@ -335,7 +340,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 
 	DgmOctree::NeighboursSet::iterator it = nNSS.pointsInNeighbourhood.begin();
 	{
-		for (unsigned i=0; i<n; ++i,++it)
+		for (unsigned i = 0; i < n; ++i, ++it)
 		{
 			it->point = cell.points->getPointPersistentPtr(i);
 			it->pointIndex = cell.points->getPointGlobalIndex(i);
@@ -348,7 +353,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 	//Pure Gaussian Filtering
 	if (sigmaSF == -1)
 	{
-		for (unsigned i=0; i<n; ++i) //for each point in cell
+		for (unsigned i = 0; i < n; ++i) //for each point in cell
 		{
 			//we get the points inside a spherical neighbourhood (radius: '3*sigma')
 			cell.points->getPoint(i,nNSS.queryPoint);
@@ -359,9 +364,9 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 			it = nNSS.pointsInNeighbourhood.begin();
 			double meanValue = 0.0;
 			double wSum = 0.0;
-			for (unsigned j=0;j<k;++j,++it)
+			for (unsigned j = 0; j < k; ++j, ++it)
 			{
-				double weight = exp(-(it->squareDistd)/sigma2); //PDF: -exp(-(x-mu)^2/(2*sigma^2))
+				double weight = exp(-(it->squareDistd) / sigma2); //PDF: -exp(-(x-mu)^2/(2*sigma^2))
 				ScalarType val = cloud->getPointScalarValue(it->pointIndex);
 				//scalar value must be valid
 				if (ScalarField::ValidValue(val))
@@ -373,7 +378,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 
 			ScalarType newValue = (wSum > 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
 
-			cell.points->setPointScalarValue(i,newValue);
+			cell.points->setPointScalarValue(i, newValue);
 
 			if (nProgress && !nProgress->oneStep())
 				return false;
@@ -382,24 +387,24 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 	//Bilateral Filtering using the second sigma parameters on values (when given)
 	else
 	{
-		for (unsigned i=0;i<n;++i) //for each point in cell
+		for (unsigned i = 0; i < n; ++i) //for each point in cell
 		{
 			ScalarType queryValue = cell.points->getPointScalarValue(i); //scalar of the query point
 
 			//we get the points inside a spherical neighbourhood (radius: '3*sigma')
-			cell.points->getPoint(i,nNSS.queryPoint);
+			cell.points->getPoint(i, nNSS.queryPoint);
 			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (k)!
-			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS,radius,false);
+			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, radius, false);
 
 			//each point adds a contribution weighted by its distance to the sphere center
 			it = nNSS.pointsInNeighbourhood.begin();
 			double meanValue = 0.0;
 			double wSum = 0.0;
-			for (unsigned j=0;j<k;++j,++it)
+			for (unsigned j = 0; j < k; ++j, ++it)
 			{
 				ScalarType val = cloud->getPointScalarValue(it->pointIndex);
 				ScalarType dSF = queryValue - val;
-				double weight = exp(-(it->squareDistd)/sigma2) * exp(-(dSF*dSF)/sigmaSF2);
+				double weight = exp(-(it->squareDistd) / sigma2) * exp(-(dSF*dSF) / sigmaSF2);
 				//scalar value must be valid
 				if (ScalarField::ValidValue(val))
 				{
@@ -408,7 +413,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 				}
 			}
 
-			cell.points->setPointScalarValue(i,wSum > 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
+			cell.points->setPointScalarValue(i, wSum > 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
 
 			if (nProgress && !nProgress->oneStep())
 				return false;

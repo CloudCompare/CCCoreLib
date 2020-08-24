@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
-// Copyright Â© EDF R&D / TELECOM ParisTech (ENST-TSI)
+// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 #pragma once
 
@@ -80,6 +80,8 @@ namespace CCCoreLib
 			this method gives the signal for its creation. Otherwise, if possible
 			the structure size should be pre-reserved with the same number of
 			elements as the point cloud.
+			\warning If the cloud is empty, the scalar field will be empty as well.
+			         The scalar field will be reserved with the same capacity as the cloud.
 		**/
 		virtual bool enableScalarField() = 0;
 
