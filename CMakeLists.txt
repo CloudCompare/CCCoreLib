@@ -181,6 +181,12 @@ endif()
 if ( CCCORELIB_USE_CGAL )
 	find_package( CGAL REQUIRED )
 
+	if( WIN32 )
+		# Need to force the visibility of these variables so that we can use them later
+		set (GMP_LIBRARIES ${GMP_LIBRARIES} PARENT_SCOPE) 
+		set (MPFR_LIBRARIES ${MPFR_LIBRARIES} PARENT_SCOPE) 
+	endif()
+
 	if ( CCCORELIB_USE_TBB )
 		if ( TBB_FOUND )
 			# Once Linux libcgal-dev >= 5.0, target_compile_definitions replaced by:
