@@ -397,6 +397,9 @@ namespace CCCoreLib
 				return -1;
 			}
 
+			// Link the scalar field to this cloud
+			sf->link();
+
 			return static_cast<int>(m_scalarFields.size()) - 1;
 		}
 
