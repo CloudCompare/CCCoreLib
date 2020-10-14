@@ -37,10 +37,46 @@ namespace CCCoreLib
 			, m_currentOutScalarFieldIndex(-1)
 		{}
 
+		//! Copy Constructor
+		PointCloudTpl(const PointCloudTpl &rhs)
+			: T()
+			, m_points(rhs.m_points)
+			, m_bbox(rhs.m_bbox)
+			, m_currentPointIndex(rhs.m_currentPointIndex)
+			, m_scalarFields(rhs.m_scalarFields)
+			, m_currentInScalarFieldIndex(rhs.m_currentInScalarFieldIndex)
+			, m_currentOutScalarFieldIndex(rhs.m_currentOutScalarFieldIndex)
+		{
+			// Link all the existing scalar fields so they don't get deleted when rhs goes out of scope
+			for (ScalarField *sf : m_scalarFields)
+			{
+				sf->link();
+			}
+		}
+
 		//! Default destructor
 		virtual ~PointCloudTpl()
 		{
 			deleteAllScalarFields();
+		}
+
+		//! Copy Assignment
+		PointCloudTpl &operator=(const PointCloudTpl &rhs)
+		{
+			m_points = rhs.m_points;
+			m_bbox = rhs.m_bbox;
+			m_currentPointIndex = rhs.m_currentPointIndex;
+			m_scalarFields = rhs.m_scalarFields;
+			m_currentInScalarFieldIndex = rhs.m_currentInScalarFieldIndex;
+			m_currentOutScalarFieldIndex = rhs.m_currentOutScalarFieldIndex;
+
+			// Link all the existing scalar fields so they don't get deleted when rhs goes out of scope
+			for (ScalarField *sf : m_scalarFields)
+			{
+				sf->link();
+			}
+
+			return *this;
 		}
 
 		inline unsigned size() const override { return static_cast<unsigned>(m_points.size()); }
