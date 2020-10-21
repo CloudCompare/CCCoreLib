@@ -3244,18 +3244,18 @@ DgmOctree::octreeCell::~octreeCell()
 }
 
 #ifdef ENABLE_MT_OCTREE
-void DgmOctree::LaunchOctreeCellFunc_MT(const octreeCellDesc& desc)
+void DgmOctree::multiThreadingWrapper::launchOctreeCellFunc(const octreeCellDesc& desc)
 {
 	//skip cell if process is aborted/has failed
-	if (!s_cellFunc_MT_success)
+	if (!cellFunc_success)
 	{
 		return;
 	}
 
-	const DgmOctree::cellsContainer& pointsAndCodes = s_octree_MT->pointsAndTheirCellCodes();
+	const DgmOctree::cellsContainer& pointsAndCodes = octree->pointsAndTheirCellCodes();
 
 	//cell descriptor
-	DgmOctree::octreeCell cell(s_octree_MT);
+	DgmOctree::octreeCell cell(octree);
 	cell.level = desc.level;
 	cell.index = desc.i1;
 	cell.truncatedCode = desc.truncatedCode;
@@ -3266,29 +3266,29 @@ void DgmOctree::LaunchOctreeCellFunc_MT(const octreeCellDesc& desc)
 			cell.points->addPointIndex(pointsAndCodes[i].theIndex);
 		}
 
-		s_cellFunc_MT_success &= (*s_func_MT)(cell, s_userParams_MT, s_normProgressCb_MT);
+		cellFunc_success &= (*cell_func)(cell, userParams, normProgressCb);
 	}
 	else
 	{
-		s_cellFunc_MT_success = false;
+		cellFunc_success = false;
 	}
 
-	if (!s_cellFunc_MT_success)
+	if (!cellFunc_success)
 	{
 		//TODO: display a message to make clear that the cancel order has been acknowledged!
-		if (s_progressCb_MT)
+		if (progressCb)
 		{
-			if (s_progressCb_MT->textCanBeEdited())
+			if (progressCb->textCanBeEdited())
 			{
-				s_progressCb_MT->setInfo("Cancelling...");
+				progressCb->setInfo("Cancelling...");
 			}
 		}
 
-		//if (s_normProgressCb_MT)
+		//if (normProgressCb)
 		//{
-		//	if (!s_normProgressCb_MT->oneStep())
+		//	if (!normProgressCb->oneStep())
 		//	{
-		//		s_cellFunc_MT_success = false;
+		//		cellFunc_success = false;
 		//		return;
 		//	}
 		//}
@@ -3470,15 +3470,15 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		cells.push_back(cellDesc);
 
 		//static wrap
-		s_octree_MT = this;
-		s_func_MT = func;
-		s_userParams_MT = additionalParameters;
-		s_cellFunc_MT_success = true;
-		s_progressCb_MT = progressCb;
-		if (s_normProgressCb_MT)
+		m_MT_wrapper.octree = this;
+		m_MT_wrapper.cell_func = func;
+		m_MT_wrapper.userParams = additionalParameters;
+		m_MT_wrapper.cellFunc_success = true;
+		m_MT_wrapper.progressCb = progressCb;
+		if (m_MT_wrapper.normProgressCb)
 		{
-			delete s_normProgressCb_MT;
-			s_normProgressCb_MT = 0;
+			delete m_MT_wrapper.normProgressCb;
+			m_MT_wrapper.normProgressCb = 0;
 		}
 
 		//progress notification
@@ -3495,7 +3495,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 				progressCb->setInfo(buffer);
 			}
 			progressCb->update(0);
-			s_normProgressCb_MT = new NormalizedProgress(progressCb,m_theAssociatedCloud->size());
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb,m_theAssociatedCloud->size());
 			progressCb->start();
 		}
 
@@ -3511,7 +3511,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			maxThreadCount = QThread::idealThreadCount();
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { LaunchOctreeCellFunc_MT(desc); } );
+		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
 		FILE* fp = fopen("octree_log.txt", "at");
@@ -3528,21 +3528,21 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		}
 #endif
 
-		s_octree_MT = nullptr;
-		s_func_MT = nullptr;
-		s_userParams_MT = nullptr;
+		m_MT_wrapper.octree = nullptr;
+		m_MT_wrapper.cell_func = nullptr;
+		m_MT_wrapper.userParams = nullptr;
 
 		if (progressCb)
 		{
 			progressCb->stop();
-			if (s_normProgressCb_MT)
-				delete s_normProgressCb_MT;
-			s_normProgressCb_MT = nullptr;
-			s_progressCb_MT = nullptr;
+			if (m_MT_wrapper.normProgressCb)
+				delete m_MT_wrapper.normProgressCb;
+			m_MT_wrapper.normProgressCb = nullptr;
+			m_MT_wrapper.progressCb = nullptr;
 		}
 
 		//if something went wrong, we clear everything and return 0!
-		if (!s_cellFunc_MT_success)
+		if (!m_MT_wrapper.cellFunc_success)
 			cells.clear();
 
 		return static_cast<unsigned>(cells.size());
@@ -4019,13 +4019,13 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		double stddev = sqrt(static_cast<double>(popSum2 - popSum*popSum)) / cells.size();
 
 		//static wrap
-		s_octree_MT = this;
-		s_func_MT = func;
-		s_userParams_MT = additionalParameters;
-		s_cellFunc_MT_success = true;
-		if (s_normProgressCb_MT)
-			delete s_normProgressCb_MT;
-		s_normProgressCb_MT = nullptr;
+		m_MT_wrapper.octree = this;
+		m_MT_wrapper.cell_func = func;
+		m_MT_wrapper.userParams = additionalParameters;
+		m_MT_wrapper.cellFunc_success = true;
+		if (m_MT_wrapper.normProgressCb)
+			delete m_MT_wrapper.normProgressCb;
+		m_MT_wrapper.normProgressCb = nullptr;
 
 		//progress notification
 		if (progressCb)
@@ -4040,11 +4040,11 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 				sprintf(buffer, "Octree levels %i - %i\nCells: %i\nAverage population: %3.2f (+/-%3.2f)\nMax population: %llu", startingLevel, MAX_OCTREE_LEVEL, static_cast<int>(cells.size()), mean, stddev, maxPop);
 				progressCb->setInfo(buffer);
 			}
-			if (s_normProgressCb_MT)
+			if (m_MT_wrapper.normProgressCb)
 			{
-				delete s_normProgressCb_MT;
+				delete m_MT_wrapper.normProgressCb;
 			}
-			s_normProgressCb_MT = new NormalizedProgress(progressCb,static_cast<unsigned>(cells.size()));
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb,static_cast<unsigned>(cells.size()));
 			progressCb->update(0);
 			progressCb->start();
 		}
@@ -4061,7 +4061,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			maxThreadCount = QThread::idealThreadCount();
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { LaunchOctreeCellFunc_MT(desc); } );
+		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
 		FILE* fp=fopen("octree_log.txt","at");
@@ -4078,20 +4078,20 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		}
 #endif
 
-		s_octree_MT = nullptr;
-		s_func_MT = nullptr;
-		s_userParams_MT = nullptr;
+		m_MT_wrapper.octree = nullptr;
+		m_MT_wrapper.cell_func = nullptr;
+		m_MT_wrapper.userParams = nullptr;
 
 		if (progressCb)
 		{
 			progressCb->stop();
-			if (s_normProgressCb_MT)
-				delete s_normProgressCb_MT;
-			s_normProgressCb_MT = nullptr;
+			if (m_MT_wrapper.normProgressCb)
+				delete m_MT_wrapper.normProgressCb;
+			m_MT_wrapper.normProgressCb = nullptr;
 		}
 
 		//if something went wrong, we clear everything and return 0!
-		if (!s_cellFunc_MT_success)
+		if (!m_MT_wrapper.cellFunc_success)
 			cells.resize(0);
 
 		return static_cast<unsigned>(cells.size());

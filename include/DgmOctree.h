@@ -1255,7 +1255,7 @@ namespace CCCoreLib
 		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitDec, unsigned begin, unsigned end) const;
 
 #ifdef ENABLE_MT_OCTREE
-		/*** FOR THE MULTI THREADING WRAPPER ***/
+		//! Octree cell description helper struct
 		struct octreeCellDesc
 		{
 			DgmOctree::CellCode truncatedCode;
@@ -1263,14 +1263,19 @@ namespace CCCoreLib
 			unsigned char level;
 		};
 
-		DgmOctree* s_octree_MT = nullptr;
-		DgmOctree::octreeCellFunc s_func_MT = nullptr;
-		void** s_userParams_MT = nullptr;
-		GenericProgressCallback* s_progressCb_MT = nullptr;
-		NormalizedProgress* s_normProgressCb_MT = nullptr;
-		bool s_cellFunc_MT_success = true;
+		//! Structure containing objects needed to run octree operations in parallel
+		struct multiThreadingWrapper
+		{
+			DgmOctree *octree = nullptr;
+			DgmOctree::octreeCellFunc cell_func = nullptr;
+			void **userParams = nullptr;
+			GenericProgressCallback *progressCb = nullptr;
+			NormalizedProgress *normProgressCb = nullptr;
+			bool cellFunc_success = true;
 
-		void LaunchOctreeCellFunc_MT(const octreeCellDesc& desc);
+			void launchOctreeCellFunc(const octreeCellDesc& desc);
+		};
+		multiThreadingWrapper m_MT_wrapper;
 #endif
 	};
 
