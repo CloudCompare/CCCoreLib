@@ -258,11 +258,17 @@ install(
 	NAMESPACE
 		CCCoreLib::
 	DESTINATION
-		cmake/CCCoreLib
+		lib/cmake/CCCoreLib
 )
 
 # CMake Package Files
 include( CMakePackageConfigHelpers )
+
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
 
 write_basic_package_version_file( CCCoreLibConfigVersion.cmake
 	VERSION
@@ -274,8 +280,9 @@ write_basic_package_version_file( CCCoreLibConfigVersion.cmake
 install(
 	FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/CCCoreLibConfigVersion.cmake"
+		"${CMAKE_CURRENT_BINARY_DIR}/CCCoreLibConfig.cmake"
 	DESTINATION
-		cmake/CCCoreLib
+		lib/cmake/CCCoreLib
 )
 
 # Export
