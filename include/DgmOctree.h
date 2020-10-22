@@ -20,6 +20,9 @@
 //DGM: tests in progress
 //#define TEST_CELLS_FOR_SPHERICAL_NN
 
+//enables multi-threading handling
+#define ENABLE_MT_OCTREE
+
 namespace CCCoreLib
 {
 	class ReferenceCloud;
@@ -1250,6 +1253,30 @@ namespace CCCoreLib
 			\return the index of the cell (or 'm_numberOfProjectedPoints' if none found)
 		**/
 		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitDec, unsigned begin, unsigned end) const;
+
+#ifdef ENABLE_MT_OCTREE
+		//! Octree cell description helper struct
+		struct octreeCellDesc
+		{
+			DgmOctree::CellCode truncatedCode;
+			unsigned i1, i2;
+			unsigned char level;
+		};
+
+		//! Structure containing objects needed to run octree operations in parallel
+		struct multiThreadingWrapper
+		{
+			DgmOctree *octree = nullptr;
+			DgmOctree::octreeCellFunc cell_func = nullptr;
+			void **userParams = nullptr;
+			GenericProgressCallback *progressCb = nullptr;
+			NormalizedProgress *normProgressCb = nullptr;
+			bool cellFunc_success = true;
+
+			void launchOctreeCellFunc(const octreeCellDesc& desc);
+		};
+		multiThreadingWrapper m_MT_wrapper;
+#endif
 	};
 
 }
