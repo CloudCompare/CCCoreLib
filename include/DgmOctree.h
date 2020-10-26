@@ -20,8 +20,10 @@
 //DGM: tests in progress
 //#define TEST_CELLS_FOR_SPHERICAL_NN
 
-//enables multi-threading handling
+#ifndef CC_DEBUG
+//enables multi-threading handling (Release only)
 #define ENABLE_MT_OCTREE
+#endif
 
 namespace CCCoreLib
 {

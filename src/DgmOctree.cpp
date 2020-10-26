@@ -19,13 +19,10 @@
 //#define COMPUTE_NN_SEARCH_STATISTICS
 //#define ADAPTATIVE_BINARY_SEARCH
 
-#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-#ifndef CC_DEBUG
-
-#include <QtConcurrentMap>
-#include <QtCore>
+#ifdef ENABLE_MT_OCTREE
+#include <QThread>
 #include <QThreadPool>
-#endif
+#include <QtConcurrentMap>
 #endif
 
 using namespace CCCoreLib;
