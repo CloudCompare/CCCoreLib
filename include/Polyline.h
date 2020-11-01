@@ -24,7 +24,7 @@ namespace CCCoreLib
 		inline bool isClosed() const { return m_isClosed; }
 
 		//! Sets whether the polyline is closed or not
-		inline void setClosed(bool state) { m_isClosed = state; }
+		inline virtual void setClosed(bool state) { m_isClosed = state; }
 
 		//inherited from ReferenceCloud
 		void clear(bool unusedParam = true) override;
