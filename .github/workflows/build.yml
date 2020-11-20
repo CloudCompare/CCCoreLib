@@ -46,7 +46,7 @@ jobs:
         run: |
           brew install cgal ninja qt5 tbb
 
-          echo "::set-env name=Qt5_DIR::/usr/local/opt/qt5/lib/cmake/Qt5"
+          echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
 
       - name: Install Dependencies (Ubuntu)
         if: matrix.config.os == 'ubuntu-latest'
@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Dependencies (Windows)
         if: matrix.config.os == 'windows-latest'
-        uses: goanpeca/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: CCCoreLib
           auto-activate-base: false
@@ -80,9 +80,9 @@ jobs:
         if:  matrix.config.os == 'windows-latest'
         run: |
           # Set these env vars so cmake picks the correct compiler
-          echo "::set-env name=CXX::cl.exe"
-          echo "::set-env name=CC::cl.exe"
-
+          # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
+          echo "CXX=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CC=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Configure
         run: >
           mkdir cccorelib-build
