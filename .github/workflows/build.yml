@@ -46,7 +46,7 @@ jobs:
         run: |
           brew install cgal ninja qt5 tbb
 
-          echo "name=Qt5_DIR::/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
+          echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
 
       - name: Install Dependencies (Ubuntu)
         if: matrix.config.os == 'ubuntu-latest'
