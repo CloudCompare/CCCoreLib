@@ -21,8 +21,11 @@
 //#define TEST_CELLS_FOR_SPHERICAL_NN
 
 #ifndef CC_DEBUG
+#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 //enables multi-threading handling (Release only)
+//requires Qt Concurrent
 #define ENABLE_MT_OCTREE
+#endif //CC_CORE_LIB_USES_QT_CONCURRENT
 #endif
 
 namespace CCCoreLib
