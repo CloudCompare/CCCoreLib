@@ -620,9 +620,9 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 
 	unsigned char octreeLevel = 0;
 	if (useKnn)
-		octreeLevel = octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(kernelRadius);
-	else
 		octreeLevel = octree->findBestLevelForAGivenPopulationPerCell(knn);
+	else
+		octreeLevel = octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(kernelRadius);
 
 	if (octree->executeFunctionForAllCellsAtLevel(	octreeLevel,
 													&applyNoiseFilterAtLevel,
