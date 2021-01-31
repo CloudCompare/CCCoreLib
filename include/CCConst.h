@@ -24,18 +24,6 @@ namespace CCCoreLib
 	//! Square root of 3
 	constexpr double SQRT_3 = 1.7320508075688772935274463415059;
 	
-	//! Conversion factor from radians to degrees
-	[[deprecated( "Use CCCoreLib::RadiansToDegrees()" )]]
-	constexpr double RAD_TO_DEG = (180.0/M_PI);
-	
-	//! Conversion factor from degrees to radians
-	[[deprecated( "Use CCCoreLib::DegreesToRadians()" )]]
-	constexpr double DEG_TO_RAD = (M_PI/180.0);
-	
-	//! Numerical threshold for considering a value as "zero"
-	[[deprecated( "Use ZERO_TOLERANCE_F/ZERO_TOLERANCE_D or CCCoreLib::LessThanEpsilon()/CCCoreLib::GreaterThanEpsilon()" )]]
-	constexpr double ZERO_TOLERANCE = std::numeric_limits<float>::epsilon();
-	
 	//! ZERO_TOLERANCE_F is used to set or compare a float variable to "close to zero".
 	constexpr float ZERO_TOLERANCE_F = std::numeric_limits<float>::epsilon();
 	
