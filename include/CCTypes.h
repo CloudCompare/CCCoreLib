@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "CCCoreLib.h"
+
 //! Type of the coordinates of a (N-D) point
 using PointCoordinateType = float;
 
