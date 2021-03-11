@@ -4,7 +4,6 @@
 target_sources( ${PROJECT_NAME}
 	PRIVATE
 		${CMAKE_CURRENT_LIST_DIR}/AutoSegmentationTools.cpp
-		${CMAKE_CURRENT_LIST_DIR}/BoundingBox.cpp
 		${CMAKE_CURRENT_LIST_DIR}/CCMiscTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/CCShareable.cpp
 		${CMAKE_CURRENT_LIST_DIR}/ChamferDistanceTransform.cpp
