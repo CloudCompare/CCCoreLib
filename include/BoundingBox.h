@@ -39,7 +39,7 @@ namespace CCCoreLib
 			if (!bbox.isValid())
 				return *this;
 
-			BoundingBox tempBox;
+			BoundingBoxTpl<T> tempBox;
 			{
 				tempBox.m_bbMin.x = std::min(m_bbMin.x, bbox.m_bbMin.x);
 				tempBox.m_bbMin.y = std::min(m_bbMin.y, bbox.m_bbMin.y);
