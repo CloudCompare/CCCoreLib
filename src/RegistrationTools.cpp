@@ -612,7 +612,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				finalRMS = rms;
 				finalPointCount = data.cloud->size();
 
-				if ( LessThanEpsilon( rms ) )
+				if (LessThanEpsilon(rms))
 				{
 					//nothing to do
 					result = ICP_NOTHING_TO_DO;
@@ -879,7 +879,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			Np = (*Bp - *Ap).cross(*Cp - *Ap);
 			double norm = Np.normd();
-			if ( LessThanEpsilon( norm ) )
+			if (LessThanEpsilon(norm))
 			{
 				return false;
 			}
@@ -894,7 +894,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			Nx = (*Bx - *Ax).cross(*Cx - *Ax);
 			double norm = Nx.normd();
-			if ( LessThanEpsilon( norm ) )
+			if (LessThanEpsilon(norm))
 			{
 				return false;
 			}
@@ -902,7 +902,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 		//now the rotation is simply the rotation from Nx to Np, centered on Gx
 		CCVector3 a = Np.cross(Nx);
-		if ( LessThanEpsilon( a.norm() ) )
+		if (LessThanEpsilon(a.norm()))
 		{
 			trans.R = SquareMatrix(3);
 			trans.R.toIdentity();
@@ -931,7 +931,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		{
 			double sumNormP = (*Bp - *Ap).norm() + (*Cp - *Bp).norm() + (*Ap - *Cp).norm();
 			sumNormP *= aPrioriScale;
-			if ( LessThanEpsilon( sumNormP ) )
+			if (LessThanEpsilon(sumNormP))
 			{
 				return false;
 			}
@@ -970,8 +970,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			Ssum += rx.cross(rp);
 
 			S = Ssum.dot(Nx);
-			double Q = sqrt(S*S + C * C);
-			if ( LessThanEpsilon( Q ) )
+			double Q = sqrt(S*S + C*C);
+			if (LessThanEpsilon(Q))
 			{
 				return false;
 			}
@@ -1017,7 +1017,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		//it's the case when the two clouds are very far away from
 		//each other in the ICP process) we try to get the two clouds closer
 		CCVector3 diag = bbMax - bbMin;
-		if ( LessThanEpsilon( std::abs(diag.x) + std::abs(diag.y) + std::abs(diag.z) ) )
+		if (LessThanEpsilon(std::abs(diag.x) + std::abs(diag.y) + std::abs(diag.z)))
 		{
 			trans.T = Gx - Gp * aPrioriScale;
 			return true;

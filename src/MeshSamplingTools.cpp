@@ -233,7 +233,7 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 	//total mesh surface
 	double Stotal = computeMeshArea(mesh);
 
-	if ( LessThanEpsilon( Stotal ) )
+	if (LessThanEpsilon(Stotal))
 		return nullptr;
 
 	double samplingDensity = numberOfPoints / Stotal;

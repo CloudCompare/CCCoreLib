@@ -32,6 +32,9 @@ namespace CCCoreLib
 	//! std::numeric_limits<double>::epsilon() results in numbers that are too small for our purposes.
 	constexpr double ZERO_TOLERANCE_D = static_cast<double>(ZERO_TOLERANCE_F);
 	
+	//! ZERO_SQUARED_TOLERANCE_D is used to set or compare a (square) value to "close to zero".
+	constexpr double ZERO_SQUARED_TOLERANCE_D = ZERO_TOLERANCE_D * ZERO_TOLERANCE_D;
+
 	//! ZERO_TOLERANCE_SCALAR is used to set or compare a ScalarType variable to "close to zero".
 	constexpr ScalarType ZERO_TOLERANCE_SCALAR = std::numeric_limits<ScalarType>::epsilon();
 	

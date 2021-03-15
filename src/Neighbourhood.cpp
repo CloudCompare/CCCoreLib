@@ -267,10 +267,10 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	}
 
 	//make sure all vectors are unit!
-	if ( LessThanEpsilon( m_lsPlaneVectors[2].norm2() ) )
+	if (LessThanSquareEpsilon(m_lsPlaneVectors[2].norm2()))
 	{
 		//this means that the points are colinear!
-		//m_lsPlaneVectors[2] = CCVector3(0,0,1); //any normal will do
+		//m_lsPlaneVectors[2] = CCVector3(0, 0, 1); //any normal will do
 		return false;
 	}
 	else
@@ -625,7 +625,7 @@ GenericIndexedMesh* Neighbourhood::triangulateOnPlane( bool duplicateVertices,
 	}
 
 	//safety check: Triangle lib will crash if the points are all the same!
-	if ( LessThanEpsilon( computeLargestRadius() ) )
+	if (LessThanEpsilon(computeLargestRadius()))
 	{
 		return nullptr;
 	}
@@ -1007,7 +1007,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			e.z = eigValues[2];
 
 			const double sum = e.x + e.y + e.z; //we work with absolute values
-			if ( LessThanEpsilon( sum ) )
+			if (LessThanEpsilon(sum))
 			{
 				return NAN_VALUE;
 			}

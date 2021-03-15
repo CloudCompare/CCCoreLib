@@ -316,13 +316,13 @@ double WeibullDistribution::FindGRoot(const ScalarContainer& values, ScalarType 
 	double vMax = v;
 
 	//find min value for binary search so that ComputeG(aMin) < 0
-	while ((vMin > 0) && GreaterThanEpsilon( aMin))
+	while (vMin > 0 && GreaterThanEpsilon(aMin))
 	{
 		aMin /= 10;
 		vMin = ComputeG(values, aMin, valueShift, valueRange);
 	}
 
-	if ( LessThanEpsilon( std::abs(vMin) ) )
+	if (LessThanEpsilon(std::abs(vMin)))
 	{
 		return aMin;
 	}
@@ -338,7 +338,7 @@ double WeibullDistribution::FindGRoot(const ScalarContainer& values, ScalarType 
 		vMax = ComputeG(values, aMax, valueShift, valueRange);
 	}
 
-	if ( LessThanEpsilon( std::abs(vMax) ) )
+	if (LessThanEpsilon(std::abs(vMax)))
 	{
 		return aMax;
 	}
@@ -347,14 +347,14 @@ double WeibullDistribution::FindGRoot(const ScalarContainer& values, ScalarType 
 		return r; //r = -1 (i.e. problem)
 	}
 
-	//binary search to find r so that std::abs(ComputeG(r)) < ZERO_TOLERANCE
-	while ( GreaterThanEpsilon( std::abs(v) * 100 ) ) //DGM: *100 ?! (can't remember why ;)
+	//binary search to find r so that ComputeG(r) is almost zero
+	while (GreaterThanEpsilon(std::abs(v) * 100)) //DGM: *100 ?! (can't remember why ;)
 	{
 		r = (aMin + aMax) / 2;
 		double old_v = v;
 		v = ComputeG(values, r, valueShift, valueRange);
 
-		if ( LessThanEpsilon( std::abs(old_v - v) ) )
+		if (LessThanEpsilon(std::abs(old_v - v)))
 			return r;
 
 		if (v < 0)

@@ -188,7 +188,7 @@ bool ScalarFieldTools::computeMeanGradientOnPatch(	const DgmOctree::octreeCell& 
 						CCVector3 deltaPos = *nNSS.pointsInNeighbourhood[j].point - nNSS.queryPoint;
 						double norm2 = deltaPos.norm2d();
 
-						if ( GreaterThanEpsilon( norm2 ) )
+						if ( GreaterThanSquareEpsilon( norm2 ) )
 						{
 							double deltaValue = static_cast<double>(v2 - v1);
 							if (!euclideanDistances || deltaValue*deltaValue < 1.01 * norm2)
