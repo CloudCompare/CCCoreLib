@@ -820,9 +820,9 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 		CCVector3 CA = (*triPoints[0]) - (*triPoints[2]);
 
 		//be sure that the triangle is not degenerate!!!
-		if ( GreaterThanEpsilon( AB.norm2() ) &&
-			 GreaterThanEpsilon( BC.norm2() ) &&
-			 GreaterThanEpsilon( CA.norm2() ) )
+		if ( GreaterThanSquareEpsilon( AB.norm2() ) &&
+			 GreaterThanSquareEpsilon( BC.norm2() ) &&
+			 GreaterThanSquareEpsilon( CA.norm2() ) )
 		{
 			Tuple3i cellPos[3];
 			octree->getTheCellPosWhichIncludesThePoint(triPoints[0], cellPos[0], octreeLevel);
@@ -2623,18 +2623,20 @@ int DistanceComputationTools::computeCloud2PlaneEquation(GenericIndexedCloudPers
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
-	//but the norm should always be equal to 1.0!
-	PointCoordinateType norm2 = CCVector3::vnorm2(planeEquation);
-	assert(std::abs(sqrt(norm2) - PC_ONE) <= std::numeric_limits<PointCoordinateType>::epsilon());
-	if ( LessThanEpsilon( norm2 ) )
+	double norm2 = CCVector3::vnorm2d(planeEquation);
+	//the norm should always be equal to 1.0!
+	if (LessThanSquareEpsilon(norm2))
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_PLANE_NORMAL_LT_ZERO;
 	}
+	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
+
+	//compute deviations
 	double dSumSq = 0.0;
 	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = cloud->getPoint(i);
-		double d = static_cast<double>(CCVector3::vdotd(P->u, planeEquation) - planeEquation[3]);
+		double d = CCVector3::vdotd(P->u, planeEquation) - planeEquation[3];
 		if (signedDistances)
 		{
 			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
@@ -2861,9 +2863,9 @@ int DistanceComputationTools::computeCloud2BoxEquation(GenericIndexedCloudPersis
 
 int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudPersist* cloud, const Polyline* polyline, double* rms /*= nullptr*/)
 {
-	assert(cloud);
 	if (!cloud)
 	{
+		assert(false);
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
 	unsigned count = cloud->size();
@@ -2875,6 +2877,16 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
+	if (!polyline)
+	{
+		assert(false);
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_REFERENCEPOLYLINE;
+	}
+	if (polyline->size() < 2)
+	{
+		assert(false);
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_TOOSMALL_REFERENCEPOLYLINE;
+	}
 	ScalarType d = 0;
 	ScalarType dSumSq = 0;
 	for (unsigned i = 0; i < count; ++i)
@@ -2885,23 +2897,13 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 		{
 			const CCVector3* start = polyline->getPoint(j);
 			const CCVector3* end = polyline->getPoint(j + 1);
-			PointCoordinateType startXMinusA = start->x - p->x;
-			PointCoordinateType startYMinusB = start->y - p->y;
-			PointCoordinateType startZMinusC = start->z - p->z;
-			PointCoordinateType endXMinusA = end->x - p->x;
-			PointCoordinateType endYMinusB = end->y - p->y;
-			PointCoordinateType endZMinusC = end->z - p->z;
-			PointCoordinateType startXMinusASq = startXMinusA * startXMinusA;
-			PointCoordinateType startYMinusBSq = startYMinusB * startYMinusB;
-			PointCoordinateType startZMinusCSq = startZMinusC * startZMinusC;
-			PointCoordinateType endXMinusASq = endXMinusA * endXMinusA;
-			PointCoordinateType endYMinusBSq = endYMinusB * endYMinusB;
-			PointCoordinateType endZMinusCSq = endZMinusC * endZMinusC;
+			CCVector3d startMinusP = CCVector3d ::fromArray((*start - *p).u);
+			CCVector3d endMinusP = CCVector3d::fromArray((*end - *p).u);
 
 			//Rejection test
-			if (((startXMinusASq >= distSq) && (endXMinusASq >= distSq) && GreaterThanEpsilon( startXMinusA * endXMinusA )) ||
-					((startYMinusBSq >= distSq) && (endYMinusBSq >= distSq) && GreaterThanEpsilon( startYMinusB * endYMinusB )) ||
-					((startZMinusCSq >= distSq) && (endZMinusCSq >= distSq) && GreaterThanEpsilon( startZMinusC * endZMinusC ))
+			if (	((startMinusP.x * startMinusP.x >= distSq) && (endMinusP.x * endMinusP.x >= distSq) && GreaterThanSquareEpsilon( startMinusP.x * endMinusP.x )) ||
+					((startMinusP.y * startMinusP.y >= distSq) && (endMinusP.y * endMinusP.y >= distSq) && GreaterThanSquareEpsilon( startMinusP.y * endMinusP.y )) ||
+					((startMinusP.z * startMinusP.z >= distSq) && (endMinusP.z * endMinusP.z >= distSq) && GreaterThanSquareEpsilon( startMinusP.z * endMinusP.z ))
 					)
 			{
 				continue;
@@ -2943,27 +2945,26 @@ ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
-	//but the norm should always be equal to 1.0!
-	PointCoordinateType norm2 = CCVector3::vnorm2(planeEquation);
-	if ( LessThanEpsilon( norm2 ) )
+	double norm2 = CCVector3::vnorm2d(planeEquation);
+	//the norm should always be equal to 1.0!
+	if (LessThanSquareEpsilon(norm2))
 	{
 		return NAN_VALUE;
 	}
-	assert(std::abs(sqrt(norm2) - PC_ONE) <= std::numeric_limits<PointCoordinateType>::epsilon());
-
-	double dSumSq = 0.0;
+	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
 
 	//compute deviations
+	double dSumSq = 0.0;
 	cloud->placeIteratorAtBeginning();
-	for (unsigned i=0; i<count; ++i)
+	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = cloud->getNextPoint();
-		double d = static_cast<double>(CCVector3::vdotd(P->u,planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
+		double d = CCVector3::vdotd(P->u, planeEquation) - planeEquation[3]/*/norm*/; //norm == 1.0
 
 		dSumSq += d*d;
 	}
 
-	return static_cast<ScalarType>( sqrt(dSumSq/count) );
+	return static_cast<ScalarType>(sqrt(dSumSq / count));
 }
 
 ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* cloud,
@@ -2985,13 +2986,13 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
-	//but the norm should always be equal to 1.0!
-	PointCoordinateType norm2 = CCVector3::vnorm2(planeEquation);
+	double norm2 = CCVector3::vnorm2d(planeEquation);
+	//the norm should always be equal to 1.0!
 	if ( LessThanEpsilon( norm2 ) )
 	{
 		return NAN_VALUE;
 	}
-	assert(std::abs(sqrt(norm2) - PC_ONE) <= std::numeric_limits<PointCoordinateType>::epsilon());
+	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
 
 	//we search the max @ 'percent'% (to avoid outliers)
 	std::vector<PointCoordinateType> tail;
@@ -3001,10 +3002,10 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	//compute deviations
 	cloud->placeIteratorAtBeginning();
 	std::size_t pos = 0;
-	for (unsigned i=0; i<count; ++i)
+	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = cloud->getNextPoint();
-		PointCoordinateType d = std::abs(CCVector3::vdot(P->u,planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
+		PointCoordinateType d = std::abs(CCVector3::vdot(P->u, planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
 
 		if (pos < tailSize)
 		{
@@ -3048,19 +3049,19 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
-	//but the norm should always be equal to 1.0!
-	PointCoordinateType norm2 = CCVector3::vnorm2(planeEquation);
+	double norm2 = CCVector3::vnorm2d(planeEquation);
+	//the norm should always be equal to 1.0!
 	if ( LessThanEpsilon( norm2 ) )
 	{
 		return NAN_VALUE;
 	}
-	assert(std::abs(sqrt(norm2) - PC_ONE) <= std::numeric_limits<PointCoordinateType>::epsilon());
+	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
 
 	//we search the max distance
 	PointCoordinateType maxDist = 0;
 
 	cloud->placeIteratorAtBeginning();
-	for (unsigned i=0; i<count; ++i)
+	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = cloud->getNextPoint();
 		PointCoordinateType d = std::abs(CCVector3::vdot(P->u,planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0

@@ -149,9 +149,9 @@ namespace CCCoreLib
 				CCVector3 CA = (*triPoints[0]) - (*triPoints[2]);
 
 				//be sure that the triangle is not degenerate!!!
-				if ( GreaterThanEpsilon( AB.norm2() ) &&
-					 GreaterThanEpsilon( BC.norm2() ) &&
-					 GreaterThanEpsilon( CA.norm2() ) )
+				if ( GreaterThanSquareEpsilon( AB.norm2() ) &&
+					 GreaterThanSquareEpsilon( BC.norm2() ) &&
+					 GreaterThanSquareEpsilon( CA.norm2() ) )
 				{
 					Tuple3i cellPos[3];
 					{
@@ -167,7 +167,7 @@ namespace CCCoreLib
 					//compute the triangle bounding-box
 					Tuple3i minPos, maxPos;
 					{
-						for (int k = 0; k<3; k++)
+						for (int k = 0; k < 3; k++)
 						{
 							minPos.u[k] = std::min(cellPos[0].u[k], std::min(cellPos[1].u[k], cellPos[2].u[k]));
 							maxPos.u[k] = std::max(cellPos[0].u[k], std::max(cellPos[1].u[k], cellPos[2].u[k]));

@@ -845,9 +845,9 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 void PointProjectionTools::Transformation::apply(GenericIndexedCloudPersist& cloud) const
 {
 	//always apply the scale before everything (applying before or after rotation does not changes anything)
-	if ( GreaterThanEpsilon( std::abs(s - 1.0) ) )
+	if ( GreaterThanEpsilon( std::abs(s - PC_ONE) ) )
 	{
-		for (unsigned i = 0; i< cloud.size(); ++i)
+		for (unsigned i = 0; i < cloud.size(); ++i)
 		{
 			CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
 			*P *= s;
@@ -856,7 +856,7 @@ void PointProjectionTools::Transformation::apply(GenericIndexedCloudPersist& clo
 
 	if (R.isValid())
 	{
-		for (unsigned i = 0; i< cloud.size(); ++i)
+		for (unsigned i = 0; i < cloud.size(); ++i)
 		{
 			CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
 			(*P) = R * (*P);

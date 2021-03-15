@@ -482,7 +482,7 @@ bool GeometricalAnalysisTools::ComputeApproxPointsDensityInACellAtLevel(const Dg
 			double R2 = nNSS.pointsInNeighbourhood[1].squareDistd;
 
 			ScalarType density = NAN_VALUE;
-			if ( GreaterThanEpsilon( R2 ) )
+			if ( GreaterThanSquareEpsilon( R2 ) )
 			{
 				switch (densityType)
 				{
@@ -764,11 +764,13 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 			const CCVector3* Pi = cloud->getPoint(i);
 			CCVector3d Di = CCVector3d::fromArray(Pi->u) - c;
 			double norm = Di.norm();
-			if ( LessThanEpsilon( norm ) )
+			if (LessThanEpsilon(norm))
+			{
 				continue;
+			}
 
 			meanNorm += norm;
-			derivatives += Di/norm;
+			derivatives += Di / norm;
 			++realCount;
 		}
 
