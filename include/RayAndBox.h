@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-2.0-or-later
 // Copyright © CloudCompare Project
 
 #pragma once
@@ -59,14 +59,13 @@ namespace CCCoreLib
 		}
 		
 		/*
-	   * Ray-box intersection using IEEE numerical properties to ensure that the
-	   * test is both robust and efficient, as described in:
-	   *
-	   *      Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
-	   *      "An Efficient and Robust Ray-Box Intersection Algorithm"
-	   *      Journal of graphics tools, 10(1):49-54, 2005
-	   *
-	   */
+		 * Ray-box intersection using IEEE numerical properties to ensure that the
+		 * test is both robust and efficient, as described in:
+		 *
+		 * Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
+		 * "An Efficient and Robust Ray-Box Intersection Algorithm"
+		 * Journal of graphics tools, 10(1):49-54, 2005
+		 */
 		bool intersects(const Ray<T> &r, T* t0 = 0, T* t1 = 0) const
 		{
 			T tmin  = (corners[  r.sign.x].x - r.origin.x) * r.invDir.x;
