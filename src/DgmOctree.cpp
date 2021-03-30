@@ -20,9 +20,8 @@
 //#define ADAPTATIVE_BINARY_SEARCH
 
 #ifdef ENABLE_MT_OCTREE
-#include <QThread>
-#include <QThreadPool>
-#include <QtConcurrentMap>
+#include <algorithm>
+#include <tbb/parallel_for.h>
 #endif
 
 using namespace CCCoreLib;
@@ -3300,14 +3299,25 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 														bool multiThread/*=false*/,
 														GenericProgressCallback* progressCb/*=0*/,
 														const char* functionTitle/*=0*/,
-														int maxThreadCount/*=0*/)
+														int _ignored_maxThreadCount/*=0*/) 
+{
+	_ignored_maxThreadCount = 0;
+	return executeFunctionForAllCellsAtLevel(level, func, additionalParameters, multiThread, progressCb);
+}
+
+unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
+														octreeCellFunc func,
+														void** additionalParameters,
+														bool multiThread/*=false*/,
+														GenericProgressCallback* progressCb/*=0*/,
+														const char* functionTitle/*=0*/)
 {
 	if (m_thePointsAndTheirCellCodes.empty())
 		return 0;
 
 #ifdef ENABLE_MT_OCTREE
 
-	//cells that will be processed by QtConcurrent::map
+	//cells that will be processed by tbb::parallel_for
 	const unsigned cellsNumber = getCellNumber(level);
 	std::vector<octreeCellDesc> cells;
 
@@ -3503,12 +3513,10 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		s_binarySearchCount = 0.0;
 #endif
 
-		if (maxThreadCount == 0)
-		{
-			maxThreadCount = QThread::idealThreadCount();
-		}
-		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
+		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
+			[&](tbb::blocked_range<int> r) {
+				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
+			});
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
 		FILE* fp = fopen("octree_log.txt", "at");
@@ -3559,7 +3567,22 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 															  bool multiThread/* = true*/,
 															  GenericProgressCallback* progressCb/*=0*/,
 															  const char* functionTitle/*=0*/,
-															  int maxThreadCount/*=0*/)
+															  int _ignored_maxThreadCount/*=0*/)
+{
+	if ( _ignored_maxThreadCount != 0 ) { _ignored_maxThreadCount = 0;}
+	return executeFunctionForAllCellsStartingAtLevel(startingLevel, func, additionalParameters, 
+										minNumberOfPointsPerCell, maxNumberOfPointsPerCell, multiThread, progressCb,
+										functionTitle);
+}
+
+unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char startingLevel,
+															  octreeCellFunc func,
+															  void** additionalParameters,
+															  unsigned minNumberOfPointsPerCell,
+															  unsigned maxNumberOfPointsPerCell,
+															  bool multiThread/* = true*/,
+															  GenericProgressCallback* progressCb/*=0*/,
+															  const char* functionTitle/*=0*/)
 {
 	if (m_thePointsAndTheirCellCodes.empty())
 		return 0;
@@ -3568,7 +3591,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 
 #ifdef ENABLE_MT_OCTREE
 
-	//cells that will be processed by QtConcurrent::map
+	//cells that will be processed by tbb::parallel_for
 	std::vector<octreeCellDesc> cells;
 	if (multiThread)
 	{
@@ -4053,12 +4076,10 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		s_binarySearchCount = 0.0;
 #endif
 
-		if (maxThreadCount == 0)
-		{
-			maxThreadCount = QThread::idealThreadCount();
-		}
-		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
+		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
+			[&](tbb::blocked_range<int> r) {
+				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
+			});
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
 		FILE* fp=fopen("octree_log.txt","at");

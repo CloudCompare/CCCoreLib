@@ -20,13 +20,12 @@
 #include <algorithm>
 #include <cassert>
 
-#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 #ifndef CC_DEBUG
+#ifdef CC_CORE_LIB_USES_TBB
 //enables multi-threading handling
 #define ENABLE_CLOUD2MESH_DIST_MT
-
-#include <QtConcurrentMap>
-#include <QtCore>
+#include <mutex>
+#include <tbb/parallel_for.h>
 #endif
 #endif
 
@@ -255,8 +254,7 @@ int DistanceComputationTools::computeCloud2CloudDistance(	GenericIndexedCloudPer
 															   additionalParameters,
 															   params.multiThread,
 															   progressCb,
-															   "Cloud-Cloud Distance",
-															   params.maxThreadCount);
+															   "Cloud-Cloud Distance");
 	if(result == 0) //executeFunctionForAllCellsAtLevel returns zero if error or canceled
 	{
 		//something went wrong
@@ -1126,7 +1124,7 @@ static DistanceComputationTools::Cloud2MeshDistanceComputationParams s_params_MT
 //'processTriangles' mechanism (based on bit mask)
 static std::vector<std::vector<bool>*> s_bitArrayPool_MT;
 static bool s_useBitArrays_MT = true;
-static QMutex s_currentBitMaskMutex;
+static std::mutex s_currentBitMaskMutex;
 
 void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 {
@@ -1777,15 +1775,11 @@ int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(	OctreeAndMesh
 		//Single thread emulation
 		//for (unsigned i=0; i<numberOfCells; ++i)
 		//	cloudMeshDistCellFunc_MT(cellsDescs[i]);
-
-		int maxThreadCount = params.maxThreadCount;
-		if (maxThreadCount == 0)
-		{
-			maxThreadCount = QThread::idealThreadCount();
-		}
-		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cellsDescs, cloudMeshDistCellFunc_MT);
-
+		tbb::parallel_for(tbb::blocked_range<int>(0,cellsDescs.size()),
+			[&](tbb::blocked_range<int> r) {
+				for (auto i = r.begin(); r.end(); ++i) { cloudMeshDistCellFunc_MT(cellsDescs[i]); }
+			}
+		);
 		s_octree_MT = nullptr;
 		s_normProgressCb_MT = nullptr;
 		s_intersection_MT = nullptr;

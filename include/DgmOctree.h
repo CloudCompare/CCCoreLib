@@ -21,11 +21,11 @@
 //#define TEST_CELLS_FOR_SPHERICAL_NN
 
 #ifndef CC_DEBUG
-#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 //enables multi-threading handling (Release only)
-//requires Qt Concurrent
+//requires TBB 
+#ifdef CC_CORE_LIB_USES_TBB
 #define ENABLE_MT_OCTREE
-#endif //CC_CORE_LIB_USES_QT_CONCURRENT
+#endif
 #endif
 
 namespace CCCoreLib
@@ -1063,7 +1063,7 @@ namespace CCCoreLib
 			number of points, avoiding great loss of performances. The only limitation is when the
 			level of subdivision is deepest level. In this case no more splitting is possible.
 
-			Parallel processing is based on QtConcurrent::map system.
+			Parallel processing is based on tbb::parallel_for.
 
 			\param startingLevel the initial level of subdivision
 			\param func the function to apply
@@ -1073,7 +1073,6 @@ namespace CCCoreLib
 			\param multiThread whether to use parallel processing or not
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param functionTitle function title
-			\param maxThreadCount the maximum number of threads to use (0 = all). Ignored if 'multiThread' is false.
 			\return the number of processed cells (or 0 is something went wrong)
 		**/
 		unsigned executeFunctionForAllCellsStartingAtLevel(	unsigned char startingLevel,
@@ -1083,14 +1082,25 @@ namespace CCCoreLib
 															unsigned maxNumberOfPointsPerCell,
 															bool multiThread = true,
 															GenericProgressCallback* progressCb = nullptr,
-															const char* functionTitle = nullptr,
-															int maxThreadCount = 0);
+															const char* functionTitle = nullptr);
+
+		//! Deprecated, use version without setting number of threads
+		[[deprecated("Use version that does not set number of threads")]]
+		unsigned executeFunctionForAllCellsStartingAtLevel(	unsigned char startingLevel,
+															octreeCellFunc func,
+															void** additionalParameters,
+															unsigned minNumberOfPointsPerCell,
+															unsigned maxNumberOfPointsPerCell,
+															bool multiThread,
+															GenericProgressCallback* progressCb,
+															const char* functionTitle,
+															int _ignored_maxThreadCount);
 
 		//! Method to apply automatically a specific function to each cell of the octree
 		/** The function to apply should be of the form DgmOctree::octreeCellFunc. In this case
 			the octree cells are scanned one by one at the same level of subdivision.
 
-			Parallel processing is based on QtConcurrent::map system.
+			Parallel processing is based on tbb::parallel_for.
 
 			\param level the level of subdivision
 			\param func the function to apply
@@ -1098,7 +1108,6 @@ namespace CCCoreLib
 			\param multiThread whether to use parallel processing or not
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param functionTitle function title
-			\param maxThreadCount the maximum number of threads to use (0 = all). Ignored if 'multiThread' is false.
 			\return the number of processed cells (or 0 is something went wrong)
 		**/
 		unsigned executeFunctionForAllCellsAtLevel(	unsigned char level,
@@ -1106,8 +1115,17 @@ namespace CCCoreLib
 													void** additionalParameters,
 													bool multiThread = false,
 													GenericProgressCallback* progressCb = nullptr,
-													const char* functionTitle = nullptr,
-													int maxThreadCount = 0);
+													const char* functionTitle = nullptr);
+
+		//! Deprecated, use version without setting number of threads
+		[[deprecated("Use version that does not set number of threads")]]
+		unsigned executeFunctionForAllCellsAtLevel(	unsigned char level,
+													octreeCellFunc func,
+													void** additionalParameters,
+													bool multiThread,
+													GenericProgressCallback* progressCb,
+													const char* functionTitle,
+													int _ignored_maxThreadCount);
 
 		//! Ray casting processes
 		enum RayCastProcess { RC_NEAREST_POINT, RC_CLOSE_POINTS };
