@@ -21,6 +21,10 @@ option( CCCORELIB_USE_TBB
 	"Compile CCCoreLib with Intel Threading Building Blocks lib (enables some parallel processing )"
 	OFF
 )
+option( CCCORELIB_USE_QT_CONCURRENT
+	"Compile CCCoreLib with QtConcurrent (to enable parallel processing)"
+	ON
+)
 option( CCCORELIB_SHARED
 	"Compile CCCoreLib as a shared library"
 	ON
@@ -206,6 +210,31 @@ if ( CCCORELIB_USE_CGAL )
 	target_compile_definitions( CCCoreLib
 		PUBLIC
 			CC_CORE_LIB_USES_CGAL_LIB
+	)
+endif()
+
+# QT (optional)
+if ( CCCORELIB_USE_QT_CONCURRENT )
+	find_package( Qt5
+		COMPONENTS
+			Concurrent
+		REQUIRED
+	)
+
+    set_target_properties( CCCoreLib PROPERTIES
+        AUTOMOC OFF
+        AUTORCC OFF
+        AUTOUIC OFF
+    )
+
+	target_link_libraries( CCCoreLib
+		PUBLIC
+            Qt5::Concurrent
+	)
+
+	target_compile_definitions( CCCoreLib
+		PUBLIC
+			CC_CORE_LIB_USES_QT_CONCURRENT
 	)
 endif()
 

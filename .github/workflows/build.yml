@@ -44,14 +44,16 @@ jobs:
       - name: Install Dependencies (macOS)
         if: matrix.config.os == 'macos-latest'
         run: |
-          brew install cgal ninja tbb
+          brew install cgal ninja qt5 tbb
+
+          echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
 
       - name: Install Dependencies (Ubuntu)
         if: matrix.config.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
 
-          sudo apt-get install -y libcgal-dev libtbb-dev ninja-build
+          sudo apt-get install -y libcgal-dev libtbb-dev ninja-build qtbase5-dev
 
       - name: Conda Cache (Windows)
         if: matrix.config.os == 'windows-latest'
