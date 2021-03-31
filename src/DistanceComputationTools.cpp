@@ -26,7 +26,7 @@
 #include <QtConcurrentMap>
 #include <QtCore>
 #elif defined(CC_CORE_LIB_USES_TBB)
-//enables multi-threading handling
+//enables multi-threading handling with TBB
 #define ENABLE_CLOUD2MESH_DIST_MT
 #include <mutex>
 #include <tbb/parallel_for.h>
@@ -1133,7 +1133,7 @@ static std::vector<std::vector<bool>*> s_bitArrayPool_MT;
 static bool s_useBitArrays_MT = true;
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 static QMutex s_currentBitMaskMutex;
-#else
+#elif defined(CC_CORE_LIB_USES_TBB)
 static std::mutex s_currentBitMaskMutex;
 #endif
 
@@ -1795,7 +1795,7 @@ int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(	OctreeAndMesh
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cellsDescs, cloudMeshDistCellFunc_MT);
-#else
+#elif defined(CC_CORE_LIB_USES_TBB)
 		tbb::parallel_for(tbb::blocked_range<int>(0,cellsDescs.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); r.end(); ++i) { cloudMeshDistCellFunc_MT(cellsDescs[i]); }

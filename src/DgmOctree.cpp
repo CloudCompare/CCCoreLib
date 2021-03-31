@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <tbb/parallel_for.h>
 #else
-#error "Multithreaded OCtree should be enabled only with Qt OR TBB!"
+#error "Multithreaded Octree should be enabled only with Qt OR TBB!"
 #endif
 #endif //ENABLE_MT_OCTREE
 
@@ -3307,14 +3307,14 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 														bool multiThread/*=false*/,
 														GenericProgressCallback* progressCb/*=0*/,
 														const char* functionTitle/*=0*/,
-														int maxThreadCount/*=0*/) 
+														int maxThreadCount/*=0*/)
 {
 	if (m_thePointsAndTheirCellCodes.empty())
 		return 0;
 
 #ifdef ENABLE_MT_OCTREE
 
-	//cells that will be processed by tbb::parallel_for
+	//cells that will be processed by QtConcurrent::map or tbb::parallel_for
 	const unsigned cellsNumber = getCellNumber(level);
 	std::vector<octreeCellDesc> cells;
 
@@ -3510,14 +3510,14 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		s_binarySearchCount = 0.0;
 #endif
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-		// The QtConcurrent is used in case both Qt and TBB are available
+		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
 			maxThreadCount = QThread::idealThreadCount();
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
-#else //It uses TBB
+#else // Using TBB
 		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
@@ -3581,7 +3581,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 
 #ifdef ENABLE_MT_OCTREE
 
-	//cells that will be processed by tbb::parallel_for
+	//cells that will be processed by QtConcurrent::map or tbb::parallel_for
 	std::vector<octreeCellDesc> cells;
 	if (multiThread)
 	{
@@ -4066,14 +4066,14 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		s_binarySearchCount = 0.0;
 #endif
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-		// QtConcurrent in case both Qt and TBB are available
+		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
 			maxThreadCount = QThread::idealThreadCount();
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
-#else
+#else defined(CC_CORE_LIB_USES_TBB)
 		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }

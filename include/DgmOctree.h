@@ -1106,7 +1106,7 @@ namespace CCCoreLib
 													void** additionalParameters,
 													bool multiThread = false,
 													GenericProgressCallback* progressCb = nullptr,
-													const char* functionTitle = nullptr, 
+													const char* functionTitle = nullptr,
 													int maxThreadCount = 0);
 
 		//! Ray casting processes
