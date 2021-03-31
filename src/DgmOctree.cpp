@@ -4073,7 +4073,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
-#else defined(CC_CORE_LIB_USES_TBB)
+#elif defined(CC_CORE_LIB_USES_TBB)
 		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
