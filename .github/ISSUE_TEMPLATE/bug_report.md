@@ -30,4 +30,5 @@ Steps to reproduce the behaviour - include images if relevant:
  - CCCoreLib Version (or git hash/tag):
  - OS & Version:
  - Qt Version (if compiling w/Qt):
+ - TBB Version (if compiling w/TBB):
 <!--- Include any other relevant details about your environment -->
