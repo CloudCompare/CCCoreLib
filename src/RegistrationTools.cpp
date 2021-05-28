@@ -74,7 +74,7 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 			{
 				PointCoordinateType theta = asin(R.getValue(2,1));
 				PointCoordinateType cos_theta = cos(theta);
-				PointCoordinateType phi = atan2(-R.getValue(2,0)/cos_theta,R.getValue(2,2)/cos_theta);
+				PointCoordinateType phi = atan2(-R.getValue(2, 0) / cos_theta, R.getValue(2, 2) / cos_theta);
 				PointCoordinateType cos_phi = cos(phi);
 				PointCoordinateType sin_phi = sin(phi);
 
@@ -95,7 +95,7 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 			{
 				PointCoordinateType theta_rad = -asin(R.getValue(2,0));
 				PointCoordinateType cos_theta = cos(theta_rad);
-				PointCoordinateType phi_rad = atan2(R.getValue(1,0)/cos_theta, R.getValue(0,0)/cos_theta);
+				PointCoordinateType phi_rad = atan2(R.getValue(1, 0) / cos_theta, R.getValue(0, 0) / cos_theta);
 				PointCoordinateType cos_phi	= cos(phi_rad);
 				PointCoordinateType sin_phi	= sin(phi_rad);
 
@@ -138,14 +138,13 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 																	ScaledTransformation& transform,
 																	double& finalRMS,
 																	unsigned& finalPointCount,
-																	GenericProgressCallback* progressCb/*=0*/)
+																	GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (!inputModelCloud || !inputDataCloud)
 	{
 		assert(false);
 		return ICP_ERROR_INVALID_INPUT;
 	}
-
 
 	//hopefully the user will understand it's not possible ;)
 	finalRMS = -1.0;
@@ -331,6 +330,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		assert(data.CPSetPlain);
 		DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
 		c2mDistParams.octreeLevel = meshDistOctreeLevel;
+		c2mDistParams.signedDistances = params.useC2MSignedDistances;
 		c2mDistParams.CPSet = data.CPSetPlain;
 		c2mDistParams.maxThreadCount = params.maxThreadCount;
 		if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
@@ -358,17 +358,19 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 	FILE* fTraceFile = nullptr;
 #ifdef CC_DEBUG
-	fTraceFile = fopen("registration_trace_log.csv","wt");
-	if (fTraceFile)
-		fprintf(fTraceFile,"Iteration; RMS; Point count;\n");
+	fTraceFile = fopen("registration_trace_log.csv", "wt");
 #endif
+	if (fTraceFile)
+	{
+		fprintf(fTraceFile, "Iteration; RMS; Point count;\n");
+	}
 
 	double lastStepRMS = -1.0;
 	double initialDeltaRMS = -1.0;
 	ScaledTransformation currentTrans;
 	RESULT_TYPE result = ICP_ERROR;
 
-	for (unsigned iteration = 0 ;; ++iteration)
+	for (unsigned iteration = 0;; ++iteration)
 	{
 		if (progressCb && progressCb->isCancelRequested())
 		{
@@ -386,7 +388,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			{
 				ScalarType mu;
 				ScalarType sigma2;
-				N.getParameters(mu,sigma2);
+				N.getParameters(mu, sigma2);
 				ScalarType maxDistance = static_cast<ScalarType>(mu + 2.5*sqrt(sigma2));
 
 				DataCloud filteredData;
@@ -411,10 +413,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				}
 
 				unsigned pointCount = data.cloud->size();
-				if (	!filteredData.cloud->reserve(pointCount)
-						||	(filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
-						||	(filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
-						||	(filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
+				if (!filteredData.cloud->reserve(pointCount)
+					|| (filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
+					|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
+					|| (filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
 				{
 					//not enough memory
 					result = ICP_ERROR_NOT_ENOUGH_MEMORY;
@@ -422,7 +424,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				}
 
 				//we keep only the points with "not too high" distances
-				for (unsigned i=0; i<pointCount; ++i)
+				for (unsigned i = 0; i < pointCount; ++i)
 				{
 					if (data.cloud->getPointScalarValue(i) <= maxDistance)
 					{
@@ -465,7 +467,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		if (maxOverlapCount != 0 && pointCount > maxOverlapCount)
 		{
 			assert(overlapDistances.size() >= pointCount);
-			for (unsigned i=0; i<pointCount; ++i)
+			for (unsigned i = 0; i < pointCount; ++i)
 			{
 				overlapDistances[i] = data.cloud->getPointScalarValue(i);
 				assert(overlapDistances[i] == overlapDistances[i]);
@@ -474,7 +476,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			ParallelSort(overlapDistances.begin(), overlapDistances.begin() + pointCount);
 
 			assert(maxOverlapCount != 0);
-			ScalarType maxOverlapDist = overlapDistances[maxOverlapCount-1];
+			ScalarType maxOverlapDist = overlapDistances[maxOverlapCount - 1];
 
 			DataCloud filteredData;
 			filteredData.cloud = new ReferenceCloud(data.cloud->getAssociatedCloud());
@@ -495,10 +497,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				sfGarbage.add(filteredData.weights);
 			}
 
-			if (	!filteredData.cloud->reserve(pointCount) //should be maxOverlapCount in theory, but there may be several points with the same value as maxOverlapDist!
-					||	(filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
-					||	(filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
-					||	(filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
+			if (!filteredData.cloud->reserve(pointCount) //should be maxOverlapCount in theory, but there may be several points with the same value as maxOverlapDist!
+				|| (filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
+				|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
+				|| (filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
 			{
 				//not enough memory
 				result = ICP_ERROR_NOT_ENOUGH_MEMORY;
@@ -506,7 +508,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			}
 
 			//we keep only the points with "not too high" distances
-			for (unsigned i=0; i<pointCount; ++i)
+			for (unsigned i = 0; i < pointCount; ++i)
 			{
 				if (data.cloud->getPointScalarValue(i) <= maxOverlapDist)
 				{
@@ -538,8 +540,9 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//update couple weights (if any)
 		if (coupleWeights)
 		{
-			assert(model.weights || data.weights);
 			unsigned count = data.cloud->size();
+
+			assert(model.weights || data.weights);
 			assert(!model.weights || (data.CPSetRef && data.CPSetRef->size() == count));
 
 			if (coupleWeights->currentSize() != count && !coupleWeights->resizeSafe(count))
@@ -548,7 +551,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				result = ICP_ERROR_NOT_ENOUGH_MEMORY;
 				break;
 			}
-			for (unsigned i = 0; i<count; ++i)
+
+			for (unsigned i = 0; i < count; ++i)
 			{
 				ScalarType wd = (data.weights ? data.weights->getValue(i) : static_cast<ScalarType>(1.0));
 				ScalarType wm = (model.weights ? model.weights->getValue(data.CPSetRef->getPointGlobalIndex(i)) : static_cast<ScalarType>(1.0)); //model weights are only support with a reference cloud!
@@ -588,10 +592,11 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 			double rms = sqrt(meanSquareError);
 
-#ifdef CC_DEBUG
 			if (fTraceFile)
+			{
 				fprintf(fTraceFile, "%u; %f; %u;\n", iteration, rms, data.cloud->size());
-#endif
+			}
+
 			if (iteration == 0)
 			{
 				//progress notification
@@ -766,6 +771,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		{
 			DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
 			c2mDistParams.octreeLevel = meshDistOctreeLevel;
+			c2mDistParams.signedDistances = params.useC2MSignedDistances;
 			c2mDistParams.CPSet = data.CPSetPlain;
 			c2mDistParams.maxThreadCount = params.maxThreadCount;
 			if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams) < 0)
@@ -831,15 +837,11 @@ double HornRegistrationTools::ComputeRMS(GenericCloud* lCloud,
 	lCloud->placeIteratorAtBeginning();
 	unsigned count = rCloud->size();
 
-	for (unsigned i=0; i<count; i++)
+	for (unsigned i = 0; i < count; i++)
 	{
 		const CCVector3* Ri = rCloud->getNextPoint();
 		const CCVector3* Li = lCloud->getNextPoint();
-		CCVector3 Lit = (trans.R.isValid() ? trans.R * (*Li) : (*Li))*trans.s + trans.T;
-
-		//#ifdef CC_DEBUG
-		//		double dist = (*Ri-Lit).norm();
-		//#endif
+		CCVector3 Lit = trans.apply(*Li);
 
 		rms += (*Ri - Lit).norm2();
 	}
@@ -856,8 +858,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 {
 	//resulting transformation (R is invalid on initialization, T is (0,0,0) and s==1)
 	trans.R.invalidate();
-	trans.T = CCVector3(0, 0, 0);
-	trans.s = PC_ONE;
+	trans.T = CCVector3d(0, 0, 0);
+	trans.s = 1.0;
 
 	if (P == nullptr || X == nullptr || P->size() != X->size() || P->size() < 3)
 		return false;
@@ -940,7 +942,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 
 		//we deduce the first translation
-		trans.T = Gx - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
+		trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
 
 		//we need to find the rotation in the (X) plane now
 		{
@@ -1004,7 +1006,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			R.m_values[2][2] = cos_t + l3 * l3_inv_cos_t;
 
 			trans.R = R * trans.R;
-			trans.T = Gx - (trans.R*Gp) * (aPrioriScale*trans.s); //update T as well
+			trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //update T as well
 		}
 	}
 	else
@@ -1019,7 +1021,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		CCVector3 diag = bbMax - bbMin;
 		if (LessThanEpsilon(std::abs(diag.x) + std::abs(diag.y) + std::abs(diag.z)))
 		{
-			trans.T = Gx - Gp * aPrioriScale;
+			trans.T = (Gx - Gp * aPrioriScale).toDouble();
 			return true;
 		}
 
@@ -1029,6 +1031,17 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		if (!Sigma_px.isValid())
 			return false;
 
+#define USE_SVD
+#ifdef USE_SVD
+
+		SquareMatrixd U, S, V;
+		if (!Sigma_px.svd(S, U, V))
+			return false;
+		SquareMatrixd UT = U.transposed();
+
+		trans.R = V * UT;
+
+#else
 		//transpose sigma_px
 		SquareMatrixd Sigma_px_t = Sigma_px.transposed();
 
@@ -1080,7 +1093,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 
 		//these eigenvalue and eigenvector correspond to a quaternion --> we get the corresponding matrix
 		trans.R.initFromQuaternion(qR);
-
+#endif
 		if (adjustScale)
 		{
 			//two accumulators
@@ -1097,8 +1110,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			{
 				//'a' refers to the data 'A' (moving) = P
 				//'b' refers to the model 'B' (not moving) = X
-				CCVector3 a_tilde = trans.R * (*(P->getNextPoint()) - Gp);	// a_tilde_i = R * (a_i - a_mean)
-				CCVector3 b_tilde = (*(X->getNextPoint()) - Gx);			// b_tilde_j =     (b_j - b_mean)
+				CCVector3d a_tilde = trans.R * (*(P->getNextPoint()) - Gp);	// a_tilde_i = R * (a_i - a_mean)
+				CCVector3d b_tilde = (*(X->getNextPoint()) - Gx);			// b_tilde_j =     (b_j - b_mean)
 
 				acc_num += b_tilde.dot(a_tilde);
 				acc_denom += a_tilde.dot(a_tilde);
@@ -1110,7 +1123,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 
 		//and we deduce the translation
-		trans.T = Gx - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
+		trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
 	}
 
 	return true;
@@ -1174,7 +1187,7 @@ bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
 	//if (progressCb)
 	//    progressCb->stop();
 
-	for (unsigned i=0; i<nbBases; i++)
+	for (unsigned i = 0; i < nbBases; i++)
 	{
 		//Randomly find the current reference base
 		Base reference;
@@ -1194,7 +1207,7 @@ bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
 		}
 		const CCVector3* referenceBasePoints[4];
 		{
-			for(unsigned j=0; j<4; j++)
+			for (unsigned j = 0; j < 4; j++)
 				referenceBasePoints[j] = modelCloud->getPoint(reference.getIndex(j));
 		}
 		int result = FindCongruentBases(dataTree, beta, referenceBasePoints, candidates);
@@ -1219,7 +1232,7 @@ bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
 				return false;
 			}
 
-			for(unsigned j=0; j<candidates.size(); j++)
+			for (unsigned j = 0; j < candidates.size(); j++)
 			{
 				//Register the current candidate base with the reference base
 				const ScaledTransformation& RT = transforms[j];
@@ -1270,7 +1283,6 @@ bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
 	return (bestScore > 0);
 }
 
-
 unsigned FPCSRegistrationTools::ComputeRegistrationScore(	KDTree *modelTree,
 															GenericIndexedCloud *dataCloud,
 															ScalarType delta,
@@ -1281,11 +1293,11 @@ unsigned FPCSRegistrationTools::ComputeRegistrationScore(	KDTree *modelTree,
 	unsigned score = 0;
 
 	unsigned count = dataCloud->size();
-	for (unsigned i=0; i<count; ++i)
+	for (unsigned i = 0; i < count; ++i)
 	{
 		dataCloud->getPoint(i,Q);
 		//Apply rigid transform to each point
-		Q = dataToModel.R * Q + dataToModel.T;
+		Q = (dataToModel.R * Q + dataToModel.T).toPC();
 		//Check if there is a point in the model cloud that is close enough to q
 		if (modelTree->findPointBelowDistance(Q.u, delta))
 			score++;
@@ -1413,16 +1425,16 @@ bool FPCSRegistrationTools::FindBase(	GenericIndexedCloud* cloud,
 		p3 = cloud->getPoint(d);
 		//Search for the diagonnals of the convexe hull (3 tests max)
 		//Note : if the convexe hull is made of 3 points, the points order has no importance
-		u = (*p1-*p0)*(*p2-*p0);
-		v = (*p1-*p0)*(*p3-*p0);
+		u = (*p1 - *p0)*(*p2 - *p0);
+		v = (*p1 - *p0)*(*p3 - *p0);
 		if (u.dot(v) <= 0)
 		{
 			//p2 and p3 lie on both sides of [p0, p1]
 			base.init(a, b, c, d);
 			return true;
 		}
-		u = (*p2-*p1)*(*p0-*p1);
-		v = (*p2-*p1)*(*p3-*p1);
+		u = (*p2 - *p1)*(*p0 - *p1);
+		v = (*p2 - *p1)*(*p3 - *p1);
 		if (u.dot(v) <= 0)
 		{
 			//p0 and p3 lie on both sides of [p2, p1]
@@ -1541,14 +1553,14 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 			unsigned count = static_cast<unsigned>(pairs2.size());
 			if (!tmpCloud2.reserve(count*2)) //not enough memory
 				return -3;
-			for(unsigned i=0; i<count; i++)
+			for (unsigned i = 0; i < count; i++)
 			{
 				//generate the two intermediate points from r2 in pairs2[i]
 				const CCVector3 *q0 = cloud->getPoint(pairs2[i].first);
 				const CCVector3 *q1 = cloud->getPoint(pairs2[i].second);
-				CCVector3 P1 = *q0 + r2*(*q1-*q0);
+				CCVector3 P1 = *q0 + r2 * (*q1 - *q0);
 				tmpCloud2.addPoint(P1);
-				CCVector3 P2 = *q1 + r2*(*q0-*q1);
+				CCVector3 P2 = *q1 + r2 * (*q0 - *q1);
 				tmpCloud2.addPoint(P2);
 			}
 		}
@@ -1565,7 +1577,7 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 			if (match.capacity() < count)	//not enough memory
 				return -5;
 
-			for(unsigned i=0; i<count; i++)
+			for (unsigned i = 0; i < count; i++)
 			{
 				const CCVector3 *q0 = tmpCloud2.getPoint(i);
 				unsigned a;

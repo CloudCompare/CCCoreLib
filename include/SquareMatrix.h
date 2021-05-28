@@ -31,14 +31,29 @@ namespace CCCoreLib
 		**/
 		SquareMatrixTpl(unsigned size) { init(size); }
 
-		//! Constructor from another matrix
+		//! Constructor from another double matrix
 		/** \param mat matrix
 		**/
-		SquareMatrixTpl(const SquareMatrixTpl& mat)
+		SquareMatrixTpl(const SquareMatrixTpl<double>& mat)
 		{
-			if (init(mat.m_matrixSize))
+			if (init(mat.size()))
 			{
-				*this = mat;
+				for (unsigned r = 0; r < m_matrixSize; r++)
+					for (unsigned c = 0; c < m_matrixSize; c++)
+						setValue(r, c, static_cast<Scalar>(mat.getValue(r, c)));
+			}
+		}
+
+		//! Constructor from another float matrix
+		/** \param mat matrix
+		**/
+		SquareMatrixTpl(const SquareMatrixTpl<float>& mat)
+		{
+			if (init(mat.size()))
+			{
+				for (unsigned r = 0; r < m_matrixSize; r++)
+					for (unsigned c = 0; c < m_matrixSize; c++)
+						setValue(r, c, static_cast<Scalar>(mat.getValue(r, c)));
 			}
 		}
 
@@ -209,19 +224,46 @@ namespace CCCoreLib
 		}
 
 		//! Multiplication by a vector
-		inline CCVector3 operator * (const CCVector3& V) const
+		inline Vector3Tpl<Scalar> operator * (const CCVector3f& V) const
 		{
 			if (m_matrixSize == 3)
 			{
 
-				CCVector3 result;
+				Vector3Tpl<Scalar> result;
 				apply(V.u, result.u);
 
 				return result;
 			}
+			else if (m_matrixSize == 0)
+			{
+				return Vector3Tpl<Scalar>::fromArray(V.u);
+			}
 			else
 			{
+				assert(false);
+				return Vector3Tpl<Scalar>(0, 0, 0);
+			}
+		}
+
+		//! Multiplication by a vector
+		inline CCVector3d operator * (const CCVector3d& V) const
+		{
+			if (m_matrixSize == 3)
+			{
+
+				CCVector3d result;
+				apply(V.u, result.u);
+
+				return result;
+			}
+			else if (m_matrixSize == 0)
+			{
 				return V;
+			}
+			else
+			{
+				assert(false);
+				return CCVector3d(0, 0, 0);
 			}
 		}
 
@@ -233,17 +275,50 @@ namespace CCCoreLib
 			return *this;
 		}
 
-		//! Multiplication by a vector
-		/** Vec must have the same size as matrix.
-			Returns result = M.Vec.
+		//! Multiplication by a float vector, outputs a float vector
+		/** Vec must have the same size as this matrix.
+			\param vec input vector
+			\param result output vector (= M * vec)
 		**/
-		void apply(const Scalar Vec[], Scalar result[]) const
+		void apply(const float vec[], float result[]) const
 		{
 			for (unsigned r = 0; r < m_matrixSize; r++)
 			{
-				Scalar sum = 0;
+				double sum = 0;
 				for (unsigned k = 0; k < m_matrixSize; k++)
-					sum += m_values[r][k] * static_cast<Scalar>(Vec[k]);
+					sum += m_values[r][k] * static_cast<double>(vec[k]);
+				result[r] = static_cast<float>(sum);
+			}
+		}
+
+		//! Multiplication by a float vector, outputs a double vector
+		/** Vec must have the same size as this matrix.
+			\param vec input vector
+			\param result output vector (= M * vec)
+		**/
+		void apply(const float vec[], double result[]) const
+		{
+			for (unsigned r = 0; r < m_matrixSize; r++)
+			{
+				double sum = 0;
+				for (unsigned k = 0; k < m_matrixSize; k++)
+					sum += m_values[r][k] * static_cast<double>(vec[k]);
+				result[r] = sum;
+			}
+		}
+
+		//! Multiplication by a double vector
+		/** Vec must have the same size as this matrix.
+			\param vec input vector
+			\param result output vector (= M * vec)
+		**/
+		void apply(const double vec[], double result[]) const
+		{
+			for (unsigned r = 0; r < m_matrixSize; r++)
+			{
+				double sum = 0;
+				for (unsigned k = 0; k < m_matrixSize; k++)
+					sum += m_values[r][k] * static_cast<double>(vec[k]);
 				result[r] = sum;
 			}
 		}
@@ -633,6 +708,84 @@ namespace CCCoreLib
 			M16d[15] = 1.0;
 		}
 
+		//! SVD decomposition (inspired from https://github.com/dmalhotra/pvfmm/blob/develop/include/mat_utils.txx)
+		bool svd(SquareMatrixTpl& S, SquareMatrixTpl& U, SquareMatrixTpl& V) const
+		{
+			if (m_matrixSize < 0)
+				return false;
+
+			unsigned sqMatrixSize = m_matrixSize * m_matrixSize;
+
+			// S : copy of the current matrix
+			SquareMatrixTpl S_(*this);
+
+			// U : identity matrix
+			SquareMatrixTpl U_(m_matrixSize);
+			U_.toIdentity();
+			
+			// V : identity matrix
+			SquareMatrixTpl V_(m_matrixSize);
+			V_.toIdentity();
+
+			ComputeSVD(m_matrixSize, U_, S_, V_);
+
+			// sort the eigenvalues (absolute values)
+			std::vector<unsigned> eigOrder(m_matrixSize);
+			{
+				for (unsigned i = 0; i < m_matrixSize; i++)
+				{
+					eigOrder[i] = i;
+				}
+				for (unsigned i = 0; i < m_matrixSize - 1; i++)
+				{
+					unsigned largest = i;
+					Scalar largestEigValue = std::abs(S_.getValue(eigOrder[largest], eigOrder[largest]));
+					
+					for (unsigned j = i + 1; j < m_matrixSize; j++)
+					{
+						Scalar eigValue = std::abs(S_.getValue(eigOrder[j], eigOrder[j]));
+						if (eigValue > largestEigValue)
+						{
+							largest = j;
+							largestEigValue = eigValue;
+						}
+					}
+					if (largest != i)
+					{
+						std::swap(eigOrder[i], eigOrder[largest]);
+					}
+				}
+			}
+
+			// Build the output U, S and V matrices
+			S.init(m_matrixSize);
+			S.clear();
+			U.init(m_matrixSize);
+			V.init(m_matrixSize);
+			{
+				// for each eigen value
+				for (unsigned j = 0; j < m_matrixSize; j++)
+				{
+					unsigned index = eigOrder[j];
+
+					Scalar eigValue = S_.getValue(index, index);
+
+					// we flip the eigen vector so that all eigen values are positive
+					S.setValue(j, j, std::abs(eigValue));
+					Scalar sign = static_cast<Scalar>(eigValue < 0 ? -1 : 1);
+
+					// copy the corresponding column
+					for (unsigned i = 0; i < m_matrixSize; i++)
+					{
+						U.setValue(i, j, U_.getValue(i, index) * sign);
+						V.setValue(i, j, V_.getValue(index, i));
+					}
+				}
+			}
+
+			return true;
+		}
+
 	private:
 		//! Internal initialization
 		/** \return initilization success
@@ -697,6 +850,283 @@ namespace CCCoreLib
 				return 0.0;
 			}
 		}
+
+	private: //methods used to perform the SVD decomposition (inspired from https://github.com/dmalhotra/pvfmm/blob/develop/include/mat_utils.txx)
+
+		static void GivensL(SquareMatrixTpl& S, unsigned m, Scalar a, Scalar b)
+		{
+			Scalar r = sqrt(a * a + b * b);
+			if (r == 0)
+				return;
+			Scalar c = a / r;
+			Scalar s = -b / r;
+
+			for (int i = 0; i < static_cast<int>(S.size()); i++)
+			{
+				Scalar S0 = S.getValue(m + 0, i);
+				Scalar S1 = S.getValue(m + 1, i);
+				S.setValue(m, i, S.getValue(m, i) + S0 * (c - 1) - S1 * s);
+				S.setValue(m + 1, i, S.getValue(m + 1, i) + S0 * s + S1 * (c - 1));
+			}
+		}
+
+		static void GivensR(SquareMatrixTpl& S, unsigned m, Scalar a, Scalar b)
+		{
+			Scalar r = sqrt(a * a + b * b);
+			if (r == 0)
+				return;
+			Scalar c = a / r;
+			Scalar s = -b / r;
+
+			for (int i = 0; i < static_cast<int>(S.size()); i++)
+			{
+				Scalar S0 = S.getValue(i, m + 0);
+				Scalar S1 = S.getValue(i, m + 1);
+				S.setValue(i, m, S.getValue(i, m) + S0 * (c - 1) - S1 * s);
+				S.setValue(i, m + 1, S.getValue(i, m + 1) + S0 * s  + S1 * (c - 1));
+			}
+		}
+
+		static void ComputeSVD(unsigned matrixSize, SquareMatrixTpl& U, SquareMatrixTpl& S, SquareMatrixTpl& V)
+		{
+			assert(matrixSize >= 2);
+
+			// Bi-diagonalization
+			{
+				std::vector<Scalar> house_vec(matrixSize);
+				for (unsigned i = 0; i < matrixSize; i++)
+				{
+					// Column Householder
+					{
+						Scalar x1 = S.getValue(i, i);
+						if (x1 < 0)
+							x1 = -x1;
+
+						Scalar x_inv_norm = 0;
+						for (unsigned j = i; j < matrixSize; j++)
+						{
+							x_inv_norm += S.getValue(j, i)*S.getValue(j, i);
+						}
+						if (x_inv_norm > 0)
+							x_inv_norm = 1 / sqrt(x_inv_norm);
+
+						Scalar alpha = sqrt(1 + x1 * x_inv_norm);
+						Scalar beta = x_inv_norm / alpha;
+						if (x_inv_norm == 0)
+							alpha = 0; // nothing to do
+
+						house_vec[i] = -alpha;
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							house_vec[j] = -beta * S.getValue(j, i);
+						}
+						if (S.getValue(i, i) < 0)
+						{
+							for (unsigned j = i + 1; j < matrixSize; j++)
+							{
+								house_vec[j] = -house_vec[j];
+							}
+						}
+					}
+
+					for (int k = i; k < static_cast<int>(matrixSize); k++)
+					{
+						Scalar dot_prod = 0;
+						for (unsigned j = i; j < matrixSize; j++)
+						{
+							dot_prod += S.getValue(j, k) * house_vec[j];
+						}
+						for (unsigned j = i; j < matrixSize; j++)
+						{
+							S.setValue(j, k, S.getValue(j, k) - dot_prod * house_vec[j]);
+						}
+					}
+
+					for (int k = 0; k < static_cast<int>(matrixSize); k++)
+					{
+						Scalar dot_prod = 0;
+						for (unsigned j = i; j < matrixSize; j++)
+						{
+							dot_prod += U.getValue(k, j) * house_vec[j];
+						}
+						for (unsigned j = i; j < matrixSize; j++)
+						{
+							U.setValue(k, j, U.getValue(k, j) - dot_prod * house_vec[j]);
+						}
+					}
+
+					// Row Householder
+					if (i >= matrixSize - 1) continue;
+					{
+						Scalar x1 = S.getValue(i, i + 1);
+						if (x1 < 0) x1 = -x1;
+
+						Scalar x_inv_norm = 0;
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							x_inv_norm += S.getValue(i, j) * S.getValue(i, j);
+						}
+						if (x_inv_norm > 0)
+							x_inv_norm = 1 / sqrt(x_inv_norm);
+
+						Scalar alpha = sqrt(1 + x1 * x_inv_norm);
+						Scalar beta = x_inv_norm / alpha;
+						if (x_inv_norm == 0)
+							alpha = 0; // nothing to do
+
+						house_vec[i + 1] = -alpha;
+						for (unsigned j = i + 2; j < matrixSize; j++)
+						{
+							house_vec[j] = -beta * S.getValue(i, j);
+						}
+						if (S.getValue(i, i + 1) < 0)
+						{
+							for (unsigned j = i + 2; j < matrixSize; j++)
+							{
+								house_vec[j] = -house_vec[j];
+							}
+						}
+					}
+
+					for (int k = i; k < static_cast<int>(matrixSize); k++)
+					{
+						Scalar dot_prod = 0;
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							dot_prod += S.getValue(k, j) * house_vec[j];
+						}
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							S.setValue(k, j, S.getValue(k, j) - dot_prod * house_vec[j]);
+						}
+					}
+
+					for (int k = 0; k < static_cast<int>(matrixSize); k++)
+					{
+						Scalar dot_prod = 0;
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							dot_prod += V.getValue(j, k) * house_vec[j];
+						}
+						for (unsigned j = i + 1; j < matrixSize; j++)
+						{
+							V.setValue(j, k, V.getValue(j, k) - dot_prod * house_vec[j]);
+						}
+					}
+				}
+			}
+
+			const Scalar eps = std::numeric_limits<Scalar>::epsilon() * 64;
+
+			// Diagonalization
+			for (unsigned k0 = 0; k0 < matrixSize - 1; )
+			{
+				Scalar S_max = 0.0;
+				for (unsigned i = 0; i < matrixSize; i++)
+					S_max = (S_max > std::abs(S.getValue(i, i)) ? S_max : std::abs(S.getValue(i, i)));
+
+				for (unsigned i = 0; i < matrixSize - 1; i++)
+					S_max = (S_max > std::abs(S.getValue(i, i + 1)) ? S_max : std::abs(S.getValue(i, i + 1)));
+
+				while (k0 < matrixSize - 1 && std::abs(S.getValue(k0, k0 + 1)) <= eps * S_max)
+					k0++;
+
+				if (k0 == matrixSize - 1)
+					continue;
+
+				unsigned n = k0 + 2;
+
+				while (n < matrixSize && std::abs(S.getValue(n - 1, n)) > eps * S_max)
+					n++;
+
+				// Compute mu
+				Scalar alpha = 0;
+				Scalar beta = 0;
+				if (n - k0 == 2 && std::abs(S.getValue(k0, k0)) < eps * S_max && std::abs(S.getValue(k0 + 1, k0 + 1)) < eps * S_max)
+				{
+					alpha = 0;
+					beta = 1;
+				}
+				else
+				{
+					Scalar C[2][2];
+					C[0][0] = S.getValue(n - 2, n - 2) * S.getValue(n - 2, n - 2);
+					if (n - k0 > 2)
+						C[0][0] += S.getValue(n - 3, n - 2) * S.getValue(n - 3, n - 2);
+					C[0][1] = S.getValue(n - 2, n - 2) * S.getValue(n - 2, n - 1);
+					C[1][0] = S.getValue(n - 2, n - 2) * S.getValue(n - 2, n - 1);
+					C[1][1] = S.getValue(n - 1, n - 1) * S.getValue(n - 1, n - 1) + S.getValue(n - 2, n - 1) * S.getValue(n - 2, n - 1);
+
+					Scalar b = -(C[0][0] + C[1][1]) / 2;
+					Scalar c = C[0][0] * C[1][1] - C[0][1] * C[1][0];
+					Scalar d = 0;
+					if (b * b - c > 0)
+					{
+						d = sqrt(b*b - c);
+					}
+					else
+					{
+						Scalar b = (C[0][0] - C[1][1]) / 2;
+						Scalar c = -C[0][1] * C[1][0];
+						if (b*b - c > 0)
+							d = sqrt(b*b - c);
+					}
+
+					Scalar lambda1 = -b + d;
+					Scalar lambda2 = -b - d;
+
+					Scalar d1 = lambda1 - C[1][1]; d1 = (d1 < 0 ? -d1 : d1);
+					Scalar d2 = lambda2 - C[1][1]; d2 = (d2 < 0 ? -d2 : d2);
+					Scalar mu = (d1 < d2 ? lambda1 : lambda2);
+
+					alpha = S.getValue(k0, k0) * S.getValue(k0, k0) - mu;
+					beta = S.getValue(k0, k0) * S.getValue(k0, k0 + 1);
+				}
+
+				for (unsigned k = k0; k < n - 1; k++)
+				{
+					GivensR(S, k, alpha, beta);
+					GivensL(V, k, alpha, beta);
+
+					alpha = S.getValue(k, k);
+					beta = S.getValue(k + 1, k);
+					GivensL(S, k, alpha, beta);
+					GivensR(U, k, alpha, beta);
+
+					alpha = S.getValue(k, k + 1);
+					beta = S.getValue(k, k + 2);
+				}
+
+				// Make S bi-diagonal again
+				{
+					for (unsigned i0 = k0; i0 < n - 1; i0++)
+					{
+						for (unsigned i1 = 0; i1 < matrixSize; i1++)
+						{
+							if (i0 > i1 || i0 + 1 < i1)
+								S.setValue(i0, i1, 0);
+						}
+					}
+					for (unsigned i0 = 0; i0 < matrixSize; i0++)
+					{
+						for (unsigned i1 = k0; i1 < n - 1; i1++)
+						{
+							if (i0 > i1 || i0 + 1 < i1)
+								S.setValue(i0, i1, 0);
+						}
+					}
+					for (unsigned i = 0; i < matrixSize - 1; i++)
+					{
+						if (std::abs(S.getValue(i, i + 1)) <= eps * S_max)
+						{
+							S.setValue(i, i + 1, 0);
+						}
+					}
+				}
+			}
+		}
+
+	private: //members
 
 		//! Matrix size
 		unsigned m_matrixSize;

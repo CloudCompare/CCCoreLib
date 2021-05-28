@@ -236,7 +236,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 			double minEigValue = 0;
 			//the smallest eigen vector corresponds to the "least square best fitting plane" normal
 			Jacobi<double>::GetMinEigenValueAndVector(eigVectors, eigValues, minEigValue, vec.u);
-			m_lsPlaneVectors[2] = CCVector3::fromArray(vec.u);
+			m_lsPlaneVectors[2] = vec.toPC();
 		}
 
 		//get also X (Y will be deduced by cross product, see below
@@ -244,7 +244,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 			CCVector3d vec;
 			double maxEigValue = 0;
 			Jacobi<double>::GetMaxEigenValueAndVector(eigVectors, eigValues, maxEigValue, vec.u);
-			m_lsPlaneVectors[0] = CCVector3::fromArray(vec.u);
+			m_lsPlaneVectors[0] = vec.toPC();
 		}
 
 		//get the centroid (should already be up-to-date - see computeCovarianceMatrix)
@@ -793,7 +793,7 @@ ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
 
 	for (unsigned i = 0; i < m_associatedCloud->size(); ++i)
 	{
-		double dotProd = CCVector3d::fromArray((*m_associatedCloud->getPoint(i) - P).u).dot(e2);
+		double dotProd = (*m_associatedCloud->getPoint(i) - P).toDouble().dot(e2);
 		m1 += dotProd;
 		m2 += dotProd * dotProd;
 	}

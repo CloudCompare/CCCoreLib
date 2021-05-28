@@ -36,17 +36,20 @@ namespace CCCoreLib
 		struct Transformation
 		{
 			//! Rotation
-			SquareMatrix R;
+			SquareMatrixd R;
 			//! Translation
-			CCVector3 T;
+			CCVector3d T;
 			//! Scale
-			PointCoordinateType s;
+			double s;
 
 			//! Default constructor
-			Transformation() : s(PC_ONE) {}
+			Transformation() : s(1.0) {}
 
 			//! Applies the transformation to a point
-			inline CCVector3 apply(const CCVector3& P) const { return s * (R * P) + T; }
+			inline CCVector3d apply(const CCVector3d& P) const { return s * (R * P) + T; }
+
+			//! Applies the transformation to a point
+			inline CCVector3 apply(const CCVector3& P) const { return (s * (R * P) + T).toPC(); }
 
 			//! Applies the transformation to a cloud
 			/** \warning THIS METHOD IS NOT COMPATIBLE WITH PARALLEL STRATEGIES
