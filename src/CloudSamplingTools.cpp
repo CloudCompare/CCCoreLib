@@ -740,7 +740,6 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 	//structure for nearest neighbors search
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
 	nNSS.level = cell.level;
-	nNSS.prepare(kernelRadius, cell.parentOctree->getCellSize(nNSS.level));
 	if (useKnn)
 	{
 		nNSS.minNumberOfNeighbors = knn;

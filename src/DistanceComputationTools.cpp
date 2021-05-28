@@ -547,11 +547,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 	//either inside a sphere or the k nearest
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS_Model;
 	nNSS_Model.level = cell.level;
-	if (params->useSphericalSearchForLocalModel)
-	{
-		nNSS_Model.prepare(static_cast<PointCoordinateType>(params->radiusForLocalModel), cell.parentOctree->getCellSize(cell.level));
-	}
-	else
+	if (!params->useSphericalSearchForLocalModel)
 	{
 		nNSS_Model.minNumberOfNeighbors = params->kNNForLocalModel;
 	}
