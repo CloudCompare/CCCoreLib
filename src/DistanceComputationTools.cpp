@@ -169,7 +169,7 @@ int DistanceComputationTools::computeCloud2CloudDistance(	GenericIndexedCloudPer
 												referenceCloud,
 												comparedOctree,
 												referenceOctree,
-												params.maxSearchDist,
+												static_cast<PointCoordinateType>(params.maxSearchDist),
 												progressCb);
 
 	if (soCode != SYNCHRONIZED && soCode != DISJOINT)
