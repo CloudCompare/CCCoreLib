@@ -12,6 +12,11 @@
 #include <limits>
 #include <algorithm>
 
+#ifdef _MSC_VER
+//To get rid of the warning about unnamed struct/union
+#pragma warning( disable: 4201 )
+#endif
+
 //! 2D Vector
 template <typename Type> class Vector2Tpl
 {
@@ -353,3 +358,8 @@ using CCVector3 = Vector3Tpl<PointCoordinateType>;
 using CCVector3f = Vector3Tpl<float>;
 //! Double 3D Vector
 using CCVector3d = Vector3Tpl<double>;
+
+#ifdef _MSC_VER
+//Restore the default warning behavior
+#pragma warning( default: 4201 )
+#endif

@@ -15,6 +15,9 @@ namespace CCCoreLib
 	{
 
 	public:
+		//! Default constructor
+		GenericIndexedCloud() = default;
+
 		//! Default destructor
 		~GenericIndexedCloud() override = default;
 
