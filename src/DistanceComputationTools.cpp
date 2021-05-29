@@ -169,7 +169,7 @@ int DistanceComputationTools::computeCloud2CloudDistance(	GenericIndexedCloudPer
 												referenceCloud,
 												comparedOctree,
 												referenceOctree,
-												params.maxSearchDist,
+												static_cast<PointCoordinateType>(params.maxSearchDist),
 												progressCb);
 
 	if (soCode != SYNCHRONIZED && soCode != DISJOINT)
@@ -547,11 +547,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 	//either inside a sphere or the k nearest
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS_Model;
 	nNSS_Model.level = cell.level;
-	if (params->useSphericalSearchForLocalModel)
-	{
-		nNSS_Model.prepare(static_cast<PointCoordinateType>(params->radiusForLocalModel), cell.parentOctree->getCellSize(cell.level));
-	}
-	else
+	if (!params->useSphericalSearchForLocalModel)
 	{
 		nNSS_Model.minNumberOfNeighbors = params->kNNForLocalModel;
 	}
@@ -2230,7 +2226,7 @@ ScalarType DistanceComputationTools::computePoint2TriangleDistance(const CCVecto
 	if (nearestP)
 	{
 		//if requested we also output the nearest point
-		*nearestP = *A + CCVector3::fromArray(Q.u);
+		*nearestP = *A + Q.toPC();
 	}
 
 	double squareDist = (Q - AP).norm2();
@@ -2914,8 +2910,8 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 		{
 			const CCVector3* start = polyline->getPoint(j);
 			const CCVector3* end = polyline->getPoint(j + 1);
-			CCVector3d startMinusP = CCVector3d ::fromArray((*start - *p).u);
-			CCVector3d endMinusP = CCVector3d::fromArray((*end - *p).u);
+			CCVector3d startMinusP = (*start - *p);
+			CCVector3d endMinusP = (*end - *p);
 
 			//Rejection test
 			if (	((startMinusP.x * startMinusP.x >= distSq) && (endMinusP.x * endMinusP.x >= distSq) && GreaterThanSquareEpsilon( startMinusP.x * endMinusP.x )) ||

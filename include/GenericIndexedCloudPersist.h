@@ -15,14 +15,14 @@ namespace CCCoreLib
 	{
 	public:
 		//! Default constructor
-		GenericIndexedCloudPersist() : GenericIndexedCloud() {}
+		GenericIndexedCloudPersist() = default;
 
 		//! Mock constructor for compatibility with the PointCloudTpl interface
 		/** \warning Parameters are simply ignored
 			\param name ignored
 			\param ID ignored
 		**/
-		GenericIndexedCloudPersist(const char* name, unsigned ID) : GenericIndexedCloud() { /* input parameters are ignored */ }
+		GenericIndexedCloudPersist(const char* name, unsigned ID) { name; ID; /* input parameters are ignored */ }
 
 
 		//! Default destructor

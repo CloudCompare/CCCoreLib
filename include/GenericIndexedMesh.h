@@ -6,6 +6,11 @@
 //Local
 #include "GenericMesh.h"
 
+#ifdef _MSC_VER
+//To get rid of the warning about unnamed struct/union
+#pragma warning( disable: 4201 )
+#endif
+
 namespace CCCoreLib
 {
 	//! Triangle described by the indexes of its 3 vertices
@@ -73,3 +78,8 @@ namespace CCCoreLib
 		virtual VerticesIndexes* getNextTriangleVertIndexes() = 0;
 	};
 }
+
+#ifdef _MSC_VER
+//Restore the default warning behavior
+#pragma warning( default: 4201 )
+#endif

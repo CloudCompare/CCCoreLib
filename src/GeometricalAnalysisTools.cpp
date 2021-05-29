@@ -175,7 +175,6 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 	//structure for nearest neighbors search
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
 	nNSS.level = cell.level;
-	nNSS.prepare(radius, cell.parentOctree->getCellSize(nNSS.level));
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
 
@@ -361,7 +360,6 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctre
 	//structure for nearest neighbors search
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
 	nNSS.level = cell.level;
-	nNSS.prepare(static_cast<PointCoordinateType>(minDistBetweenPoints), cell.parentOctree->getCellSize(nNSS.level));
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
 
@@ -541,11 +539,11 @@ CCVector3 GeometricalAnalysisTools::ComputeGravityCenter(GenericCloud* cloud)
 	const CCVector3 *P = nullptr;
 	while ((P = cloud->getNextPoint()))
 	{
-		sum += CCVector3d::fromArray(P->u);
+		sum += *P;
 	}
 
 	sum /= static_cast<double>(count);
-	return CCVector3::fromArray(sum.u);
+	return sum.toPC();
 }
 
 CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* cloud, ScalarField* weights)
@@ -566,14 +564,15 @@ CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* c
 		ScalarType w = weights->getValue(i);
 		if (!ScalarField::ValidValue(w))
 			continue;
-		sum += CCVector3d::fromArray(P->u) * std::abs(w);
+		w = std::abs(w);
+		sum += P->toDouble() * w;
 		wSum += w;
 	}
 
 	if (wSum != 0)
 		sum /= wSum;
 
-	return CCVector3::fromArray(sum.u);
+	return sum.toPC();
 }
 
 SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const PointCoordinateType* _gravityCenter)
@@ -661,11 +660,11 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(GenericClou
 	return covMat;
 }
 
-SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(GenericCloud* P, //data
-																					GenericCloud* Q, //model
-																					const CCVector3& Gp,
-																					const CCVector3& Gq,
-																					ScalarField* coupleWeights/*=0*/)
+SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(	GenericCloud* P, //data
+																				GenericCloud* Q, //model
+																				const CCVector3& Gp,
+																				const CCVector3& Gq,
+																				ScalarField* coupleWeights/*=nullptr*/)
 {
 	assert(P && Q);
 	assert(Q->size() == P->size());
@@ -686,8 +685,8 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(Gen
 	double wSum = 0.0; //we will normalize by the sum
 	for (unsigned i = 0; i<count; i++)
 	{
-		CCVector3d Pt = CCVector3d::fromArray((*P->getNextPoint() - Gp).u);
-		CCVector3 Qt = *Q->getNextPoint() - Gq;
+		const CCVector3* Pt = P->getNextPoint();
+		const CCVector3* Qt = Q->getNextPoint();
 
 		//Weighting scheme for cross-covariance is inspired from
 		//https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_covariance
@@ -701,27 +700,40 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(Gen
 		}
 
 		//DGM: we virtually make the P (data) point nearer if it has a lower weight
-		Pt *= wi;
+		CCVector3d Ptw(Pt->x * wi, Pt->y * wi, Pt->z * wi);
 		wSum += wi;
 
 		//1st row
-		r1[0] += Pt.x * Qt.x;
-		r1[1] += Pt.x * Qt.y;
-		r1[2] += Pt.x * Qt.z;
+		r1[0] += Ptw.x * Qt->x;
+		r1[1] += Ptw.x * Qt->y;
+		r1[2] += Ptw.x * Qt->z;
 		//2nd row
-		r2[0] += Pt.y * Qt.x;
-		r2[1] += Pt.y * Qt.y;
-		r2[2] += Pt.y * Qt.z;
+		r2[0] += Ptw.y * Qt->x;
+		r2[1] += Ptw.y * Qt->y;
+		r2[2] += Ptw.y * Qt->z;
 		//3rd row
-		r3[0] += Pt.z * Qt.x;
-		r3[1] += Pt.z * Qt.y;
-		r3[2] += Pt.z * Qt.z;
+		r3[0] += Ptw.z * Qt->x;
+		r3[1] += Ptw.z * Qt->y;
+		r3[2] += Ptw.z * Qt->z;
 	}
 
 	if (wSum != 0.0)
 	{
 		covMat.scale(1.0 / wSum);
 	}
+
+	//remove the centers of gravity
+	r1[0] -= Gp.x * Gq.x;
+	r1[1] -= Gp.x * Gq.y;
+	r1[2] -= Gp.x * Gq.z;
+	//2nd row
+	r2[0] -= Gp.y * Gq.x;
+	r2[1] -= Gp.y * Gq.y;
+	r2[2] -= Gp.y * Gq.z;
+	//3rd row
+	r3[0] -= Gp.z * Gq.x;
+	r3[1] -= Gp.z * Gq.y;
+	r3[2] -= Gp.z * Gq.z;
 
 	return covMat;
 }
@@ -737,7 +749,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 		return false;
 	}
 
-	CCVector3d c = CCVector3d::fromArray(center.u);
+	CCVector3d c = center;
 
 	unsigned count = cloud->size();
 
@@ -747,7 +759,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 		for (unsigned i = 0; i < count; ++i)
 		{
 			const CCVector3* P = cloud->getPoint(i);
-			G += CCVector3d::fromArray(P->u);
+			G += *P;
 		}
 		G /= count;
 	}
@@ -762,7 +774,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 		for (unsigned i = 0; i < count; ++i)
 		{
 			const CCVector3* Pi = cloud->getPoint(i);
-			CCVector3d Di = CCVector3d::fromArray(Pi->u) - c;
+			CCVector3d Di = Pi->toDouble() - c;
 			double norm = Di.norm();
 			if (LessThanEpsilon(norm))
 			{

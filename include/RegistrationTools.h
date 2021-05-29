@@ -155,6 +155,7 @@ namespace CCCoreLib
 				, dataWeights(nullptr)
 				, transformationFilters(SKIP_NONE)
 				, maxThreadCount(0)
+				, useC2MSignedDistances(false)
 			{}
 
 			//! Convergence type
@@ -189,6 +190,11 @@ namespace CCCoreLib
 
 			//! Maximum number of threads to use (0 = max)
 			int maxThreadCount;
+
+			//! Whether to compute signed C2M distances.
+			/** Useful when registering a cloud with a mesh AND partial overlap, to move the cloud towards the outside of the mesh
+			**/
+			bool useC2MSignedDistances;
 		};
 
 		//! Registers two clouds or a cloud and a mesh

@@ -17,9 +17,6 @@
 #define OCTREE_CODES_64_BITS
 #endif
 
-//DGM: tests in progress
-//#define TEST_CELLS_FOR_SPHERICAL_NN
-
 #ifndef CC_DEBUG
 //enables multi-threading handling (Release only)
 //requires TBB or QtConcurrent
@@ -262,44 +259,12 @@ namespace CCCoreLib
 
 		struct NearestNeighboursSphericalSearchStruct : public NearestNeighboursSearchStruct
 		{
-#ifdef TEST_CELLS_FOR_SPHERICAL_NN
-			//! All the points that belong to the spherical neighbourhood of the current cell
-			NeighboursSet pointsInSphericalNeighbourhood;
-
-			//! Meta data describing cells neighbourhood (associated to pointsInNeighbourhoodUnsorted)
-			NeighbourCellsSet cellsInNeighbourhood;
-
-			//! max SQUARE distance from query point to cell center (to be sure of total inclusion)
-			PointCoordinateType maxInD2;
-
-			//! min SQUARE distance from query point to cell center (to be sure of total exclusion)
-			PointCoordinateType minOutD2;
-#endif
 			//! Whether pointsInSphericalNeighbourhood is ready or not
 			bool ready;
-
-			//! Updates maxD2 and minD2 with search radius and cellSize
-			inline void prepare(PointCoordinateType radius, PointCoordinateType cellSize)
-			{
-#ifdef TEST_CELLS_FOR_SPHERICAL_NN
-				PointCoordinateType cellDiag = cellSize * static_cast<PointCoordinateType>(SQRT_3/2);
-				minOutD2 = radius+cellDiag;
-				minOutD2 *= minOutD2;
-				maxInD2 = radius-cellDiag;
-				if (maxInD2 <= 0)
-					maxInD2 = 0;
-				else
-					maxInD2 *= maxInD2;
-#endif
-			}
 
 			NearestNeighboursSphericalSearchStruct()
 				: NearestNeighboursSearchStruct()
 				, ready(false)
-	#ifdef TEST_CELLS_FOR_SPHERICAL_NN
-				, maxInD2(0.0)
-				, minOutD2(FLT_MAX)
-	#endif
 			{}
 		};
 
@@ -1241,12 +1206,6 @@ namespace CCCoreLib
 		void getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &nNSS,
 											 int neighbourhoodLength,
 											 bool getOnlyPointsWithValidScalar = false) const;
-
-#ifdef TEST_CELLS_FOR_SPHERICAL_NN
-		void getPointsInNeighbourCellsAround(NearestNeighboursSphericalSearchStruct &nNSS,
-											 int minNeighbourhoodLength,
-											 int maxNeighbourhoodLength) const;
-#endif
 
 		//! Returns the index of a given cell represented by its code
 		/** Same algorithm as the other "getCellIndex" method, but in an optimized form.

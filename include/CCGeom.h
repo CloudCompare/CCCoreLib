@@ -12,6 +12,11 @@
 #include <limits>
 #include <algorithm>
 
+#ifdef _MSC_VER
+//To get rid of the warning about unnamed struct/union
+#pragma warning( disable: 4201 )
+#endif
+
 //! 2D Vector
 template <typename Type> class Vector2Tpl
 {
@@ -161,6 +166,16 @@ public:
 
 	//! Constructor from a 2D vector (and a third value)
 	inline explicit Vector3Tpl(const Vector2Tpl<Type>& t2D, Type c) : Tuple3Tpl<Type>(t2D.x, t2D.y, c) {}
+
+	//! Cast operator to a double vector (no loss of precision, can be done silently)
+	operator Vector3Tpl<double>() const { return Vector3Tpl<double>(x, y, z); }
+
+	//! Cast operator to a double vector (explicit call version)
+	Vector3Tpl<double> toDouble() const { return Vector3Tpl<double>(x, y, z); }
+	//! Cast operator to a float vector (potential loss of precision, should be called explicitely)
+	Vector3Tpl<float> toFloat() const { return Vector3Tpl<float>::fromArray(u); }
+	//! Cast operator to the default vector type (potential loss of precision, should be called explicitely)
+	Vector3Tpl<PointCoordinateType> toPC() const { return Vector3Tpl<PointCoordinateType>::fromArray(u); }
 
 	//! Constructor from an int array
 	static inline Vector3Tpl fromArray(const int a[3]) { return Vector3Tpl(static_cast<Type>(a[0]), static_cast<Type>(a[1]), static_cast<Type>(a[2])); }
@@ -353,3 +368,8 @@ using CCVector3 = Vector3Tpl<PointCoordinateType>;
 using CCVector3f = Vector3Tpl<float>;
 //! Double 3D Vector
 using CCVector3d = Vector3Tpl<double>;
+
+#ifdef _MSC_VER
+//Restore the default warning behavior
+#pragma warning( default: 4201 )
+#endif

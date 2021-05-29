@@ -193,34 +193,16 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 	cloud->placeIteratorAtBeginning();
 	const CCVector3* P;
 
-	if (trans.R.isValid())
+	while ((P = cloud->getNextPoint()))
 	{
-		while ((P = cloud->getNextPoint()))
+		//P' = s*R.P+T
+		CCVector3 newP = trans.apply(*P);
+
+		transformedCloud->addPoint(newP);
+
+		if (progressCb && !nprogress.oneStep())
 		{
-			//P' = s*R.P+T
-			CCVector3 newP = trans.s * (trans.R * (*P)) + trans.T;
-
-			transformedCloud->addPoint(newP);
-
-			if (progressCb && !nprogress.oneStep())
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-		while ((P = cloud->getNextPoint()))
-		{
-			//P' = s*P+T
-			CCVector3 newP = trans.s * (*P) + trans.T;
-
-			transformedCloud->addPoint(newP);
-
-			if (progressCb && !nprogress.oneStep())
-			{
-				break;
-			}
+			break;
 		}
 	}
 
@@ -844,31 +826,9 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 
 void PointProjectionTools::Transformation::apply(GenericIndexedCloudPersist& cloud) const
 {
-	//always apply the scale before everything (applying before or after rotation does not changes anything)
-	if ( GreaterThanEpsilon( std::abs(s - PC_ONE) ) )
+	for (unsigned i = 0; i < cloud.size(); ++i)
 	{
-		for (unsigned i = 0; i < cloud.size(); ++i)
-		{
-			CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
-			*P *= s;
-		}
-	}
-
-	if (R.isValid())
-	{
-		for (unsigned i = 0; i < cloud.size(); ++i)
-		{
-			CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
-			(*P) = R * (*P);
-		}
-	}
-
-	if ( GreaterThanEpsilon( T.norm() ) ) //T applied only if it makes sense
-	{
-		for (unsigned i = 0; i< cloud.size(); ++i)
-		{
-			CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
-			(*P) += T;
-		}
+		CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
+		*P = apply(*P);
 	}
 }

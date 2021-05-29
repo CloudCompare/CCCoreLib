@@ -336,7 +336,7 @@ bool AddVertex(CCVector3d& P, PointCloud* vertices, unsigned& index)
 		//not enough memory!
 		return false;
 	}
-	vertices->addPoint(CCVector3::fromArray(P.u));
+	vertices->addPoint(P.toPC());
 	index = vertCount;
 	return true;
 }
@@ -681,9 +681,9 @@ bool ManualSegmentationTools::segmentMeshWithAAPlane(GenericIndexedMesh* mesh,
 		{
 			//original vertices indexes
 			const VerticesIndexes* tsi = mesh->getTriangleVertIndexes(i);
-			CCVector3d V[3] = { CCVector3d::fromArray(vertices->getPoint(tsi->i1)->u),
-								CCVector3d::fromArray(vertices->getPoint(tsi->i2)->u),
-								CCVector3d::fromArray(vertices->getPoint(tsi->i3)->u) };
+			CCVector3d V[3] = { *vertices->getPoint(tsi->i1),
+								*vertices->getPoint(tsi->i2),
+								*vertices->getPoint(tsi->i3) };
 
 			const unsigned origVertIndexes[3] = {
 				tsi->i1 | c_origIndexFlag,
@@ -1054,9 +1054,9 @@ bool ManualSegmentationTools::segmentMeshWithAABox(GenericIndexedMesh* origMesh,
 				}
 
 				//get the vertices (from the right source!)
-				CCVector3d V[3] = { CCVector3d::fromArray(( (vertIndexes[0] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[0] & c_realIndexMask)->u),
-									CCVector3d::fromArray(( (vertIndexes[1] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[1] & c_realIndexMask)->u),
-									CCVector3d::fromArray(( (vertIndexes[2] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[2] & c_realIndexMask)->u) };
+				CCVector3d V[3] = { *( (vertIndexes[0] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[0] & c_realIndexMask),
+									*( (vertIndexes[1] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[1] & c_realIndexMask),
+									*( (vertIndexes[2] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[2] & c_realIndexMask) };
 
 				if (d == 0)
 				{
