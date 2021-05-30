@@ -91,7 +91,7 @@ jobs:
           -B cccorelib-build
           -G "${{ matrix.config.generator }}"
           -DCMAKE_BUILD_TYPE=Release
-          -DCCCORELIB_USE_CGAL=TRUE
+          -DCCCORELIB_USE_CGAL=FALSE
           -DCCCORELIB_USE_TBB=TRUE
           -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
           .
