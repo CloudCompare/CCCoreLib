@@ -77,8 +77,8 @@ namespace CCCoreLib
 		const std::vector<CCVector3>& normals() const { return m_normals; }
 
 		//inherited from CCCoreLib::GenericIndexedCloud
-		virtual bool normalsAvailable() const { return m_normals.capacity() != 0; }
-		const CCVector3* getNormal(unsigned pointIndex) const { return &m_normals[pointIndex]; }
+		bool normalsAvailable() const override { return !m_normals.empty() && m_normals.size() >= size(); }
+		const CCVector3* getNormal(unsigned pointIndex) const override { return &m_normals[pointIndex]; }
 
 	protected:
 

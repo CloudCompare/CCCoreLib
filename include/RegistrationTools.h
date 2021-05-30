@@ -211,7 +211,7 @@ namespace CCCoreLib
 		};
 
 		//! Registers two clouds or a cloud and a mesh
-		/** This method implements the ICP algorithm (Besl et al.) with various improvements (random sampling, optional weights, .
+		/** This method implements the ICP algorithm (Besl et al.) with various improvements (random sampling, optional weights, normals matching, etc.).
 			\warning Be sure to activate an INPUT/OUTPUT scalar field on the point cloud.
 			\warning The mesh is always the reference/model entity.
 			\param modelCloud the reference cloud or the vertices of the reference mesh --> won't move

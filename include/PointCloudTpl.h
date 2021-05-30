@@ -203,7 +203,7 @@ namespace CCCoreLib
 
 		inline const CCVector3* getPointPersistentPtr(unsigned index) const override { return point(index); }
 
-		//! Adds a scalar field to active 'in' scalar field
+		//! Adds a scalar values to the active 'in' scalar field
 		/** \param value a scalar value
 		**/
 		void addPointScalarValue(ScalarType value)

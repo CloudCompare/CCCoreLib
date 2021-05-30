@@ -44,7 +44,8 @@ jobs:
       - name: Install Dependencies (macOS)
         if: matrix.config.os == 'macos-latest'
         run: |
-          brew install cgal ninja qt5 tbb
+          #with cgal: brew install cgal ninja qt5 tbb
+          brew install ninja qt5 tbb
 
           echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
 
@@ -83,7 +84,8 @@ jobs:
           # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
           echo "CXX=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "CC=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Configure
+      - name: Configure (macOS)
+        if: matrix.config.os == 'macos-latest'
         run: >
           mkdir cccorelib-build
 
@@ -92,7 +94,21 @@ jobs:
           -G "${{ matrix.config.generator }}"
           -DCMAKE_BUILD_TYPE=Release
           -DCCCORELIB_USE_CGAL=FALSE
-          -DCCCORELIB_USE_TBB=TRUE
+          -DCCCORELIB_USES_TBB=TRUE
+          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
+          .
+
+      - name: Configure (Windows, Ubuntu)
+        if: matrix.config.os != 'macos-latest'
+        run: >
+          mkdir cccorelib-build
+
+          cmake
+          -B cccorelib-build
+          -G "${{ matrix.config.generator }}"
+          -DCMAKE_BUILD_TYPE=Release
+          -DCCCORELIB_USE_CGAL=TRUE
+          -DCCCORELIB_USES_TBB=TRUE
           -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
           .
 
