@@ -324,16 +324,16 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	}
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
-	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistance now
+	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistances now
 	if (inputModelMesh)
 	{
 		assert(data.CPSetPlain);
-		DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
+		DistanceComputationTools::Cloud2MeshDistancesComputationParams c2mDistParams;
 		c2mDistParams.octreeLevel = meshDistOctreeLevel;
 		c2mDistParams.signedDistances = params.useC2MSignedDistances;
 		c2mDistParams.CPSet = data.CPSetPlain;
 		c2mDistParams.maxThreadCount = params.maxThreadCount;
-		if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
+		if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
 		{
 			//an error occurred during distances computation...
 			return ICP_ERROR_DIST_COMPUTATION;
@@ -342,10 +342,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	else if (inputModelCloud)
 	{
 		assert(data.CPSetRef);
-		DistanceComputationTools::Cloud2CloudDistanceComputationParams c2cDistParams;
+		DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 		c2cDistParams.CPSet = data.CPSetRef;
 		c2cDistParams.maxThreadCount = params.maxThreadCount;
-		if (DistanceComputationTools::computeCloud2CloudDistance(data.cloud, model.cloud, c2cDistParams, progressCb) < 0)
+		if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams, progressCb) < 0)
 		{
 			//an error occurred during distances computation...
 			return ICP_ERROR_DIST_COMPUTATION;
@@ -769,12 +769,12 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//compute (new) distances to model
 		if (inputModelMesh)
 		{
-			DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
+			DistanceComputationTools::Cloud2MeshDistancesComputationParams c2mDistParams;
 			c2mDistParams.octreeLevel = meshDistOctreeLevel;
 			c2mDistParams.signedDistances = params.useC2MSignedDistances;
 			c2mDistParams.CPSet = data.CPSetPlain;
 			c2mDistParams.maxThreadCount = params.maxThreadCount;
-			if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams) < 0)
+			if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams) < 0)
 			{
 				//an error occurred during distances computation...
 				result = ICP_ERROR_REGISTRATION_STEP;
@@ -783,10 +783,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		}
 		else if (inputDataCloud)
 		{
-			DistanceComputationTools::Cloud2CloudDistanceComputationParams c2cDistParams;
+			DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 			c2cDistParams.CPSet = data.CPSetRef;
 			c2cDistParams.maxThreadCount = params.maxThreadCount;
-			if (DistanceComputationTools::computeCloud2CloudDistance(data.cloud, model.cloud, c2cDistParams) < 0)
+			if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams) < 0)
 			{
 				//an error occurred during distances computation...
 				result = ICP_ERROR_REGISTRATION_STEP;

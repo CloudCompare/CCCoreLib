@@ -14,16 +14,16 @@
 namespace CCCoreLib
 {
 	//! A storage-efficient point cloud structure that can also handle an unlimited number of scalar fields
-	template<class T, typename StringType = const char*> class PointCloudTpl : public T
+	template<class BaseClass, typename StringType = const char*> class PointCloudTpl : public BaseClass
 	{
-		static_assert( std::is_base_of<GenericIndexedCloudPersist, T>::value,
-		"T must be a descendant of GenericIndexedCloudPersist"
+		static_assert( std::is_base_of<GenericIndexedCloudPersist, BaseClass>::value,
+		"BaseClass must be a descendant of GenericIndexedCloudPersist"
 		);
 
 	public:
 		//! Default constructor
 		PointCloudTpl()
-			: T()
+			: BaseClass()
 			, m_currentPointIndex(0)
 			, m_currentInScalarFieldIndex(-1)
 			, m_currentOutScalarFieldIndex(-1)
@@ -31,7 +31,7 @@ namespace CCCoreLib
 
 		//! Alternate constructor with a name and ID
 		PointCloudTpl(StringType name, unsigned ID)
-			: T(name, ID)
+			: BaseClass(name, ID)
 			, m_currentPointIndex(0)
 			, m_currentInScalarFieldIndex(-1)
 			, m_currentOutScalarFieldIndex(-1)
@@ -39,7 +39,7 @@ namespace CCCoreLib
 
 		//! Copy Constructor
 		PointCloudTpl(const PointCloudTpl &rhs)
-			: T()
+			: BaseClass()
 			, m_points(rhs.m_points)
 			, m_bbox(rhs.m_bbox)
 			, m_currentPointIndex(rhs.m_currentPointIndex)
