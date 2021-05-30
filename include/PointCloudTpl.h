@@ -203,6 +203,17 @@ namespace CCCoreLib
 
 		inline const CCVector3* getPointPersistentPtr(unsigned index) const override { return point(index); }
 
+		//! Adds a scalar field to active 'in' scalar field
+		/** \param value a scalar value
+		**/
+		void addPointScalarValue(ScalarType value)
+		{
+			assert(m_currentInScalarFieldIndex >= 0 && m_currentInScalarFieldIndex < static_cast<int>(m_scalarFields.size()));
+
+			//fast version
+			m_scalarFields[m_currentInScalarFieldIndex]->addElement(value);
+		}
+
 		//! Resizes the point database
 		/** The cloud database is resized with the specified size. If the new size
 			is smaller, the overflooding points will be deleted. If its greater,
@@ -289,9 +300,8 @@ namespace CCCoreLib
 		}
 
 		//! Adds a 3D point to the database
-		/** To assure the best efficiency, the database memory must have already
-			been reserved (with PointCloud::reserve). Otherwise nothing
-			happens.
+		/** To ensure the best efficiency, the database memory must have already
+			been reserved (with PointCloud::reserve). Otherwise nothing happens.
 			\param P a 3D point
 		**/
 		void addPoint(const CCVector3 &P)

@@ -18,5 +18,71 @@ namespace CCCoreLib
 
 		//! Default destructor
 		~PointCloud() override = default;
+
+		//! Reserves memory to store the normals
+		bool reserveNormals(unsigned newCount)
+		{
+			if (m_normals.capacity() < newCount)
+			{
+				try
+				{
+					m_normals.reserve(newCount);
+				}
+				catch (const std::bad_alloc&)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		//inherited from PointCloudTpl
+		bool resize(unsigned newCount) override
+		{
+			if (!PointCloudTpl<GenericIndexedCloudPersist>::resize(newCount))
+			{
+				return false;
+			}
+
+			// resize the normals as well
+			if (m_normals.capacity() != 0)
+			{
+				try
+				{
+					m_normals.resize(newCount);
+				}
+				catch (const std::bad_alloc&)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		//! Adds a normal
+		/** \param N a 3D normal
+		**/
+		inline void addNormal(const CCVector3 &N)
+		{
+			assert(m_normals.size() < m_normals.capacity());
+			m_normals.push_back(N);
+		}
+
+		//! Returns the set of normals
+		std::vector<CCVector3>& normals() { return m_normals; }
+
+		//! Returns the set of normals (const version)
+		const std::vector<CCVector3>& normals() const { return m_normals; }
+
+		//inherited from CCCoreLib::GenericIndexedCloud
+		virtual bool normalsAvailable() const { return m_normals.capacity() != 0; }
+		const CCVector3* getNormal(unsigned pointIndex) const { return &m_normals[pointIndex]; }
+
+	protected:
+
+		//! Point normals (if any)
+		std::vector<CCVector3> m_normals;
 	};
 }

@@ -1030,7 +1030,8 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 	{
 		//we query the vertex coordinates
 		SimpleTriangle tri;
-		mesh->getTriangleVertices(trianglesToTest[--trianglesToTestCount], tri.A, tri.B, tri.C);
+		unsigned triIndex = trianglesToTest[--trianglesToTestCount];
+		mesh->getTriangleVertices(triIndex, tri.A, tri.B, tri.C);
 
 		//for each point inside the current cell
 		if (params.signedDistances)
@@ -1042,14 +1043,16 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 				ScalarType dPTri = DistanceComputationTools::computePoint2TriangleDistance(Yk.getPoint(j), &tri, true, _nearestPoint);
 				//keep it if it's smaller
 				ScalarType min_d = Yk.getPointScalarValue(j);
-				if (!ScalarField::ValidValue(min_d) || min_d*min_d > dPTri*dPTri)
+				if (!ScalarField::ValidValue(min_d) || min_d * min_d > dPTri*dPTri)
 				{
 					Yk.setPointScalarValue(j, params.flipNormals ? -dPTri : dPTri);
 					if (params.CPSet)
 					{
-						//Closest Point Set: save the nearest point as well
+						//Closest Point Set: save the nearest point and nearest triangle as well
+						unsigned pointIndex = Yk.getPointGlobalIndex(j);
 						assert(_nearestPoint);
-						*const_cast<CCVector3*>(params.CPSet->getPoint(Yk.getPointGlobalIndex(j))) = *_nearestPoint;
+						*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+						params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
 					}
 				}
 			}
@@ -1067,9 +1070,11 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 					Yk.setPointScalarValue(j, dPTri);
 					if (params.CPSet)
 					{
-						//Closest Point Set: save the nearest point as well
+						//Closest Point Set: save the nearest point and nearest triangle as well
 						assert(_nearestPoint);
-						*const_cast<CCVector3*>(params.CPSet->getPoint(Yk.getPointGlobalIndex(j))) = *_nearestPoint;
+						unsigned pointIndex = Yk.getPointGlobalIndex(j);
+						*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+						params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
 					}
 				}
 			}
@@ -1424,6 +1429,14 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	OctreeAndMes
 			//not enough memory
 			return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
 		}
+		//reserve memory for an associated scalar field (the nearest triangle index)
+		if (!params.CPSet->enableScalarField())
+		{
+			//not enough memory
+			return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+		}
+		assert(params.CPSet->getCurrentInScalarField());
+		params.CPSet->getCurrentInScalarField()->fill(0);
 	}
 
 #ifdef ENABLE_CLOUD2MESH_DIST_MT

@@ -16,7 +16,7 @@ constexpr double M_PI = 3.14159265358979323846;
 
 //! Pi/2 - outside namespace because it's mostly-standard
 #ifndef M_PI_2
-constexpr double M_PI_2 = (M_PI/2.0);
+constexpr double M_PI_2 = (M_PI / 2);
 #endif
 
 namespace CCCoreLib

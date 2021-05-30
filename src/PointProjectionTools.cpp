@@ -214,6 +214,78 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 	return transformedCloud;
 }
 
+PointCloud* PointProjectionTools::applyTransformation(GenericIndexedCloud* cloud, Transformation& trans, GenericProgressCallback* progressCb)
+{
+	assert(cloud);
+
+	unsigned count = cloud->size();
+
+	PointCloud* transformedCloud = new PointCloud();
+	if (!transformedCloud->reserve(count))
+	{
+		//not enough memory
+		delete transformedCloud;
+		return nullptr;
+	}
+
+	bool withNormals = cloud->normalsAvailable();
+	if (withNormals)
+	{
+		if (!transformedCloud->reserveNormals(count))
+		{
+			//not enough memory
+			delete transformedCloud;
+			return nullptr;
+		}
+	}
+
+	NormalizedProgress nprogress(progressCb, count);
+	if (progressCb)
+	{
+		if (progressCb->textCanBeEdited())
+		{
+			progressCb->setMethodTitle("ApplyTransformation");
+			char buffer[256];
+			sprintf(buffer, "Number of points = %u", count);
+			progressCb->setInfo(buffer);
+		}
+		progressCb->update(0);
+		progressCb->start();
+	}
+
+	cloud->placeIteratorAtBeginning();
+
+	for (unsigned i = 0; i < count; ++i)
+	{
+		const CCVector3* P = cloud->getPoint(i);
+
+		//P' = s*R.P+T
+		CCVector3 newP = trans.apply(*P);
+		transformedCloud->addPoint(newP);
+
+		if (withNormals)
+		{
+			const CCVector3* N = cloud->getNormal(i);
+
+			//N' = R.N
+			CCVector3 newN = (trans.R * (*N)).toPC();
+			transformedCloud->addNormal(newN);
+		}
+
+		if (progressCb && !nprogress.oneStep())
+		{
+			break;
+		}
+	}
+
+	if (progressCb)
+	{
+		progressCb->stop();
+	}
+
+	return transformedCloud;
+}
+
 GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCloudPersist* cloud,
 																TRIANGULATION_TYPES type,
 																PointCoordinateType maxEdgeLength,
@@ -830,5 +902,14 @@ void PointProjectionTools::Transformation::apply(GenericIndexedCloudPersist& clo
 	{
 		CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
 		*P = apply(*P);
+	}
+
+	if (cloud.normalsAvailable())
+	{
+		for (unsigned i = 0; i < cloud.size(); ++i)
+		{
+			CCVector3* N = const_cast<CCVector3*>(cloud.getNormal(i));
+			*N = (R * (*N)).toPC();
+		}
 	}
 }

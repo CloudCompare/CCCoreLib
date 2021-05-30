@@ -140,6 +140,15 @@ namespace CCCoreLib
 			ICP_ERROR_INVALID_INPUT			= 105,
 		};
 
+		//! Normals matching method
+		enum NORMALS_MATCHING
+		{
+			NO_NORMAL				= 0,
+			OPPOSITE_NORMALS		= 1,
+			SAME_SIDE_NORMALS		= 2,
+			DOUBLE_SIDED_NORMALS	= 3
+		};
+
 		//! ICP Parameters
 		struct Parameters
 		{
@@ -156,6 +165,7 @@ namespace CCCoreLib
 				, transformationFilters(SKIP_NONE)
 				, maxThreadCount(0)
 				, useC2MSignedDistances(false)
+				, normalsMatching(NO_NORMAL)
 			{}
 
 			//! Convergence type
@@ -195,10 +205,13 @@ namespace CCCoreLib
 			/** Useful when registering a cloud with a mesh AND partial overlap, to move the cloud towards the outside of the mesh
 			**/
 			bool useC2MSignedDistances;
+
+			//! Normals matching method
+			NORMALS_MATCHING normalsMatching;
 		};
 
 		//! Registers two clouds or a cloud and a mesh
-		/** This method implements the ICP algorithm (Besl et al.).
+		/** This method implements the ICP algorithm (Besl et al.) with various improvements (random sampling, optional weights, .
 			\warning Be sure to activate an INPUT/OUTPUT scalar field on the point cloud.
 			\warning The mesh is always the reference/model entity.
 			\param modelCloud the reference cloud or the vertices of the reference mesh --> won't move

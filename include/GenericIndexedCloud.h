@@ -43,6 +43,9 @@ namespace CCCoreLib
 		**/
 		virtual void getPoint(unsigned index, CCVector3& P) const = 0;
 
+		//! Returns whether normals are available
+		virtual bool normalsAvailable() const { return false; }
+
 		//! If per-point normals are available, returns the one at a specific index
 		/** \warning If overriden, this method should return a valid normal for all points
 		**/

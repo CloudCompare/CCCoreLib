@@ -92,7 +92,7 @@ namespace CCCoreLib
 												const CCVector3& center,
 												GenericProgressCallback* progressCb = nullptr);
 
-		//! Applys a geometrical transformation to a point cloud
+		//! Applies a geometrical transformation to a point cloud
 		/** \param cloud the point cloud to be "transformed"
 			\param trans the geometrical transformation
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
@@ -102,7 +102,17 @@ namespace CCCoreLib
 												Transformation& trans,
 												GenericProgressCallback* progressCb = nullptr);
 
-		//! Applys a geometrical transformation to a single point
+		//! Applies a geometrical transformation to an indexed point cloud
+		/** \param cloud the point cloud to be "transformed"
+			\param trans the geometrical transformation
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return the "transformed" cloud
+		**/
+		static PointCloud* applyTransformation(	GenericIndexedCloud* cloud,
+												Transformation& trans,
+												GenericProgressCallback* progressCb = nullptr);
+
+		//! Applies a geometrical transformation to a single point
 		/** \param P the point
 			\param trans the geometrical transformation
 			\return the "transformed" point

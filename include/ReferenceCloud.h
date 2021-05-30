@@ -50,6 +50,7 @@ namespace CCCoreLib
 		//**** inherited form GenericIndexedCloud ****//
 		inline const CCVector3* getPoint(unsigned index) const override { assert(m_theAssociatedCloud && index < size()); return m_theAssociatedCloud->getPoint(m_theIndexes[index]); }
 		inline void getPoint(unsigned index, CCVector3& P) const override { assert(m_theAssociatedCloud && index < size()); m_theAssociatedCloud->getPoint(m_theIndexes[index], P); }
+		inline bool normalsAvailable() const override { return m_theAssociatedCloud ? m_theAssociatedCloud->normalsAvailable() : false; }
 		inline const CCVector3* getNormal(unsigned index) const override { assert(m_theAssociatedCloud && index < size()); return m_theAssociatedCloud->getNormal(m_theIndexes[index]); }
 
 		//**** inherited form GenericIndexedCloudPersist ****//
