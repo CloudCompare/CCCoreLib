@@ -76,6 +76,18 @@ namespace CCCoreLib
 		/**	\return the triangle indexes (or 0 if the global iterator is out of bounds)
 		**/
 		virtual VerticesIndexes* getNextTriangleVertIndexes() = 0;
+
+		//! Returns whether normals are available
+		virtual bool normalsAvailable() const { return false; }
+
+		//! Interpolates normal(s) inside a given triangle
+		/** This method should be ideally overriden by the child class if normals are supported
+			\param[in]  triIndex	triangle index
+			\param[in]  P			point where to interpolate (should be inside the triangle!)
+			\param[out] N			interpolated normal
+			\return success
+		**/
+		virtual bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) { return false; }
 	};
 }
 

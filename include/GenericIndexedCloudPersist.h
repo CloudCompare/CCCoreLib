@@ -22,7 +22,7 @@ namespace CCCoreLib
 			\param name ignored
 			\param ID ignored
 		**/
-		GenericIndexedCloudPersist(const char* name, unsigned ID) { name; ID; /* input parameters are ignored */ }
+		GenericIndexedCloudPersist(const char* name, unsigned ID) { (void)name; (void)ID; /* input parameters are ignored */ }
 
 
 		//! Default destructor

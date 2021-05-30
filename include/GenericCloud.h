@@ -55,7 +55,7 @@ namespace CCCoreLib
 			\param P the 3D point to test
 			\return visibility (default: POINT_VISIBLE)
 		**/
-		virtual inline unsigned char testVisibility(const CCVector3& P) const { P; return POINT_VISIBLE; }
+		virtual inline unsigned char testVisibility(const CCVector3& P) const { (void)P; return POINT_VISIBLE; }
 
 		//! Sets the cloud iterator at the beginning
 		/**	Virtual method to handle the cloud global iterator

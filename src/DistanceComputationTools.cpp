@@ -61,7 +61,7 @@ namespace CCCoreLib
 		}
 	};
 
-	//! Internal structure used by DistanceComputationTools::computeCloud2MeshDistance
+	//! Internal structure used by DistanceComputationTools::computeCloud2MeshDistances
 	struct OctreeAndMeshIntersection
 	{
 	public:
@@ -123,12 +123,12 @@ bool DistanceComputationTools::MultiThreadSupport()
 #endif
 }
 
-int DistanceComputationTools::computeCloud2CloudDistance(	GenericIndexedCloudPersist* comparedCloud,
+int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPersist* comparedCloud,
 															GenericIndexedCloudPersist* referenceCloud,
-															Cloud2CloudDistanceComputationParams& params,
-															GenericProgressCallback* progressCb/*=0*/,
-															DgmOctree* compOctree/*=0*/,
-															DgmOctree* refOctree/*=0*/)
+															Cloud2CloudDistancesComputationParams& params,
+															GenericProgressCallback* progressCb/*=nullptr*/,
+															DgmOctree* compOctree/*=nullptr*/,
+															DgmOctree* refOctree/*=nullptr*/)
 {
 	assert(comparedCloud && referenceCloud);
 	if (!comparedCloud)
@@ -289,7 +289,7 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 												DgmOctree* &comparedOctree,
 												DgmOctree* &referenceOctree,
 												PointCoordinateType maxDist,
-												GenericProgressCallback* progressCb/*=0*/)
+												GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	assert(comparedCloud && referenceCloud);
 	if (!comparedCloud || !referenceCloud)
@@ -316,7 +316,7 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 	CCVector3 maxD;
 	CCVector3 minD;
 	{
-		for (unsigned char k=0; k<3; k++)
+		for (unsigned char k = 0; k < 3; k++)
 		{
 			minD.u[k] = std::min(minsA.u[k], minsB.u[k]);
 			maxD.u[k] = std::max(maxsA.u[k], maxsB.u[k]);
@@ -326,7 +326,7 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 	if (maxDist > 0)
 	{
 		//we reduce the bounding box to the intersection of both bounding-boxes enlarged by 'maxDist'
-		for (unsigned char k=0; k<3; k++)
+		for (unsigned char k = 0; k < 3; k++)
 		{
 			minD.u[k] = std::max(minD.u[k], std::max(minsA.u[k], minsB.u[k]) - maxDist);
 			maxD.u[k] = std::min(maxD.u[k], std::min(maxsA.u[k], maxsB.u[k]) + maxDist);
@@ -348,7 +348,7 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 	if (comparedOctree && comparedOctree->getNumberOfProjectedPoints() != 0)
 	{
 		needToRecalculateOctreeA = false;
-		for (unsigned char k=0; k<3; k++)
+		for (unsigned char k = 0; k < 3; k++)
 		{
 			if (	maxD.u[k] != comparedOctree->getOctreeMaxs().u[k]
 					||	minD.u[k] != comparedOctree->getOctreeMins().u[k] )
@@ -388,7 +388,7 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 	if (referenceOctree && referenceOctree->getNumberOfProjectedPoints() != 0)
 	{
 		needToRecalculateOctreeB = false;
-		for (unsigned char k=0; k<3; k++)
+		for (unsigned char k = 0; k < 3; k++)
 		{
 			if (	maxD.u[k] != referenceOctree->getOctreeMaxs().u[k]
 					||	minD.u[k] != referenceOctree->getOctreeMins().u[k] )
@@ -437,16 +437,16 @@ DistanceComputationTools::synchronizeOctrees(	GenericIndexedCloudPersist* compar
 //Description of expected 'additionalParameters'
 // [0] -> (GenericIndexedCloudPersist*) reference cloud
 // [1] -> (Octree*): reference cloud octree
-// [2] -> (Cloud2CloudDistanceComputationParams*): parameters
+// [2] -> (Cloud2CloudDistancesComputationParams*): parameters
 // [3] -> (ScalarType*): max search distance (squared)
 bool DistanceComputationTools::computeCellHausdorffDistance(const DgmOctree::octreeCell& cell,
 															void** additionalParameters,
-															NormalizedProgress* nProgress/*=0*/)
+															NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//additional parameters
 	const GenericIndexedCloudPersist* referenceCloud	= reinterpret_cast<GenericIndexedCloudPersist*>(additionalParameters[0]);
 	const DgmOctree* referenceOctree					= reinterpret_cast<DgmOctree*>(additionalParameters[1]);
-	Cloud2CloudDistanceComputationParams* params		= reinterpret_cast<Cloud2CloudDistanceComputationParams*>(additionalParameters[2]);
+	Cloud2CloudDistancesComputationParams* params		= reinterpret_cast<Cloud2CloudDistancesComputationParams*>(additionalParameters[2]);
 	const double* maxSearchSquareDistd					= reinterpret_cast<double*>(additionalParameters[3]);
 	bool computeSplitDistances							= *reinterpret_cast<bool*>(additionalParameters[4]);
 
@@ -517,16 +517,16 @@ bool DistanceComputationTools::computeCellHausdorffDistance(const DgmOctree::oct
 //Description of expected 'additionalParameters'
 // [0] -> (GenericIndexedCloudPersist*) reference cloud
 // [1] -> (Octree*): reference cloud octree
-// [2] -> (Cloud2CloudDistanceComputationParams*): parameters
+// [2] -> (Cloud2CloudDistancesComputationParams*): parameters
 // [3] -> (ScalarType*): max search distance (squared)
 bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const DgmOctree::octreeCell& cell,
 																			void** additionalParameters,
-																			NormalizedProgress* nProgress/*=0*/)
+																			NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//additional parameters
 	GenericIndexedCloudPersist* referenceCloud		= reinterpret_cast<GenericIndexedCloudPersist*>(additionalParameters[0]);
 	const DgmOctree* referenceOctree				= reinterpret_cast<DgmOctree*>(additionalParameters[1]);
-	Cloud2CloudDistanceComputationParams* params	= reinterpret_cast<Cloud2CloudDistanceComputationParams*>(additionalParameters[2]);
+	Cloud2CloudDistancesComputationParams* params	= reinterpret_cast<Cloud2CloudDistancesComputationParams*>(additionalParameters[2]);
 	const double* maxSearchSquareDistd				= reinterpret_cast<double*>(additionalParameters[3]);
 	bool computeSplitDistances						= *reinterpret_cast<bool*>(additionalParameters[4]);
 
@@ -739,7 +739,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 	return true;
 }
 
-//Internal structure used by DistanceComputationTools::computeCloud2MeshDistance
+//Internal structure used by DistanceComputationTools::computeCloud2MeshDistances
 struct CellToTest
 {
 	//Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment padding!
@@ -756,7 +756,7 @@ struct CellToTest
 
 int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection* intersection,
 														unsigned char octreeLevel,
-														GenericProgressCallback* progressCb/*=0*/)
+														GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (!intersection)
 	{
@@ -808,7 +808,7 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 	//For each triangle: look for intersecting cells
 	mesh->placeIteratorAtBeginning();
 	int result = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-	for (unsigned n=0; n<numberOfTriangles; ++n)
+	for (unsigned n = 0; n < numberOfTriangles; ++n)
 	{
 		//get the positions (in the grid) of each vertex
 		const GenericTriangle* T = mesh->_getNextTriangle();
@@ -833,7 +833,7 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 			//compute the triangle bounding-box
 			Tuple3i minPos;
 			Tuple3i maxPos;
-			for (int k=0; k<3; k++)
+			for (int k = 0; k < 3; k++)
 			{
 				minPos.u[k] = std::min( cellPos[0].u[k], std::min( cellPos[1].u[k],cellPos[2].u[k] ));
 				maxPos.u[k] = std::max( cellPos[0].u[k], std::max( cellPos[1].u[k],cellPos[2].u[k] ));
@@ -917,13 +917,13 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 					char pointsPosition[27];
 					{
 						char* _pointsPosition = pointsPosition;
-						for (int i=0; i<3; ++i)
+						for (int i = 0; i < 3; ++i)
 						{
 							AB.x = distanceToOctreeMinBorder.x + static_cast<PointCoordinateType>(currentCellPos.x + i*halfCellSize) * cellLength;
-							for (int j=0; j<3; ++j)
+							for (int j = 0; j < 3; ++j)
 							{
 								AB.y = distanceToOctreeMinBorder.y + static_cast<PointCoordinateType>(currentCellPos.y + j*halfCellSize) * cellLength;
-								for (int k=0; k<3; ++k)
+								for (int k = 0; k < 3; ++k)
 								{
 									AB.z = distanceToOctreeMinBorder.z + static_cast<PointCoordinateType>(currentCellPos.z + k*halfCellSize) * cellLength;
 
@@ -954,20 +954,20 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 					_newCell->cellSize = halfCellSize;
 
 					//we look at the position of the 8 sub-cubes relatively to the triangle
-					for (int i=0; i<2; ++i)
+					for (int i = 0; i < 2; ++i)
 					{
 						_newCell->pos.x = currentCellPos.x + i*halfCellSize;
 						//quick test to determine if the cube is potentially intersecting the triangle's bbox
 						if (	static_cast<int>(_newCell->pos.x) + halfCellSize >= minPos.x
 								&&	static_cast<int>(_newCell->pos.x)				 <= maxPos.x )
 						{
-							for (int j=0; j<2; ++j)
+							for (int j = 0; j < 2; ++j)
 							{
 								_newCell->pos.y = currentCellPos.y + j*halfCellSize;
 								if (	static_cast<int>(_newCell->pos.y) + halfCellSize >= minPos.y
 										&&	static_cast<int>(_newCell->pos.y)				 <= maxPos.y )
 								{
-									for (int k=0; k<2; ++k)
+									for (int k = 0; k < 2; ++k)
 									{
 										_newCell->pos.z = currentCellPos.z + k*halfCellSize;
 										if (	static_cast<int>(_newCell->pos.z) + halfCellSize >= minPos.z
@@ -1006,7 +1006,7 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 	return result;
 }
 
-//! Method used by computeCloud2MeshDistanceWithOctree
+//! Method used by computeCloud2MeshDistancesWithOctree
 void ComparePointsAndTriangles( ReferenceCloud& Yk,
 								unsigned& remainingPoints,
 								GenericIndexedMesh* mesh,
@@ -1014,7 +1014,7 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 								std::size_t& trianglesToTestCount,
 								std::vector<ScalarType>& minDists,
 								ScalarType maxRadius,
-								DistanceComputationTools::Cloud2MeshDistanceComputationParams& params)
+								DistanceComputationTools::Cloud2MeshDistancesComputationParams& params)
 {
 	assert(mesh);
 	assert(remainingPoints <= Yk.size());
@@ -1030,33 +1030,36 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 	{
 		//we query the vertex coordinates
 		SimpleTriangle tri;
-		mesh->getTriangleVertices(trianglesToTest[--trianglesToTestCount], tri.A, tri.B, tri.C);
+		unsigned triIndex = trianglesToTest[--trianglesToTestCount];
+		mesh->getTriangleVertices(triIndex, tri.A, tri.B, tri.C);
 
 		//for each point inside the current cell
 		if (params.signedDistances)
 		{
 			//we have to use absolute distances
-			for (unsigned j=0; j<remainingPoints; ++j)
+			for (unsigned j = 0; j < remainingPoints; ++j)
 			{
 				//compute the distance to the triangle
 				ScalarType dPTri = DistanceComputationTools::computePoint2TriangleDistance(Yk.getPoint(j), &tri, true, _nearestPoint);
 				//keep it if it's smaller
 				ScalarType min_d = Yk.getPointScalarValue(j);
-				if (!ScalarField::ValidValue(min_d) || min_d*min_d > dPTri*dPTri)
+				if (!ScalarField::ValidValue(min_d) || min_d * min_d > dPTri*dPTri)
 				{
 					Yk.setPointScalarValue(j, params.flipNormals ? -dPTri : dPTri);
 					if (params.CPSet)
 					{
-						//Closest Point Set: save the nearest point as well
+						//Closest Point Set: save the nearest point and nearest triangle as well
+						unsigned pointIndex = Yk.getPointGlobalIndex(j);
 						assert(_nearestPoint);
-						*const_cast<CCVector3*>(params.CPSet->getPoint(Yk.getPointGlobalIndex(j))) = *_nearestPoint;
+						*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+						params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
 					}
 				}
 			}
 		}
 		else //squared distances
 		{
-			for (unsigned j = 0; j<remainingPoints; ++j)
+			for (unsigned j = 0; j < remainingPoints; ++j)
 			{
 				//compute the (SQUARED) distance to the triangle
 				ScalarType dPTri = DistanceComputationTools::computePoint2TriangleDistance(Yk.getPoint(j), &tri, false, _nearestPoint);
@@ -1067,9 +1070,11 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 					Yk.setPointScalarValue(j, dPTri);
 					if (params.CPSet)
 					{
-						//Closest Point Set: save the nearest point as well
+						//Closest Point Set: save the nearest point and nearest triangle as well
 						assert(_nearestPoint);
-						*const_cast<CCVector3*>(params.CPSet->getPoint(Yk.getPointGlobalIndex(j))) = *_nearestPoint;
+						unsigned pointIndex = Yk.getPointGlobalIndex(j);
+						*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+						params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
 					}
 				}
 			}
@@ -1080,7 +1085,7 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 	if (firstComparisonDone)
 	{
 		Yk.placeIteratorAtBeginning();
-		for (unsigned j=0; j<remainingPoints; ++j)
+		for (unsigned j = 0; j < remainingPoints; ++j)
 		{
 			//eligibility distance
 			ScalarType eligibleDist = minDists[j] + maxRadius;
@@ -1122,7 +1127,7 @@ static NormalizedProgress* s_normProgressCb_MT = nullptr;
 static OctreeAndMeshIntersection* s_intersection_MT = nullptr;
 static bool s_cellFunc_MT_success = true;
 static int s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-static DistanceComputationTools::Cloud2MeshDistanceComputationParams s_params_MT;
+static DistanceComputationTools::Cloud2MeshDistancesComputationParams s_params_MT;
 
 //'processTriangles' mechanism (based on bit mask)
 static std::vector<std::vector<bool>*> s_bitArrayPool_MT;
@@ -1175,7 +1180,7 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	int maxDistToBoundaries = 0;
 	Tuple3i distToLowerBorder = startPos - s_intersection_MT->minFillIndexes;
 	Tuple3i distToUpperBorder = s_intersection_MT->maxFillIndexes - startPos;
-	for (unsigned k = 0; k<3; ++k)
+	for (unsigned k = 0; k < 3; ++k)
 	{
 		maxDistToBoundaries = std::max(maxDistToBoundaries, distToLowerBorder.u[k]);
 		maxDistToBoundaries = std::max(maxDistToBoundaries, distToUpperBorder.u[k]);
@@ -1237,7 +1242,7 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	//for each point, we pre-compute its distance to the nearest cell border
 	//(will be handy later)
 	Yk.placeIteratorAtBeginning();
-	for (unsigned j = 0; j<remainingPoints; ++j)
+	for (unsigned j = 0; j < remainingPoints; ++j)
 	{
 		//coordinates of the current point
 		const CCVector3 *tempPt = Yk.getCurrentPointCoordinates();
@@ -1276,7 +1281,7 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 					for (int k = -e; k <= f; k++)
 					{
 						//are there any triangles near this cell?
-						cellPos.z = startPos.z+k;
+						cellPos.z = startPos.z + k;
 						TriangleList* triList = s_intersection_MT->perCellTriangleList.getValue(cellPos);
 						if (triList)
 						{
@@ -1325,7 +1330,7 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 							{
 								if (bitArray)
 								{
-									const unsigned& indexTri = triList->indexes[p];
+									const unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
 									if (!(*bitArray)[indexTri])
 									{
@@ -1358,7 +1363,7 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 							{
 								if (bitArray)
 								{
-									const unsigned& indexTri = triList->indexes[p];
+									const unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
 									if (!(*bitArray)[indexTri])
 									{
@@ -1391,9 +1396,9 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 
 #endif
 
-int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(	OctreeAndMeshIntersection* intersection,
-																	Cloud2MeshDistanceComputationParams& params,
-																	GenericProgressCallback* progressCb/*=0*/)
+int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	OctreeAndMeshIntersection* intersection,
+																	Cloud2MeshDistancesComputationParams& params,
+																	GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	assert(intersection);
 	assert(!params.signedDistances || !intersection->distanceTransform); //signed distances are not compatible with Distance Transform acceleration
@@ -1424,6 +1429,14 @@ int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(	OctreeAndMesh
 			//not enough memory
 			return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
 		}
+		//reserve memory for an associated scalar field (the nearest triangle index)
+		if (!params.CPSet->enableScalarField())
+		{
+			//not enough memory
+			return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+		}
+		assert(params.CPSet->getCurrentInScalarField());
+		params.CPSet->getCurrentInScalarField()->fill(0);
 	}
 
 #ifdef ENABLE_CLOUD2MESH_DIST_MT
@@ -1780,7 +1793,7 @@ int DistanceComputationTools::computeCloud2MeshDistanceWithOctree(	OctreeAndMesh
 		s_useBitArrays_MT = true;
 
 		//Single thread emulation
-		//for (unsigned i=0; i<numberOfCells; ++i)
+		//for (unsigned i = 0; i < numberOfCells; ++i)
 		//	cloudMeshDistCellFunc_MT(cellsDescs[i]);
 
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
@@ -1825,11 +1838,11 @@ inline void applySqrtToPointDist(const CCVector3 &aPoint, ScalarType& aScalarVal
 		aScalarValue = sqrt(aScalarValue);
 }
 
-int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPersist* pointCloud,
+int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPersist* pointCloud,
 															GenericIndexedMesh* mesh,
-															Cloud2MeshDistanceComputationParams& params,
-															GenericProgressCallback* progressCb/*=0*/,
-															DgmOctree* cloudOctree/*=0*/)
+															Cloud2MeshDistancesComputationParams& params,
+															GenericProgressCallback* progressCb/*=nullptr*/,
+															DgmOctree* cloudOctree/*=nullptr*/)
 {
 	//check the input
 	if (!pointCloud)
@@ -1883,7 +1896,7 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 		mesh->getBoundingBox(meshMinBB,meshMaxBB);
 
 		//max bounding-box (non-cubical)
-		for (unsigned char k=0; k<3; ++k)
+		for (unsigned char k = 0; k < 3; ++k)
 		{
 			minBB.u[k] = std::min(meshMinBB.u[k],cloudMinBB.u[k]);
 			maxBB.u[k] = std::max(meshMaxBB.u[k],cloudMaxBB.u[k]);
@@ -1909,7 +1922,7 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 		//check the input octree dimensions
 		const CCVector3& theOctreeMins = octree->getOctreeMins();
 		const CCVector3& theOctreeMaxs = octree->getOctreeMaxs();
-		for (unsigned char k=0; k<3; ++k)
+		for (unsigned char k = 0; k < 3; ++k)
 		{
 			if (	theOctreeMins.u[k] != minCubifiedBB.u[k]
 					||	theOctreeMaxs.u[k] != maxCubifiedBB.u[k] )
@@ -1923,7 +1936,7 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 	if (rebuildTheOctree)
 	{
 		//build the octree
-		if (octree->build(minCubifiedBB,maxCubifiedBB,&cloudMinBB,&cloudMaxBB,progressCb) <= 0)
+		if (octree->build(minCubifiedBB, maxCubifiedBB, &cloudMinBB, &cloudMaxBB, progressCb) <= 0)
 		{
 			return DISTANCE_COMPUTATION_RESULTS::ERROR_BUILD_OCTREE_FAILURE;
 		}
@@ -1938,11 +1951,11 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 	//we compute grid occupancy ... and we deduce the grid dimensions
 	Tuple3ui gridSize;
 	{
-		for (unsigned char k=0; k<3; ++k)
+		for (unsigned char k = 0; k < 3; ++k)
 		{
-			intersection.minFillIndexes.u[k] = static_cast<int>(floor((minBB.u[k]-minCubifiedBB.u[k])/cellSize));
-			intersection.maxFillIndexes.u[k] = static_cast<int>(floor((maxBB.u[k]-minCubifiedBB.u[k])/cellSize));
-			gridSize.u[k] = static_cast<unsigned>(intersection.maxFillIndexes.u[k]-intersection.minFillIndexes.u[k]+1);
+			intersection.minFillIndexes.u[k] = static_cast<int>(floor((minBB.u[k] - minCubifiedBB.u[k]) / cellSize));
+			intersection.maxFillIndexes.u[k] = static_cast<int>(floor((maxBB.u[k] - minCubifiedBB.u[k]) / cellSize));
+			gridSize.u[k] = static_cast<unsigned>(intersection.maxFillIndexes.u[k] - intersection.minFillIndexes.u[k] + 1);
 		}
 	}
 
@@ -1991,7 +2004,7 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 	}
 
 	//WE CAN EVENTUALLY COMPUTE THE DISTANCES!
-	result = computeCloud2MeshDistanceWithOctree(&intersection, params, progressCb);
+	result = computeCloud2MeshDistancesWithOctree(&intersection, params, progressCb);
 
 	//don't forget to compute the square root of the (squared) unsigned distances
 	if (result == DISTANCE_COMPUTATION_RESULTS::SUCCESS &&
@@ -2018,7 +2031,10 @@ int DistanceComputationTools::computeCloud2MeshDistance(	GenericIndexedCloudPers
 // David Eberly
 // Geometric Tools, LLC
 // http://www.geometrictools.com/
-ScalarType DistanceComputationTools::computePoint2TriangleDistance(const CCVector3* P, const GenericTriangle* theTriangle, bool signedDist, CCVector3* nearestP/*=0*/)
+ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVector3* P,
+																	const GenericTriangle* theTriangle,
+																	bool signedDist,
+																	CCVector3* nearestP/*=nullptr*/)
 {
 	assert(P && theTriangle);
 
@@ -2471,7 +2487,13 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 // solutionType 2 = interior to the cylinder and either closer to an end-cap or the cylinder wall
 // solutionType 3 = beyond the bounds of the cylinder's axis and radius
 // solutionType 4 = beyond the bounds of the cylinder's axis but within the bounds of it's radius
-int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudPersist* cloud, const CCVector3& cylinderP1, const CCVector3& cylinderP2, const PointCoordinateType cylinderRadius, bool signedDistances/*=true*/, bool solutionType/*=false*/, double* rms/*=0*/)
+int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudPersist* cloud,
+															const CCVector3& cylinderP1,
+															const CCVector3& cylinderP2,
+															const PointCoordinateType cylinderRadius,
+															bool signedDistances/*=true*/,
+															bool solutionType/*=false*/,
+															double* rms/*=nullptr*/)
 {
 	if (!cloud)
 	{
@@ -2576,7 +2598,11 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2SphereEquation(GenericIndexedCloudPersist *cloud, const CCVector3& sphereCenter, const PointCoordinateType sphereRadius, bool signedDistances/*=true*/, double* rms/*=0*/)
+int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPersist *cloud,
+															const CCVector3& sphereCenter,
+															const PointCoordinateType sphereRadius,
+															bool signedDistances/*=true*/,
+															double* rms/*=nullptr*/)
 {
 	if (!cloud)
 	{
@@ -2614,7 +2640,10 @@ int DistanceComputationTools::computeCloud2SphereEquation(GenericIndexedCloudPer
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2PlaneEquation(GenericIndexedCloudPersist *cloud, const PointCoordinateType* planeEquation, bool signedDistances/*=true*/, double* rms/*=0*/)
+int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPersist *cloud,
+															const PointCoordinateType* planeEquation,
+															bool signedDistances/*=true*/,
+															double* rms/*=nullptr*/)
 {
 	assert(cloud && planeEquation);
 	if (!cloud)
@@ -2668,7 +2697,13 @@ int DistanceComputationTools::computeCloud2PlaneEquation(GenericIndexedCloudPers
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2RectangleEquation(GenericIndexedCloudPersist *cloud, PointCoordinateType widthX, PointCoordinateType widthY, const SquareMatrix& rotationTransform, const CCVector3& center, bool signedDist/*=true*/, double* rms/*= nullptr*/)
+int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedCloudPersist *cloud,
+																PointCoordinateType widthX,
+																PointCoordinateType widthY,
+																const SquareMatrix& rotationTransform,
+																const CCVector3& center,
+																bool signedDist/*=true*/,
+																double* rms/*=nullptr*/)
 {
 	// p3---------------------p2
 	// ^					  |
@@ -2758,7 +2793,12 @@ int DistanceComputationTools::computeCloud2RectangleEquation(GenericIndexedCloud
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2BoxEquation(GenericIndexedCloudPersist* cloud, const CCVector3& boxDimensions, const SquareMatrix& rotationTransform, const CCVector3& boxCenter, bool signedDist/*=true*/, double* rms/*= nullptr*/)
+int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersist* cloud,
+														const CCVector3& boxDimensions,
+														const SquareMatrix& rotationTransform,
+														const CCVector3& boxCenter,
+														bool signedDist/*=true*/,
+														double* rms/*=nullptr*/)
 {
 	assert(cloud);
 	if (!cloud)
@@ -2874,7 +2914,9 @@ int DistanceComputationTools::computeCloud2BoxEquation(GenericIndexedCloudPersis
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudPersist* cloud, const Polyline* polyline, double* rms /*= nullptr*/)
+int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudPersist* cloud,
+															const Polyline* polyline,
+															double* rms/*=nullptr*/)
 {
 	if (!cloud)
 	{
@@ -3034,12 +3076,12 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 		if (maxPos != 0)
 		{
 			std::size_t maxIndex = maxPos;
-			for (std::size_t j=0; j<maxPos; ++j)
+			for (std::size_t j = 0; j < maxPos; ++j)
 				if (tail[j] < tail[maxIndex])
 					maxIndex = j;
 			//and put it to the back!
 			if (maxPos != maxIndex)
-				std::swap(tail[maxIndex],tail[maxPos]);
+				std::swap(tail[maxIndex], tail[maxPos]);
 		}
 	}
 
@@ -3179,11 +3221,11 @@ int DistanceComputationTools::diff( GenericIndexedCloudPersist* comparedCloud,
 	//Reference cloud to store closest point set
 	ReferenceCloud A_in_B(referenceCloud);
 
-	Cloud2CloudDistanceComputationParams params;
-	params.octreeLevel = DgmOctree::MAX_OCTREE_LEVEL-1;
+	Cloud2CloudDistancesComputationParams params;
+	params.octreeLevel = DgmOctree::MAX_OCTREE_LEVEL - 1;
 	params.CPSet = &A_in_B;
 
-	int result = computeCloud2CloudDistance(comparedCloud,referenceCloud,params,progressCb);
+	int result = computeCloud2CloudDistances(comparedCloud, referenceCloud, params, progressCb);
 	if (result < DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 	{
 		if (!(result == DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY ||
@@ -3194,13 +3236,13 @@ int DistanceComputationTools::diff( GenericIndexedCloudPersist* comparedCloud,
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_COMPUTE_CLOUD2_CLOUD_DISTANCE_FAILURE;
 	}
 
-	for (unsigned i=0; i<nA; ++i)
+	for (unsigned i = 0; i < nA; ++i)
 	{
 		ScalarType dA = comparedCloud->getPointScalarValue(i);
 		ScalarType dB = A_in_B.getPointScalarValue(i);
 
 		//handle invalid values
-		comparedCloud->setPointScalarValue(i,ScalarField::ValidValue(dA) && ScalarField::ValidValue(dB) ? dA-dB : NAN_VALUE);
+		comparedCloud->setPointScalarValue(i, ScalarField::ValidValue(dA) && ScalarField::ValidValue(dB) ? dA - dB : NAN_VALUE);
 	}
 
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
@@ -3210,9 +3252,9 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 																GenericIndexedCloudPersist* referenceCloud,
 																unsigned char octreeLevel,
 																PointCoordinateType maxSearchDist/*=-PC_ONE*/,
-																GenericProgressCallback* progressCb/*=0*/,
-																DgmOctree* compOctree/*=0*/,
-																DgmOctree* refOctree/*=0*/)
+																GenericProgressCallback* progressCb/*=nullptr*/,
+																DgmOctree* compOctree/*=nullptr*/,
+																DgmOctree* refOctree/*=nullptr*/)
 {
 	if (!comparedCloud)
 	{

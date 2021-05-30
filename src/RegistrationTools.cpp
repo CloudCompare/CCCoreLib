@@ -9,6 +9,7 @@
 #include <DistanceComputationTools.h>
 #include <Garbage.h>
 #include <GenericProgressCallback.h>
+#include <GenericIndexedMesh.h>
 #include <GeometricalAnalysisTools.h>
 #include <Jacobi.h>
 #include <KdTree.h>
@@ -152,15 +153,21 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	Garbage<GenericIndexedCloudPersist> cloudGarbage;
 	Garbage<ScalarField> sfGarbage;
 
+	bool registerWithNormals = (params.normalsMatching != NO_NORMAL);
+
 	//DATA CLOUD (will move)
 	DataCloud data;
 	{
 		//we also want to use the same number of points for registration as initially defined by the user!
 		unsigned dataSamplingLimit = params.finalOverlapRatio != 1.0 ? static_cast<unsigned>(params.samplingLimit / params.finalOverlapRatio) : params.samplingLimit;
 
-		//we resample the cloud if it's too big (speed increase)
-		if (inputDataCloud->size() > dataSamplingLimit)
+		if (inputDataCloud->size() == 0)
 		{
+			return ICP_NOTHING_TO_DO;
+		}
+		else if (inputDataCloud->size() > dataSamplingLimit)
+		{
+			//we resample the cloud if it's too big (speed increase)
 			data.cloud = CloudSamplingTools::subsampleCloudRandomly(inputDataCloud, dataSamplingLimit);
 			if (!data.cloud)
 			{
@@ -215,6 +222,9 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			//not enough memory
 			return ICP_ERROR_NOT_ENOUGH_MEMORY;
 		}
+
+		//we need normals to register with normals ;)
+		registerWithNormals &= inputDataCloud->normalsAvailable();
 	}
 	assert(data.cloud);
 
@@ -227,6 +237,11 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	{
 		assert(!params.modelWeights);
 
+		if (inputModelMesh->size() == 0)
+		{
+			return ICP_ERROR_INVALID_INPUT;
+		}
+
 		//we'll use the mesh vertices to estimate the right octree level
 		DgmOctree dataOctree(data.cloud);
 		DgmOctree modelOctree(inputModelCloud);
@@ -237,12 +252,19 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		}
 
 		meshDistOctreeLevel = dataOctree.findBestLevelForComparisonWithOctree(&modelOctree);
+
+		//we need normals to register with normals ;)
+		registerWithNormals &= inputModelMesh->normalsAvailable();
 	}
 	else /*if (inputModelCloud)*/
 	{
-		//we resample the cloud if it's too big (speed increase)
-		if (inputModelCloud->size() > params.samplingLimit)
+		if (inputModelCloud->size() == 0)
 		{
+			return ICP_ERROR_INVALID_INPUT;
+		}
+		else if (inputModelCloud->size() > params.samplingLimit)
+		{
+			//we resample the cloud if it's too big (speed increase)
 			ReferenceCloud* subModelCloud = CloudSamplingTools::subsampleCloudRandomly(inputModelCloud, params.samplingLimit);
 			if (!subModelCloud)
 			{
@@ -282,6 +304,9 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			model.weights = params.modelWeights;
 		}
 		assert(model.cloud);
+
+		//we need normals to register with normals ;)
+		registerWithNormals &= inputModelCloud->normalsAvailable();
 	}
 
 	//for partial overlap
@@ -317,23 +342,23 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 	//per-point couple weights
 	ScalarField* coupleWeights = nullptr;
-	if (model.weights || data.weights)
+	if (model.weights || data.weights || registerWithNormals)
 	{
 		coupleWeights = new ScalarField("CoupleWeights");
 		sfGarbage.add(coupleWeights);
 	}
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
-	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistance now
+	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistances now
 	if (inputModelMesh)
 	{
 		assert(data.CPSetPlain);
-		DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
+		DistanceComputationTools::Cloud2MeshDistancesComputationParams c2mDistParams;
 		c2mDistParams.octreeLevel = meshDistOctreeLevel;
 		c2mDistParams.signedDistances = params.useC2MSignedDistances;
 		c2mDistParams.CPSet = data.CPSetPlain;
 		c2mDistParams.maxThreadCount = params.maxThreadCount;
-		if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
+		if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
 		{
 			//an error occurred during distances computation...
 			return ICP_ERROR_DIST_COMPUTATION;
@@ -342,10 +367,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	else if (inputModelCloud)
 	{
 		assert(data.CPSetRef);
-		DistanceComputationTools::Cloud2CloudDistanceComputationParams c2cDistParams;
+		DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 		c2cDistParams.CPSet = data.CPSetRef;
 		c2cDistParams.maxThreadCount = params.maxThreadCount;
-		if (DistanceComputationTools::computeCloud2CloudDistance(data.cloud, model.cloud, c2cDistParams, progressCb) < 0)
+		if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams, progressCb) < 0)
 		{
 			//an error occurred during distances computation...
 			return ICP_ERROR_DIST_COMPUTATION;
@@ -500,6 +525,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			if (!filteredData.cloud->reserve(pointCount) //should be maxOverlapCount in theory, but there may be several points with the same value as maxOverlapDist!
 				|| (filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
 				|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
+				|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->enableScalarField()) //don't forget the scalar field with the nearest triangle index
 				|| (filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
 			{
 				//not enough memory
@@ -514,11 +540,19 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				{
 					filteredData.cloud->addPointIndex(data.cloud->getPointGlobalIndex(i));
 					if (filteredData.CPSetRef)
+					{
 						filteredData.CPSetRef->addPointIndex(data.CPSetRef->getPointGlobalIndex(i));
+					}
 					else if (filteredData.CPSetPlain)
+					{
 						filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+						//don't forget the scalar field with the nearest triangle index!
+						filteredData.CPSetPlain->addPointScalarValue(data.CPSetPlain->getPointScalarValue(i));
+					}
 					if (filteredData.weights)
+					{
 						filteredData.weights->addElement(data.weights->getValue(i));
+					}
 				}
 			}
 			assert(filteredData.cloud->size() >= maxOverlapCount);
@@ -541,8 +575,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		if (coupleWeights)
 		{
 			unsigned count = data.cloud->size();
-
-			assert(model.weights || data.weights);
+			assert(model.weights || data.weights || registerWithNormals);
 			assert(!model.weights || (data.CPSetRef && data.CPSetRef->size() == count));
 
 			if (coupleWeights->currentSize() != count && !coupleWeights->resizeSafe(count))
@@ -554,9 +587,65 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 			for (unsigned i = 0; i < count; ++i)
 			{
-				ScalarType wd = (data.weights ? data.weights->getValue(i) : static_cast<ScalarType>(1.0));
-				ScalarType wm = (model.weights ? model.weights->getValue(data.CPSetRef->getPointGlobalIndex(i)) : static_cast<ScalarType>(1.0)); //model weights are only support with a reference cloud!
-				coupleWeights->setValue(i, wd*wm);
+				double w = 1.0;
+				if (registerWithNormals)
+				{
+					//retrieve the data point normal
+					const CCVector3* Nd = data.cloud->getNormal(i);
+					
+					//retrieve the nearest model point normal
+					CCVector3 Nm;
+					if (inputModelMesh)
+					{
+						unsigned triIndex = static_cast<unsigned>(data.CPSetPlain->getPointScalarValue(i));
+						assert(triIndex >= 0 && triIndex < inputModelMesh->size());
+						inputModelMesh->interpolateNormals(triIndex, *data.cloud->getPoint(i), Nm);
+					}
+					else
+					{
+						Nm = *inputModelCloud->getNormal(i);
+					}
+
+					//we assume the vectors are unitary!
+					PointCoordinateType dp = Nd->dot(Nm);
+
+					switch (params.normalsMatching)
+					{
+					case OPPOSITE_NORMALS:
+					{
+						w = acos(dp) / M_PI; // 0 rad --> w = 0 / pi/2 rad --> w = 0.5 / pi rad --> w = 1
+					}
+					break;
+
+					case SAME_SIDE_NORMALS:
+					{
+						w = 1.0 - acos(dp) / M_PI; // 0 rad --> w = 1 / pi/2 rad --> w = 0.5 / pi rad --> w = 0
+					}
+					break;
+
+					case DOUBLE_SIDED_NORMALS:
+					{
+						dp = std::abs(dp);
+						w = 1.0 - acos(dp) / M_PI_2; // 0 rad --> w = 1 / pi/2 rad --> w = 0
+					}
+					break;
+
+					default:
+						assert(false);
+						break;
+					}
+				}
+				if (data.weights)
+				{
+					w *= data.weights->getValue(i);
+				}
+				if (model.weights)
+				{
+					//model weights are only supported with a reference cloud!
+					ScalarType wm = model.weights->getValue(data.CPSetRef->getPointGlobalIndex(i));
+					w *= wm;
+				}
+				coupleWeights->setValue(i, static_cast<ScalarType>(w));
 			}
 			coupleWeights->computeMinAndMax();
 		}
@@ -673,11 +762,13 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				//progress notification
 				if (progressCb)
 				{
-
 					if (progressCb->textCanBeEdited())
 					{
 						char buffer[256];
-						sprintf(buffer, "RMS = %f [-%f]\n", rms, deltaRMS);
+						if (coupleWeights)
+							sprintf(buffer, "Weighted RMS = %f [-%f]\n", rms, deltaRMS);
+						else
+							sprintf(buffer, "RMS = %f [-%f]\n", rms, deltaRMS);
 						progressCb->setInfo(buffer);
 					}
 					if (iteration == 1)
@@ -769,12 +860,12 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//compute (new) distances to model
 		if (inputModelMesh)
 		{
-			DistanceComputationTools::Cloud2MeshDistanceComputationParams c2mDistParams;
+			DistanceComputationTools::Cloud2MeshDistancesComputationParams c2mDistParams;
 			c2mDistParams.octreeLevel = meshDistOctreeLevel;
 			c2mDistParams.signedDistances = params.useC2MSignedDistances;
 			c2mDistParams.CPSet = data.CPSetPlain;
 			c2mDistParams.maxThreadCount = params.maxThreadCount;
-			if (DistanceComputationTools::computeCloud2MeshDistance(data.cloud, inputModelMesh, c2mDistParams) < 0)
+			if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams) < 0)
 			{
 				//an error occurred during distances computation...
 				result = ICP_ERROR_REGISTRATION_STEP;
@@ -783,10 +874,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		}
 		else if (inputDataCloud)
 		{
-			DistanceComputationTools::Cloud2CloudDistanceComputationParams c2cDistParams;
+			DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 			c2cDistParams.CPSet = data.CPSetRef;
 			c2cDistParams.maxThreadCount = params.maxThreadCount;
-			if (DistanceComputationTools::computeCloud2CloudDistance(data.cloud, model.cloud, c2cDistParams) < 0)
+			if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams) < 0)
 			{
 				//an error occurred during distances computation...
 				result = ICP_ERROR_REGISTRATION_STEP;
