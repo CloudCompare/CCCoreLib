@@ -169,22 +169,22 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 
 	//on va faire la propagation avec le FastMarching();
 	FastMarchingForPropagation* fm = new FastMarchingForPropagation();
-
-	fm->setJumpCoef(50.0);
-	fm->setDetectionThreshold(alpha);
-
-	int result = fm->init(theCloud, theOctree, octreeLevel);
-	int octreeLength = DgmOctree::OCTREE_LENGTH(octreeLevel) - 1;
-
-	if (result < 0)
 	{
-		if (!inputOctree)
+		fm->setJumpCoef(50.0);
+		fm->setDetectionThreshold(alpha);
+
+		int result = fm->init(theCloud, theOctree, octreeLevel);
+		if (result < 0)
 		{
-			delete theOctree;
+			if (!inputOctree)
+			{
+				delete theOctree;
+			}
+			delete fm;
+			return false;
 		}
-		delete fm;
-		return false;
 	}
+	int octreeLength = DgmOctree::OCTREE_LENGTH(octreeLevel) - 1;
 
 	if (progressCb)
 	{
@@ -243,7 +243,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		}
 
 		//on finit la recherche du max
-		for (unsigned i = begin; i<numberOfPoints; ++i)
+		for (unsigned i = begin; i < numberOfPoints; ++i)
 		{
 			const CCVector3 *thePoint = theCloud->getPoint(i);
 			const ScalarType& theDistance = theDists->at(i);
@@ -268,10 +268,10 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 			++seedPoints;
 		}
 
-		int result = fm->propagate();
+		int resultFM = fm->propagate();
 
 		//if the propagation was successful
-		if (result >= 0)
+		if (resultFM >= 0)
 		{
 			//we extract the corresponding points
 			ReferenceCloud* newCloud = new ReferenceCloud(theCloud);

@@ -2015,10 +2015,10 @@ unsigned char DgmOctree::findBestLevelForAGivenNeighbourhoodSizeExtraction(Point
 	static const PointCoordinateType c_neighbourhoodSizeExtractionFactor = static_cast<PointCoordinateType>(2.5);
 	PointCoordinateType aim = std::max<PointCoordinateType>(0, radius / c_neighbourhoodSizeExtractionFactor);
 
-	int level = 1;
+	unsigned char level = 1;
 	PointCoordinateType minValue = getCellSize(1) - aim;
 	minValue *= minValue;
-	for (int i = 2; i <= MAX_OCTREE_LEVEL; ++i)
+	for (unsigned char i = 2; i <= static_cast<unsigned char>(MAX_OCTREE_LEVEL); ++i)
 	{
 		//we need two points per cell ideally
 		if (m_averageCellPopulation[i] < 1.5)
@@ -2035,7 +2035,7 @@ unsigned char DgmOctree::findBestLevelForAGivenNeighbourhoodSizeExtraction(Point
 		}
 	}
 
-	return static_cast<unsigned char>(level);
+	return level;
 }
 
 unsigned char DgmOctree::findBestLevelForComparisonWithOctree(const DgmOctree* theOtherOctree) const
@@ -2045,15 +2045,15 @@ unsigned char DgmOctree::findBestLevelForComparisonWithOctree(const DgmOctree* t
 
 	unsigned char maxOctreeLevel = MAX_OCTREE_LEVEL;
 
-	if (std::min(ptsA,ptsB) < 16)
+	if (std::min(ptsA, ptsB) < 16)
 		maxOctreeLevel = std::min(maxOctreeLevel, static_cast<unsigned char>(5)); //very small clouds
-	else if (std::max(ptsA,ptsB) < 2000000)
+	else if (std::max(ptsA, ptsB) < 2000000)
 		maxOctreeLevel = std::min(maxOctreeLevel, static_cast<unsigned char>(10)); //average size clouds
 
 	double estimatedTime[MAX_OCTREE_LEVEL]{};
 	unsigned char bestLevel = 1;
 
-	for (int i=1; i<maxOctreeLevel; ++i) //warning: i >= 1
+	for (unsigned char i = 1; i < maxOctreeLevel; ++i) //warning: i >= 1
 	{
 		int diffA = 0;
 		int diffB = 0;

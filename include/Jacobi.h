@@ -269,11 +269,11 @@ namespace CCCoreLib
 				{
 					for (unsigned iq = ip + 1; iq < n; iq++)
 					{
-						Scalar g = std::abs(matrix.m_values[ip][iq]) * 100;
+						Scalar pq = std::abs(matrix.m_values[ip][iq]) * 100;
 						//After four sweeps, skip the rotation if the off-diagonal element is small.
 						if (i > 4
-								&& static_cast<float>(std::abs(d[ip]) + g) == static_cast<float>(std::abs(d[ip]))
-								&& static_cast<float>(std::abs(d[iq]) + g) == static_cast<float>(std::abs(d[iq])))
+								&& static_cast<float>(std::abs(d[ip]) + pq) == static_cast<float>(std::abs(d[ip]))
+								&& static_cast<float>(std::abs(d[iq]) + pq) == static_cast<float>(std::abs(d[iq])))
 						{
 							matrix.m_values[ip][iq] = 0;
 						}
@@ -281,7 +281,7 @@ namespace CCCoreLib
 						{
 							Scalar h = d[iq] - d[ip];
 							Scalar t = 0;
-							if (static_cast<float>(std::abs(h) + g) == static_cast<float>(std::abs(h)))
+							if (static_cast<float>(std::abs(h) + pq) == static_cast<float>(std::abs(h)))
 							{
 								t = matrix.m_values[ip][iq] / h;
 							}
