@@ -49,6 +49,6 @@ namespace CCCoreLib
 		//! If per-point normals are available, returns the one at a specific index
 		/** \warning If overriden, this method should return a valid normal for all points
 		**/
-		virtual const CCVector3* getNormal(unsigned index) const { return nullptr; }
+		virtual const CCVector3* getNormal(unsigned index) const { (void)index; return nullptr; }
 	};
 }

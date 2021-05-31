@@ -163,8 +163,8 @@ bool WeibullDistribution::computeParameters(const ScalarContainer& values)
 		return false;
 
 	//we look for the maximum value of the SF so as to avoid overflow
-	ScalarType minValue;
-	ScalarType maxValue;
+	ScalarType minValue = 0;
+	ScalarType maxValue = 0;
 	bool firstValue = true;
 	for (ScalarType s : values)
 	{

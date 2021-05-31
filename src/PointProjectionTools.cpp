@@ -61,21 +61,22 @@ PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 		progressCb->start();
 	}
 
-	const CCVector3* Q = nullptr;
 	cloud->placeIteratorAtBeginning();
-	while ((Q = cloud->getNextPoint()))
+	const CCVector3* Q = cloud->getNextPoint();
+	while (Q)
 	{
-		CCVector3 P = *Q-*center;
+		CCVector3 P = *Q - *center;
 		PointCoordinateType u = sqrt(P.u[dim1] * P.u[dim1] + P.u[dim2] * P.u[dim2]);
-		PointCoordinateType lon = atan2(P.u[dim1],P.u[dim2]);
+		PointCoordinateType lon = atan2(P.u[dim1], P.u[dim2]);
 
-		newCloud->addPoint(CCVector3(lon*radius,P.u[dim],u-radius));
+		newCloud->addPoint(CCVector3(lon*radius, P.u[dim], u - radius));
 
 		if (progressCb && !nprogress.oneStep())
 		{
 			break;
 		}
-
+		
+		Q = cloud->getNextPoint();
 	}
 
 	if (progressCb)
@@ -191,9 +192,8 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 	}
 
 	cloud->placeIteratorAtBeginning();
-	const CCVector3* P;
-
-	while ((P = cloud->getNextPoint()))
+	const CCVector3* P = cloud->getNextPoint();
+	while (P)
 	{
 		//P' = s*R.P+T
 		CCVector3 newP = trans.apply(*P);
@@ -204,6 +204,8 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 		{
 			break;
 		}
+
+		P = cloud->getNextPoint();
 	}
 
 	if (progressCb)
@@ -820,7 +822,7 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 						}
 
 						//update the removed edges info and put them back in the main list
-						for (std::size_t i=0; i<removed.size(); ++i)
+						for (std::size_t i = 0; i < removed.size(); ++i)
 						{
 							VertexIterator itC = removed[i];
 							VertexIterator itD = itC; ++itD;
@@ -839,14 +841,14 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 
 							if (minSquareDist >= 0)
 							{
-								Edge e(itC,nearestPointIndex,minSquareDist);
-								edges.insert(e);
+								Edge newEdge(itC, nearestPointIndex, minSquareDist);
+								edges.insert(newEdge);
 							}
 						}
 					}
 
 					//we'll inspect the two new segments later (if necessary)
-					if ((P-**itA).norm2() > maxSquareEdgeLength)
+					if ((P - **itA).norm2() > maxSquareEdgeLength)
 					{
 						unsigned nearestPointIndex = 0;
 						PointCoordinateType minSquareDist = FindNearestCandidate(
@@ -860,8 +862,8 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 
 						if (minSquareDist >= 0)
 						{
-							Edge e(itA,nearestPointIndex,minSquareDist);
-							edges.insert(e);
+							Edge newEdge(itA, nearestPointIndex, minSquareDist);
+							edges.insert(newEdge);
 						}
 					}
 
@@ -879,8 +881,8 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 
 						if (minSquareDist >= 0)
 						{
-							Edge e(itP,nearestPointIndex,minSquareDist);
-							edges.insert(e);
+							Edge newEdge(itP, nearestPointIndex, minSquareDist);
+							edges.insert(newEdge);
 						}
 					}
 				}

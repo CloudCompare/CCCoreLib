@@ -536,10 +536,11 @@ CCVector3 GeometricalAnalysisTools::ComputeGravityCenter(GenericCloud* cloud)
 	CCVector3d sum(0, 0, 0);
 
 	cloud->placeIteratorAtBeginning();
-	const CCVector3 *P = nullptr;
-	while ((P = cloud->getNextPoint()))
+	const CCVector3* P = cloud->getNextPoint();
+	while (P)
 	{
 		sum += *P;
+		P = cloud->getNextPoint();
 	}
 
 	sum /= static_cast<double>(count);

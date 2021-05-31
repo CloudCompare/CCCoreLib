@@ -87,7 +87,7 @@ namespace CCCoreLib
 			\param[out] N			interpolated normal
 			\return success
 		**/
-		virtual bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) { return false; }
+		virtual bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) { (void)triIndex; (void)P; (void)N; return false; }
 	};
 }
 

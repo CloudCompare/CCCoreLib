@@ -40,20 +40,20 @@ namespace CCCoreLib
 		GenericTriangle* _getTriangle(unsigned triangleIndex) override; //temporary
 		VerticesIndexes* getNextTriangleVertIndexes() override;
 		VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) override;
-		unsigned size() const override { return static_cast<unsigned>(m_triIndexes.size()); }
+		unsigned size() const override { return static_cast<unsigned>(triIndexes.size()); }
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
 		void getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
 
 	public: //specific methods
 
 		//! Returns the mesh capacity
-		inline unsigned capacity() const { return static_cast<unsigned>(m_triIndexes.capacity()); }
+		inline unsigned capacity() const { return static_cast<unsigned>(triIndexes.capacity()); }
 
 		//! Returns the vertices
 		inline const GenericIndexedCloud* vertices() const { return theVertices; }
 
 		//! Clears the mesh
-		inline void clear() { m_triIndexes.resize(0); }
+		inline void clear() { triIndexes.resize(0); }
 
 		//! Adds a triangle to the mesh
 		/** Vertex indexes are expresesed relatively to the vertex cloud.
@@ -77,12 +77,16 @@ namespace CCCoreLib
 		**/
 		virtual bool resize(unsigned n);
 
+		//inherited from GenericIndexedMesh
+		bool normalsAvailable() const override;
+		bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) override;
+
 	protected:
 
 		//! A triangle vertices indexes container
 		using TriangleIndexesContainer = std::vector<VerticesIndexes>;
 		//! The triangles indexes
-		TriangleIndexesContainer m_triIndexes;
+		TriangleIndexesContainer triIndexes;
 
 		//! Iterator on the list of triangles
 		unsigned globalIterator;

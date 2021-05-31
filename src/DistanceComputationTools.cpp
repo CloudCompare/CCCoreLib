@@ -887,11 +887,11 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 								(currentCellPos.y >= intersection->minFillIndexes.y && currentCellPos.y <= intersection->maxFillIndexes.y) &&
 								(currentCellPos.z >= intersection->minFillIndexes.z && currentCellPos.z <= intersection->maxFillIndexes.z) )
 						{
-							Tuple3i cellPos = currentCellPos - intersection->minFillIndexes;
+							Tuple3i candidateCellPos = currentCellPos - intersection->minFillIndexes;
 
 							if (intersection->perCellTriangleList.isInitialized())
 							{
-								TriangleList*& triList = intersection->perCellTriangleList.getValue(cellPos);
+								TriangleList*& triList = intersection->perCellTriangleList.getValue(candidateCellPos);
 								if (!triList)
 								{
 									triList = new TriangleList();
@@ -904,7 +904,7 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 
 							if (intersection->distanceTransform)
 							{
-								intersection->distanceTransform->setValue(cellPos, 1);
+								intersection->distanceTransform->setValue(candidateCellPos, 1);
 							}
 						}
 					}

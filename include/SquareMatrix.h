@@ -714,8 +714,6 @@ namespace CCCoreLib
 			if (m_matrixSize < 0)
 				return false;
 
-			unsigned sqMatrixSize = m_matrixSize * m_matrixSize;
-
 			// S : copy of the current matrix
 			SquareMatrixTpl S_(*this);
 
@@ -1066,9 +1064,9 @@ namespace CCCoreLib
 					}
 					else
 					{
-						Scalar b = (C[0][0] - C[1][1]) / 2;
-						Scalar c = -C[0][1] * C[1][0];
-						if (b*b - c > 0)
+						b = (C[0][0] - C[1][1]) / 2;
+						c = -C[0][1] * C[1][0];
+						if (b * b - c > 0)
 							d = sqrt(b*b - c);
 					}
 
