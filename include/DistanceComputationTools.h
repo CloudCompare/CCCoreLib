@@ -549,8 +549,6 @@ namespace CCCoreLib
 		//! Returns whether multi-threading (parallel) computation is supported or not
 		static bool MultiThreadSupport();
 
-	protected:
-
 		//! Intersects a mesh with a grid structure
 		/** This method is used by computeCloud2MeshDistances.
 			\param theIntersection a specific structure to store the result of the intersection
@@ -572,6 +570,7 @@ namespace CCCoreLib
 														Cloud2MeshDistancesComputationParams& params,
 														GenericProgressCallback* progressCb = nullptr);
 
+	protected:
 		//! Computes the "nearest neighbor distance" without local modeling for all points of an octree cell
 		/** This method has the generic syntax of a "cellular function" (see DgmOctree::localFunctionPtr).
 			Specific parameters are transmitted via the "additionalParameters" structure.
