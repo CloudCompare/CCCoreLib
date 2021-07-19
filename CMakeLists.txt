@@ -294,3 +294,10 @@ export(
 	FILE
 		CCCoreLibTargets.cmake
 )
+
+####################################################
+# Distribution .tgz
+####################################################
+
+add_custom_target(dist-directory COMMAND ${CMAKE_COMMAND} -E make_directory dist)
+add_custom_target(dist COMMAND tar -C ${CMAKE_INSTALL_PREFIX} -f ${CMAKE_BINARY_DIR}/dist/cccorelib.tar.gz -cvz . DEPENDS dist-directory)
