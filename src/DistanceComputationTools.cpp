@@ -30,10 +30,11 @@
 #define ENABLE_CLOUD2MESH_DIST_MT
 #include <mutex>
 #include <tbb/parallel_for.h>
-#endif
+#else
 //Note that there is the case CC_DEBUG=OFF and neither TBB nor Qt
 #undef ENABLE_CLOUD2MESH_DIST_MT
-#endif // CC_DEBUG
+#endif
+#endif // not CC_DEBUG
 
 namespace CCCoreLib
 {
