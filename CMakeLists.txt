@@ -34,6 +34,8 @@ option( CCCORELIB_SCALAR_DOUBLE
 	OFF
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Add the library (shared or static)
 if ( CCCORELIB_SHARED )
 	add_library( CCCoreLib SHARED )
