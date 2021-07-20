@@ -55,10 +55,12 @@ These files contain the following tag instead of the full license text:
 Using SPDX enables machine processing of license information based on the [SPDX License Identifiers](https://spdx.org/ids) and makes it easier for developers to see at a glance which license they are dealing with.
 
 ### License Special Note
-Two files (BoundingBox.cpp and RayAndBox.h) were previously licensed under the **GPL 2.0+** license by mistake - see the [LICENSE-GPL-2.0](LICENSE-GPL-2.0.txt) file for details.
+Two files (BoundingBox.cpp and RayAndBox.h) were _previously_ licensed under the **GPL 2.0+** license by mistake.
 
-These files contain the following tag instead of the full license text:
+These files contained the following tag:
 
 	SPDX-License-Identifier: GPL-2.0-or-later
 
-We are working on securing the necessary permissions to relicense these under LGPL.
+The necessary permissions were secured to relicense these under LGPL:
+
+	SPDX-License-Identifier: LGPL-2.0-or-later
