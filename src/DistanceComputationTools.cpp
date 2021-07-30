@@ -61,56 +61,6 @@ namespace CCCoreLib
 			return true;
 		}
 	};
-
-	//! Internal structure used by DistanceComputationTools::computeCloud2MeshDistances
-	struct OctreeAndMeshIntersection
-	{
-	public:
-
-		//! Octree structure
-		DgmOctree* octree;
-		//! Mesh
-		GenericIndexedMesh* mesh;
-		//! Distance transform
-		SaitoSquaredDistanceTransform* distanceTransform;
-
-		//! Grid occupancy of mesh (minimum indexes for each dimension)
-		Tuple3i minFillIndexes;
-		//! Grid occupancy of mesh (maximum indexes for each dimension)
-		Tuple3i maxFillIndexes;
-
-		//! Array of FacesInCellPtr structures
-		Grid3D<TriangleList*> perCellTriangleList;
-
-		//! Default constructor
-		OctreeAndMeshIntersection()
-			: octree(nullptr)
-			, mesh(nullptr)
-			, distanceTransform(nullptr)
-			, minFillIndexes(0, 0, 0)
-			, maxFillIndexes(0, 0, 0)
-		{}
-
-		//! Destructor
-		~OctreeAndMeshIntersection()
-		{
-			if (perCellTriangleList.isInitialized())
-			{
-				TriangleList** data = perCellTriangleList.data();
-				for (std::size_t i = 0; i < perCellTriangleList.totalCellCount(); ++i, ++data)
-				{
-					if (*data)
-						delete (*data);
-				}
-			}
-
-			if (distanceTransform)
-			{
-				delete distanceTransform;
-				distanceTransform = nullptr;
-			}
-		}
-	};
 }
 
 using namespace CCCoreLib;
@@ -122,6 +72,33 @@ bool DistanceComputationTools::MultiThreadSupport()
 #else
 	return false;
 #endif
+}
+
+DistanceComputationTools::OctreeAndMeshIntersection::OctreeAndMeshIntersection()
+	: octree(nullptr)
+	, mesh(nullptr)
+	, distanceTransform(nullptr)
+	, minFillIndexes(0, 0, 0)
+	, maxFillIndexes(0, 0, 0)
+{}
+
+DistanceComputationTools::OctreeAndMeshIntersection::~OctreeAndMeshIntersection()
+{
+	if (perCellTriangleList.isInitialized())
+	{
+		TriangleList** data = perCellTriangleList.data();
+		for (std::size_t i = 0; i < perCellTriangleList.totalCellCount(); ++i, ++data)
+		{
+			if (*data)
+					delete (*data);
+		}
+	}
+
+	if (distanceTransform)
+	{
+		delete distanceTransform;
+		distanceTransform = nullptr;
+	}
 }
 
 int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPersist* comparedCloud,
@@ -755,18 +732,9 @@ struct CellToTest
 	//Total						//20 bytes
 };
 
-int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection* intersection,
-														unsigned char octreeLevel,
-														GenericProgressCallback* progressCb/*=nullptr*/)
+int DistanceComputationTools::OctreeAndMeshIntersection::intersectMeshWithOctree(	unsigned char octreeLevel,
+																					GenericProgressCallback* progressCb/*=nullptr*/)
 {
-	if (!intersection)
-	{
-		assert(false);
-		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_OCTREE_AND_MESH_INTERSECTION;
-	}
-
-	DgmOctree* octree = intersection->octree;
-	GenericIndexedMesh* mesh = intersection->mesh;
 	if (!octree)
 	{
 		assert(false);
@@ -792,7 +760,7 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 	unsigned numberOfTriangles = mesh->size();
 
 	//for progress notification
-	NormalizedProgress nProgress(progressCb,numberOfTriangles);
+	NormalizedProgress nProgress(progressCb, numberOfTriangles);
 	if (progressCb)
 	{
 		if (progressCb->textCanBeEdited())
@@ -884,15 +852,15 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 					//check that the triangle do intersects the cell (box)
 					if (CCMiscTools::TriBoxOverlap(AB, halfCellDimensions, triPoints))
 					{
-						if ((currentCellPos.x >= intersection->minFillIndexes.x && currentCellPos.x <= intersection->maxFillIndexes.x) &&
-								(currentCellPos.y >= intersection->minFillIndexes.y && currentCellPos.y <= intersection->maxFillIndexes.y) &&
-								(currentCellPos.z >= intersection->minFillIndexes.z && currentCellPos.z <= intersection->maxFillIndexes.z) )
+						if (	(currentCellPos.x >= minFillIndexes.x && currentCellPos.x <= maxFillIndexes.x) &&
+								(currentCellPos.y >= minFillIndexes.y && currentCellPos.y <= maxFillIndexes.y) &&
+								(currentCellPos.z >= minFillIndexes.z && currentCellPos.z <= maxFillIndexes.z) )
 						{
-							Tuple3i candidateCellPos = currentCellPos - intersection->minFillIndexes;
+							Tuple3i candidateCellPos = currentCellPos - minFillIndexes;
 
-							if (intersection->perCellTriangleList.isInitialized())
+							if (perCellTriangleList.isInitialized())
 							{
-								TriangleList*& triList = intersection->perCellTriangleList.getValue(candidateCellPos);
+								TriangleList*& triList = perCellTriangleList.getValue(candidateCellPos);
 								if (!triList)
 								{
 									triList = new TriangleList();
@@ -903,9 +871,9 @@ int DistanceComputationTools::intersectMeshWithOctree(	OctreeAndMeshIntersection
 								triList->push(n);
 							}
 
-							if (intersection->distanceTransform)
+							if (distanceTransform)
 							{
-								intersection->distanceTransform->setValue(candidateCellPos, 1);
+								distanceTransform->setValue(candidateCellPos, 1);
 							}
 						}
 					}
@@ -1125,7 +1093,7 @@ int ComputeMaxNeighborhoodLength(ScalarType maxSearchDist, PointCoordinateType c
 /*** MULTI THREADING WRAPPER ***/
 static DgmOctree* s_octree_MT = nullptr;
 static NormalizedProgress* s_normProgressCb_MT = nullptr;
-static OctreeAndMeshIntersection* s_intersection_MT = nullptr;
+static DistanceComputationTools::OctreeAndMeshIntersection* s_intersection_MT = nullptr;
 static bool s_cellFunc_MT_success = true;
 static int s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 static DistanceComputationTools::Cloud2MeshDistancesComputationParams s_params_MT;
@@ -1397,6 +1365,251 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 
 #endif
 
+struct BoundedSearchParams
+{
+	int maxNeighbourhoodLength = 0;
+};
+
+struct TrianglesToTest
+{
+	TrianglesToTest(const GenericIndexedMesh& mesh)
+		: trianglesToTestCount(0)
+		, trianglesToTestCapacity(0)
+		, numberOfTriangles(0)
+	{
+		numberOfTriangles = mesh.size();
+		try
+		{
+			processTriangles.resize(numberOfTriangles, 0);
+		}
+		catch (const std::bad_alloc&)
+		{
+			//otherwise, no big deal, we can do without it!
+		}
+	}
+
+	// variables
+	std::vector<unsigned> trianglesToTest;
+	std::size_t trianglesToTestCount;
+	std::size_t trianglesToTestCapacity;
+	unsigned numberOfTriangles;
+
+	// optional acceleration structure
+	std::vector<unsigned> processTriangles;
+};
+
+static int ComputeNeighborhood2MeshDistancesWithOctree(	DistanceComputationTools::OctreeAndMeshIntersection& intersection,
+														DistanceComputationTools::Cloud2MeshDistancesComputationParams& params,
+														ReferenceCloud& Yk,
+														unsigned cellIndex,
+														const Tuple3i& cellPos,
+														PointCoordinateType cellLength,
+														TrianglesToTest& ttt,
+														bool boundedSearch,
+														int maxNeighbourhoodLength
+	)
+{
+	if (nullptr == intersection.octree)
+	{
+		assert(false);
+		return DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_OCTREE;
+	}
+
+	//get the distance to the nearest and farthest boundaries
+	int maxDistToBoundaries = 0;
+	Tuple3i distToLowerBorder = cellPos - intersection.minFillIndexes;
+	Tuple3i distToUpperBorder = intersection.maxFillIndexes - cellPos;
+	for (unsigned char k = 0; k < 3; ++k)
+	{
+		maxDistToBoundaries = std::max(maxDistToBoundaries, distToLowerBorder.u[k]);
+		maxDistToBoundaries = std::max(maxDistToBoundaries, distToUpperBorder.u[k]);
+	}
+	int maxIntDist = maxDistToBoundaries;
+
+	//determine the cell center
+	CCVector3 cellCenter;
+	intersection.octree->computeCellCenter(cellPos, params.octreeLevel, cellCenter);
+
+	//express 'startPos' relatively to the grid borders
+	Tuple3i startPos = cellPos - intersection.minFillIndexes;
+
+	//min distance array ('persistent' version to save some memory)
+	std::vector<ScalarType> minDists;
+	unsigned remainingPoints = Yk.size();
+
+	try
+	{
+		minDists.resize(remainingPoints);
+	}
+	catch (const std::bad_alloc&) //out of memory
+	{
+		//not enough memory
+		return DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+	}
+
+	//for each point, we pre-compute its distance to the nearest cell border
+	//(will be handy later)
+	for (unsigned j = 0; j < remainingPoints; ++j)
+	{
+		const CCVector3 *tempPt = Yk.getPointPersistentPtr(j);
+		minDists[j] = static_cast<ScalarType>(DgmOctree::ComputeMinDistanceToCellBorder(*tempPt, cellLength, cellCenter));
+	}
+
+	if (boundedSearch)
+	{
+		//no need to look farther than 'maxNeighbourhoodLength'
+		if (maxNeighbourhoodLength < maxIntDist)
+			maxIntDist = maxNeighbourhoodLength;
+
+		//we compute squared distances when not in 'signed' mode!
+		ScalarType maxDistance = params.maxSearchDist;
+		if (!params.signedDistances)
+		{
+			//we compute squared distances when not in 'signed' mode!
+			maxDistance = params.maxSearchDist * params.maxSearchDist;
+		}
+
+		for (unsigned j = 0; j < remainingPoints; ++j)
+		{
+			Yk.setPointScalarValue(j, maxDistance);
+		}
+	}
+
+	//let's find the nearest triangles for each point in the neighborhood 'Yk'
+	ScalarType maxRadius = 0;
+	for (int dist = 0; dist <= maxIntDist && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellLength))
+	{
+		//test the neighbor cells at distance = 'dist'
+		//a,b,c,d,e,f are the extents of this neighborhood
+		//for the 6 main directions -X,+X,-Y,+Y,-Z,+Z
+		int a = std::min(dist, distToLowerBorder.x);
+		int b = std::min(dist, distToUpperBorder.x);
+		int c = std::min(dist, distToLowerBorder.y);
+		int d = std::min(dist, distToUpperBorder.y);
+		int e = std::min(dist, distToLowerBorder.z);
+		int f = std::min(dist, distToUpperBorder.z);
+
+		for (int i = -a; i <= b; i++)
+		{
+			bool imax = (std::abs(i) == dist);
+			Tuple3i localCellPos(startPos.x + i, 0, 0);
+
+			for (int j = -c; j <= d; j++)
+			{
+				localCellPos.y = startPos.y + j;
+
+				//if i or j is 'maximal'
+				if (imax || std::abs(j) == dist)
+				{
+					//we must be on the border of the neighborhood
+					for (int k = -e; k <= f; k++)
+					{
+						//are there any triangles near this cell?
+						localCellPos.z = startPos.z + k;
+						TriangleList* triList = intersection.perCellTriangleList.getValue(localCellPos);
+						if (triList)
+						{
+							if (ttt.trianglesToTestCount + triList->indexes.size() > ttt.trianglesToTestCapacity)
+							{
+								ttt.trianglesToTestCapacity = std::max(ttt.trianglesToTestCount + triList->indexes.size(), 2 * ttt.trianglesToTestCount);
+								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
+							}
+							//let's test all the triangles that intersect this cell
+							for (std::size_t p = 0; p < triList->indexes.size(); ++p)
+							{
+								if (!ttt.processTriangles.empty())
+								{
+									unsigned indexTri = triList->indexes[p];
+									//if the triangles has not been processed yet
+									if (ttt.processTriangles[indexTri] != cellIndex)
+									{
+										ttt.trianglesToTest[ttt.trianglesToTestCount++] = indexTri;
+										ttt.processTriangles[indexTri] = cellIndex;
+									}
+								}
+								else
+								{
+									ttt.trianglesToTest[ttt.trianglesToTestCount++] = triList->indexes[p];
+								}
+							}
+						}
+					}
+				}
+				else //we must go the cube border
+				{
+					if (e == dist) //'negative' side
+					{
+						//are there any triangles near this cell?
+						localCellPos.z = startPos.z - e;
+						TriangleList* triList = intersection.perCellTriangleList.getValue(localCellPos);
+						if (triList)
+						{
+							if (ttt.trianglesToTestCount + triList->indexes.size() > ttt.trianglesToTestCapacity)
+							{
+								ttt.trianglesToTestCapacity = std::max(ttt.trianglesToTestCount + triList->indexes.size(), 2 * ttt.trianglesToTestCount);
+								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
+							}
+							//let's test all the triangles that intersect this cell
+							for (unsigned int triIndex : triList->indexes)
+							{
+								if (!ttt.processTriangles.empty())
+								{
+									//if the triangles has not been processed yet
+									if (ttt.processTriangles[triIndex] != cellIndex)
+									{
+										ttt.trianglesToTest[ttt.trianglesToTestCount++] = triIndex;
+										ttt.processTriangles[triIndex] = cellIndex;
+									}
+								}
+								else
+								{
+									ttt.trianglesToTest[ttt.trianglesToTestCount++] = triIndex;
+								}
+							}
+						}
+					}
+
+					if (f == dist && dist > 0) //'positive' side
+					{
+						//are there any triangles near this cell?
+						localCellPos.z = startPos.z + f;
+						TriangleList* triList = intersection.perCellTriangleList.getValue(localCellPos);
+						if (triList)
+						{
+							if (ttt.trianglesToTestCount + triList->indexes.size() > ttt.trianglesToTestCapacity)
+							{
+								ttt.trianglesToTestCapacity = std::max(ttt.trianglesToTestCount + triList->indexes.size(), 2 * ttt.trianglesToTestCount);
+								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
+							}
+							//let's test all the triangles that intersect this cell
+							for (unsigned int triIndex : triList->indexes)
+							{
+								if (!ttt.processTriangles.empty())
+								{
+									//if the triangles has not been processed yet
+									if (ttt.processTriangles[triIndex] != cellIndex)
+									{
+										ttt.trianglesToTest[ttt.trianglesToTestCount++] = triIndex;
+										ttt.processTriangles[triIndex] = cellIndex;
+									}
+								}
+								else
+								{
+									ttt.trianglesToTest[ttt.trianglesToTestCount++] = triIndex;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		ComparePointsAndTriangles(Yk, remainingPoints, intersection.mesh, ttt.trianglesToTest, ttt.trianglesToTestCount, minDists, maxRadius, params);
+	}
+
+	return DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+}
+
 int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	OctreeAndMeshIntersection* intersection,
 																	Cloud2MeshDistancesComputationParams& params,
 																	GenericProgressCallback* progressCb/*=nullptr*/)
@@ -1516,22 +1729,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	OctreeAndMes
 			progressCb->start();
 		}
 
-		//variables
-		std::vector<unsigned> trianglesToTest;
-		std::size_t trianglesToTestCount = 0;
-		std::size_t trianglesToTestCapacity = 0;
-		unsigned numberOfTriangles = mesh->size();
-
-		//acceleration structure
-		std::vector<unsigned> processTriangles;
-		try
-		{
-			processTriangles.resize(numberOfTriangles, 0);
-		}
-		catch (const std::bad_alloc&)
-		{
-			//otherwise, no big deal, we can do without it!
-		}
+		TrianglesToTest ttt(*mesh);
 
 		//min distance array ('persistent' version to save some memory)
 		std::vector<ScalarType> minDists;
@@ -1552,198 +1750,23 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	OctreeAndMes
 			}
 
 			//get cell pos
-			Tuple3i startPos;
-			octree->getCellPos(pCodeAndIndex->theCode, params.octreeLevel, startPos, true);
+			Tuple3i cellPos;
+			octree->getCellPos(pCodeAndIndex->theCode, params.octreeLevel, cellPos, true);
 
-			//get the distance to the nearest and farthest boundaries
-			int maxDistToBoundaries = 0;
-			Tuple3i distToLowerBorder = startPos - intersection->minFillIndexes;
-			Tuple3i distToUpperBorder = intersection->maxFillIndexes - startPos;
-			for (unsigned char k = 0; k < 3; ++k)
+			int result = ComputeNeighborhood2MeshDistancesWithOctree(	*intersection,
+																		params,
+																		Yk,
+																		cellIndex,
+																		cellPos,
+																		cellLength,
+																		ttt,
+																		boundedSearch,
+																		maxNeighbourhoodLength);
+
+			if (result != DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 			{
-				maxDistToBoundaries = std::max(maxDistToBoundaries, distToLowerBorder.u[k]);
-				maxDistToBoundaries = std::max(maxDistToBoundaries, distToUpperBorder.u[k]);
-			}
-			int maxIntDist = maxDistToBoundaries;
-
-			//determine the cell center
-			CCVector3 cellCenter;
-			octree->computeCellCenter(startPos, params.octreeLevel, cellCenter);
-
-			//express 'startPos' relatively to the grid borders
-			startPos -= intersection->minFillIndexes;
-
-			//minDists.clear(); //not necessary
-			unsigned remainingPoints = Yk.size();
-			if (minDists.size() < remainingPoints)
-			{
-				try
-				{
-					minDists.resize(remainingPoints);
-				}
-				catch (const std::bad_alloc&) //out of memory
-				{
-					//not enough memory
-					return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
-				}
-			}
-
-			//for each point, we pre-compute its distance to the nearest cell border
-			//(will be handy later)
-			for (unsigned j = 0; j < remainingPoints; ++j)
-			{
-				const CCVector3 *tempPt = Yk.getPointPersistentPtr(j);
-				minDists[j] = static_cast<ScalarType>(DgmOctree::ComputeMinDistanceToCellBorder(*tempPt, cellLength, cellCenter));
-			}
-
-			if (boundedSearch)
-			{
-				//no need to look farther than 'maxNeighbourhoodLength'
-				if (maxNeighbourhoodLength < maxIntDist)
-					maxIntDist = maxNeighbourhoodLength;
-
-				//we compute squared distances when not in 'signed' mode!
-				ScalarType maxDistance = params.maxSearchDist;
-				if (!params.signedDistances)
-				{
-					//we compute squared distances when not in 'signed' mode!
-					maxDistance = params.maxSearchDist*params.maxSearchDist;
-				}
-
-				for (unsigned j = 0; j < remainingPoints; ++j)
-					Yk.setPointScalarValue(j, maxDistance);
-			}
-
-			//let's find the nearest triangles for each point in the neighborhood 'Yk'
-			ScalarType maxRadius = 0;
-			for (int dist = 0; dist <= maxIntDist && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellLength))
-			{
-				//test the neighbor cells at distance = 'dist'
-				//a,b,c,d,e,f are the extents of this neighborhood
-				//for the 6 main directions -X,+X,-Y,+Y,-Z,+Z
-				int a = std::min(dist, distToLowerBorder.x);
-				int b = std::min(dist, distToUpperBorder.x);
-				int c = std::min(dist, distToLowerBorder.y);
-				int d = std::min(dist, distToUpperBorder.y);
-				int e = std::min(dist, distToLowerBorder.z);
-				int f = std::min(dist, distToUpperBorder.z);
-
-				for (int i = -a; i <= b; i++)
-				{
-					bool imax = (std::abs(i) == dist);
-					Tuple3i cellPos(startPos.x + i, 0, 0);
-
-					for (int j = -c; j <= d; j++)
-					{
-						cellPos.y = startPos.y + j;
-
-						//if i or j is 'maximal'
-						if (imax || std::abs(j) == dist)
-						{
-							//we must be on the border of the neighborhood
-							for (int k = -e; k <= f; k++)
-							{
-								//are there any triangles near this cell?
-								cellPos.z = startPos.z+k;
-								TriangleList* triList = intersection->perCellTriangleList.getValue(cellPos);
-								if (triList)
-								{
-									if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
-									{
-										trianglesToTestCapacity = std::max(trianglesToTestCount + triList->indexes.size(), 2*trianglesToTestCount);
-										trianglesToTest.resize(trianglesToTestCapacity);
-									}
-									//let's test all the triangles that intersect this cell
-									for (std::size_t p = 0; p < triList->indexes.size(); ++p)
-									{
-										if (!processTriangles.empty())
-										{
-											unsigned indexTri = triList->indexes[p];
-											//if the triangles has not been processed yet
-											if (processTriangles[indexTri] != cellIndex)
-											{
-												trianglesToTest[trianglesToTestCount++] = indexTri;
-												processTriangles[indexTri] = cellIndex;
-											}
-										}
-										else
-										{
-											trianglesToTest[trianglesToTestCount++] = triList->indexes[p];
-										}
-									}
-								}
-							}
-						}
-						else //we must go the cube border
-						{
-							if (e == dist) //'negative' side
-							{
-								//are there any triangles near this cell?
-								cellPos.z = startPos.z - e;
-								TriangleList* triList = intersection->perCellTriangleList.getValue(cellPos);
-								if (triList)
-								{
-									if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
-									{
-										trianglesToTestCapacity = std::max(trianglesToTestCount + triList->indexes.size(), 2 * trianglesToTestCount);
-										trianglesToTest.resize(trianglesToTestCapacity);
-									}
-									//let's test all the triangles that intersect this cell
-									for (unsigned int triIndex : triList->indexes)
-									{
-										if (!processTriangles.empty())
-										{
-											//if the triangles has not been processed yet
-											if (processTriangles[triIndex] != cellIndex)
-											{
-												trianglesToTest[trianglesToTestCount++] = triIndex;
-												processTriangles[triIndex] = cellIndex;
-											}
-										}
-										else
-										{
-											trianglesToTest[trianglesToTestCount++] = triIndex;
-										}
-									}
-								}
-							}
-
-							if (f == dist && dist > 0) //'positive' side
-							{
-								//are there any triangles near this cell?
-								cellPos.z = startPos.z + f;
-								TriangleList* triList = intersection->perCellTriangleList.getValue(cellPos);
-								if (triList)
-								{
-									if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
-									{
-										trianglesToTestCapacity = std::max(trianglesToTestCount + triList->indexes.size(), 2 * trianglesToTestCount);
-										trianglesToTest.resize(trianglesToTestCapacity);
-									}
-									//let's test all the triangles that intersect this cell
-									for (unsigned int triIndex : triList->indexes)
-									{
-										if (!processTriangles.empty())
-										{
-											//if the triangles has not been processed yet
-											if (processTriangles[triIndex] != cellIndex)
-											{
-												trianglesToTest[trianglesToTestCount++] = triIndex;
-												processTriangles[triIndex] = cellIndex;
-											}
-										}
-										else
-										{
-											trianglesToTest[trianglesToTestCount++] = triIndex;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-				ComparePointsAndTriangles(Yk, remainingPoints, mesh, trianglesToTest, trianglesToTestCount, minDists, maxRadius, params);
+				// an error occurred
+				return result;
 			}
 
 			//Yk.clear(); //not necessary
@@ -1949,6 +1972,11 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 
 	//we deduce the grid cell size very simply (as the bbox has been "cubified")
 	PointCoordinateType cellSize = (maxCubifiedBB.x - minCubifiedBB.x) / (1 << params.octreeLevel);
+	if (cellSize == 0)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_OCTREE_AND_MESH_INTERSECTION;
+	}
+
 	//we compute grid occupancy ... and we deduce the grid dimensions
 	Tuple3ui gridSize;
 	{
@@ -1980,7 +2008,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 	}
 
 	//INTERSECT THE OCTREE WITH THE MESH
-	int result = intersectMeshWithOctree(&intersection,params.octreeLevel,progressCb);
+	int result = intersection.intersectMeshWithOctree(params.octreeLevel, progressCb);
 	if (result < DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 	{
 		if (!(result == DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY ||
