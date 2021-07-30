@@ -228,6 +228,12 @@ namespace CCCoreLib
 			Tuple3i minFillIndexes;
 			//! Grid occupancy of mesh (maximum indexes for each dimension)
 			Tuple3i maxFillIndexes;
+			//! Grid bounding-box (min corner)
+			CCVector3 minGridBB;
+			//! Grid bounding-box (max corner)
+			CCVector3 maxGridBB;
+			//! Cell size
+			PointCoordinateType cellSize;
 
 			//! Array of FacesInCellPtr structures
 			Grid3D<TriangleList*> perCellTriangleList;
@@ -238,25 +244,64 @@ namespace CCCoreLib
 			//! Destructor
 			virtual ~OctreeAndMeshIntersection();
 
-			//! Intersects a mesh with the octree
+			//! Intersects a mesh with the grid
 			/** This method is used by computeCloud2MeshDistances for instance.
-				\param octreeLevel the octree subdivision level corresponding to the grid
 				\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			**/
-			int intersectMeshWithOctree(unsigned char octreeLevel,
-										GenericProgressCallback* progressCb = nullptr);
+			int intersectMeshWithGrid(GenericProgressCallback* progressCb = nullptr);
+
+			//! Computes the (grid) cell position that contains a given point
+			inline Tuple3i computeCellPos(const CCVector3& P) const
+			{
+				//DGM: if we admit that cellSize > 0, then the 'floor' operator is useless (int cast = truncation)
+				assert(cellSize > 0);
+
+				Tuple3i cellPos(static_cast<int>(/*floor*/(P.x - minGridBB.x) / cellSize),
+								static_cast<int>(/*floor*/(P.y - minGridBB.y) / cellSize),
+								static_cast<int>(/*floor*/(P.z - minGridBB.z) / cellSize));
+
+				return cellPos;
+			}
+
+			//! Returns a given (grid) cell center
+			/** \param cellPos	the (grid) cell position
+				\param center	the computed center
+			**/
+			inline void computeCellCenter(const Tuple3i& cellPos, CCVector3& center) const
+			{
+				center.x = minGridBB.x + (cellSize * cellPos.x / 2);
+				center.y = minGridBB.y + (cellSize * cellPos.y / 2);
+				center.z = minGridBB.z + (cellSize * cellPos.z / 2);
+			}
+
 		};
 
 		//! Computes the distances between a point cloud and a mesh projected into a grid structure
 		/** This method is used by computeCloud2MeshDistances, after intersectMeshWithOctree has been called.
-			\param theIntersection a specific structure corresponding the intersection of the mesh with the grid
-			\param params parameters
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param intersection	a specific structure corresponding the intersection of the mesh with the grid
+			\param params		parameters
+			\param progressCb	the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
 		**/
-		static int computeCloud2MeshDistancesWithOctree(OctreeAndMeshIntersection* theIntersection,
+		static int computeCloud2MeshDistancesWithOctree(OctreeAndMeshIntersection* intersection,
 														Cloud2MeshDistancesComputationParams& params,
 														GenericProgressCallback* progressCb = nullptr);
+
+		//! Computes the distances between a point and a mesh projected into a grid structure
+		/** \warning Distance Transform acceleration is not supported.
+			\warning No multi-thread support.
+			\warning No Closest Point Set support.
+
+			\param P				the point
+			\param distance			the output distance
+			\param intersection		a specific structure corresponding the intersection of the mesh with the grid
+			\param params			parameters
+			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+		**/
+		static int computePoint2MeshDistancesWithOctree(const CCVector3& P,
+														ScalarType& distance,
+														OctreeAndMeshIntersection* intersection,
+														Cloud2MeshDistancesComputationParams& params);
 
 	public: //approximate distances to clouds or meshes
 
@@ -485,6 +530,7 @@ namespace CCCoreLib
 			ERROR_BUILD_OCTREE_FAILURE,
 			ERROR_BUILD_FAST_MARCHING_FAILURE,
 			ERROR_UNKOWN_ERRORMEASURES_TYPE,
+			INVALID_INPUT,
 			SUCCESS = 1,
 		};
 
