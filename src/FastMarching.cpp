@@ -56,7 +56,7 @@ float FastMarching::getTime(Tuple3i& pos, bool absoluteCoordinates) const
 	}
 	else
 	{
-		index =	static_cast<unsigned>(pos.x + 1)
+		index =		static_cast<unsigned>(pos.x + 1)
 				+	static_cast<unsigned>(pos.y + 1) * m_rowSize
 				+	static_cast<unsigned>(pos.z + 1) * m_sliceSize;
 	}
@@ -95,9 +95,9 @@ int FastMarching::initGridWithOctree(DgmOctree* octree, unsigned char gridLevel)
 	m_minFillIndexes.y = minFillIndexes[1];
 	m_minFillIndexes.z = minFillIndexes[2];
 
-	m_dx = static_cast<unsigned>(maxFillIndexes[0]-minFillIndexes[0]+1);
-	m_dy = static_cast<unsigned>(maxFillIndexes[1]-minFillIndexes[1]+1);
-	m_dz = static_cast<unsigned>(maxFillIndexes[2]-minFillIndexes[2]+1);
+	m_dx = static_cast<unsigned>(maxFillIndexes[0] - minFillIndexes[0] + 1);
+	m_dy = static_cast<unsigned>(maxFillIndexes[1] - minFillIndexes[1] + 1);
+	m_dz = static_cast<unsigned>(maxFillIndexes[2] - minFillIndexes[2] + 1);
 
 	return initOther();
 }
@@ -229,7 +229,7 @@ unsigned FastMarching::getNearestTrialCell()
 	FastMarching::Cell* minTCell = m_theGrid[minTCellIndex];
 	assert(minTCell != nullptr);
 
-	for (std::size_t i=1; i<m_trialCells.size(); ++i)
+	for (std::size_t i = 1; i < m_trialCells.size(); ++i)
 	{
 		unsigned cellIndex = m_trialCells[i];
 		FastMarching::Cell* cell = m_theGrid[cellIndex];
@@ -266,12 +266,12 @@ float FastMarching::computeT(unsigned index)
 			if (nCell && (nCell->state == Cell::TRIAL_CELL || nCell->state == Cell::ACTIVE_CELL))
 			{
 				//compute front arrival time
-				T[n] = static_cast<double>(nCell->T) + static_cast<double>(m_neighboursDistance[n]) * static_cast<double>(computeTCoefApprox(nCell, theCell));
+				T[n] = nCell->T + (static_cast<double>(m_neighboursDistance[n]) * computeTCoefApprox(nCell, theCell));
 			}
 			else
 			{
 				//no front yet
-				T[n] = static_cast<double>(Cell::T_INF());
+				T[n] = Cell::T_INF();
 			}
 		}
 	}
@@ -279,12 +279,12 @@ float FastMarching::computeT(unsigned index)
 	double A = 0;
 	double B = 0;
 	double C = 0;
-	double Tij = static_cast<double>(theCell->T/*Cell::T_INF()*/);
+	double Tij = theCell->T/*Cell::T_INF()*/;
 
 	//Quadratic eq. along X
 	{
 		//look for the minimum arrival time from +/-X
-		double Tmin = static_cast<double>(Cell::T_INF());
+		double Tmin = Cell::T_INF();
 		for (unsigned n = 0; n < m_numberOfNeighbours; ++n)
 			if (c_FastMarchingNeighbourPosShift[n * 3] != 0)
 				if (T[n] < Tmin)
@@ -300,7 +300,7 @@ float FastMarching::computeT(unsigned index)
 	//Quadratic eq. along Y
 	{
 		//look for the minimum arrival time from +/-Y
-		double Tmin = static_cast<double>(Cell::T_INF());
+		double Tmin = Cell::T_INF();
 		for (unsigned n = 0; n < m_numberOfNeighbours; ++n)
 			if (c_FastMarchingNeighbourPosShift[n * 3 + 1] != 0)
 				if (T[n] < Tmin)
@@ -316,7 +316,7 @@ float FastMarching::computeT(unsigned index)
 	//Quadratic eq. along Z
 	{
 		//look for the minimum arrival time from +/-Z
-		double Tmin = static_cast<double>(Cell::T_INF());
+		double Tmin = Cell::T_INF();
 		for (unsigned n = 0; n < m_numberOfNeighbours; ++n)
 			if (c_FastMarchingNeighbourPosShift[n * 3 + 2] != 0)
 				if (T[n] < Tmin)
@@ -330,7 +330,7 @@ float FastMarching::computeT(unsigned index)
 	}
 
 	//DGM: why?
-	//C -=  static_cast<double>(m_cellSize*m_cellSize);
+	//C -=  static_cast<double>(m_cellSize) * m_cellSize;
 
 	//solve the quadratic equation
 	double delta = B*B - 4.0*A*C;

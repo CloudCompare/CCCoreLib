@@ -31,7 +31,7 @@ namespace CCCoreLib
 		**/
 		static void MakeMinAndMaxCubical(	CCVector3& dimMin,
 											CCVector3& dimMax,
-											double enlargeFactor = 0.01);
+											double enlargeFactor);
 
 		//! Computes base vectors for a given 3D plane
 		/** Determines at least two orthogonal vectors perpendicular to a third one
