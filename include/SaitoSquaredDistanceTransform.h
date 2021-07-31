@@ -39,7 +39,7 @@ namespace CCCoreLib
 							const CCVector3& gridMinCorner,
 							GenericProgressCallback* progressCb = nullptr)
 		{
-			return intersecthWith(mesh, cellLength, gridMinCorner, 1, progressCb);
+			return intersectWith(mesh, cellLength, gridMinCorner, 1, progressCb);
 		}
 
 		//! Initializes the distance transform with a cloud
@@ -48,7 +48,7 @@ namespace CCCoreLib
 							const CCVector3& gridMinCorner,
 							GenericProgressCallback* progressCb = nullptr)
 		{
-			return intersecthWith(cloud, cellLength, gridMinCorner, 1, progressCb);
+			return intersectWith(cloud, cellLength, gridMinCorner, 1, progressCb);
 		}
 
 		//! Computes the exact Squared Distance Transform on the whole grid
