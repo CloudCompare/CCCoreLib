@@ -245,28 +245,6 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 	assert(inputCloud);
 	unsigned cloudSize = inputCloud->size();
 
-	DgmOctree* octree = inputOctree;
-	if (!octree)
-	{
-		octree = new DgmOctree(inputCloud);
-		if (octree->build() < static_cast<int>(cloudSize))
-		{
-			delete octree;
-			return nullptr;
-		}
-	}
-	assert(octree && octree->associatedCloud() == inputCloud);
-
-	//output cloud
-	ReferenceCloud* sampledCloud = new ReferenceCloud(inputCloud);
-	const unsigned c_reserveStep = 65536;
-	if (!sampledCloud->reserve(std::min(cloudSize, c_reserveStep)))
-	{
-		if (!inputOctree)
-			delete octree;
-		return nullptr;
-	}
-
 	std::vector<char> markers; //DGM: upgraded from vector, as this can be quite huge!
 	try
 	{
@@ -274,11 +252,58 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 	}
 	catch (const std::bad_alloc&)
 	{
-		if (!inputOctree)
-			delete octree;
-		delete sampledCloud;
 		return nullptr;
 	}
+
+	size_t filtered = resampleCloudSpatially(inputCloud, minDistance, modParams, &markers[0], inputOctree, progressCb);
+	if (filtered)
+	{
+		//output cloud
+		ReferenceCloud* sampledCloud = new ReferenceCloud(inputCloud);
+		if (!sampledCloud->reserve(filtered))
+		{
+			delete sampledCloud;
+			return nullptr;
+		}
+
+		for (unsigned i = 0; i < cloudSize; i++)
+		{
+			if (markers[i])
+			{
+				if (!sampledCloud->addPointIndex(i))
+				{
+					delete sampledCloud;
+					return nullptr;
+				}
+			}
+		}
+		return sampledCloud;
+	}
+	return nullptr;
+}
+
+/* Return 0 for error */
+size_t CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPersist* inputCloud,
+												PointCoordinateType minDistance,
+												const SFModulationParams& modParams,
+												char* markers,
+												DgmOctree* inputOctree/*=0*/,
+												GenericProgressCallback* progressCb/*=0*/)
+{
+	assert(inputCloud);
+	unsigned cloudSize = inputCloud->size();
+
+	DgmOctree* octree = inputOctree;
+	if (!octree)
+	{
+		octree = new DgmOctree(inputCloud);
+		if (octree->build() < static_cast<int>(cloudSize))
+		{
+			delete octree;
+			return 0;
+		}
+	}
+	assert(octree && octree->associatedCloud() == inputCloud);
 
 	//best octree level (there may be several of them if we use parameter modulation)
 	std::vector<unsigned char> bestOctreeLevel;
@@ -336,8 +361,7 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 		{
 			delete octree;
 		}
-		delete sampledCloud;
-		return nullptr;
+		return 0;
 	}
 
 	//progress notification
@@ -361,6 +385,7 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 	//default octree level
 	assert(!bestOctreeLevel.empty());
 	unsigned char octreeLevel = bestOctreeLevel.front();
+	size_t filtered = 0;
 	//default distance between points
 	PointCoordinateType minDistBetweenPoints = minDistance;
 	for (unsigned i = 0; i < cloudSize; i++)
@@ -403,18 +428,7 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 
 			//At this stage, the ith point is the only one marked in a radius of <minDistance>.
 			//Therefore it will necessarily be in the final cloud!
-			if (sampledCloud->size() == sampledCloud->capacity() && !sampledCloud->reserve(sampledCloud->capacity() + c_reserveStep))
-			{
-				//not enough memory
-				error = true;
-				break;
-			}
-			if (!sampledCloud->addPointIndex(i))
-			{
-				//not enough memory
-				error = true;
-				break;
-			}
+			++filtered;
 		}
 
 		//progress indicator
@@ -424,18 +438,6 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 			error = true;
 			break;
 		}
-	}
-
-	//remove unnecessarily allocated memory
-	if (!error)
-	{
-		if (sampledCloud->capacity() > sampledCloud->size())
-			sampledCloud->resize(sampledCloud->size());
-	}
-	else
-	{
-		delete sampledCloud;
-		sampledCloud = nullptr;
 	}
 
 	if (progressCb)
@@ -450,7 +452,7 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 		octree = nullptr;
 	}
 
-	return sampledCloud;
+	return error ? 0 : filtered;
 }
 
 ReferenceCloud* CloudSamplingTools::sorFilter(	GenericIndexedCloudPersist* inputCloud,
