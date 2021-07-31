@@ -42,37 +42,39 @@ using namespace CCCoreLib;
 
 /******** Geometry *********/
 
-void CCMiscTools::MakeMinAndMaxCubical(CCVector3& dimMin, CCVector3& dimMax, double enlargeFactor/*=0.01*/)
+void CCMiscTools::MakeMinAndMaxCubical(CCVector3& dimMin, CCVector3& dimMax, double enlargeFactor)
 {
 	//get box max dimension
 	PointCoordinateType maxDD = 0;
 	{
-		CCVector3 diag = dimMax-dimMin;
-		maxDD = std::max(diag.x,diag.y);
-		maxDD = std::max(maxDD,diag.z);
+		CCVector3 diag = dimMax - dimMin;
+		maxDD = std::max(diag.x, diag.y);
+		maxDD = std::max(maxDD, diag.z);
 	}
 
 	//enlarge it if necessary
 	if (enlargeFactor > 0)
-		maxDD = static_cast<PointCoordinateType>( static_cast<double>(maxDD) * (1.0+enlargeFactor) );
+	{
+		maxDD = static_cast<PointCoordinateType>(maxDD * (1.0 + enlargeFactor));
+	}
 
 	//build corresponding 'square' box
 	{
-		CCVector3 dd(maxDD,maxDD,maxDD);
-		CCVector3 md = dimMax+dimMin;
+		CCVector3 dd(maxDD, maxDD, maxDD);
+		CCVector3 md = dimMax + dimMin;
 
-		dimMin = (md-dd) * static_cast<PointCoordinateType>(0.5);
-		dimMax = dimMin+dd;
+		dimMin = (md - dd) * static_cast<PointCoordinateType>(0.5);
+		dimMax = dimMin + dd;
 	}
 }
 
 void CCMiscTools::EnlargeBox(CCVector3& dimMin, CCVector3& dimMax, double coef)
 {
-	CCVector3 dd = (dimMax-dimMin) * static_cast<PointCoordinateType>(1.0+coef);
-	CCVector3 md = dimMax+dimMin;
+	CCVector3 dd = (dimMax - dimMin) * static_cast<PointCoordinateType>(1.0 + coef);
+	CCVector3 md = dimMax + dimMin;
 
-	dimMin = (md-dd) * static_cast<PointCoordinateType>(0.5);
-	dimMax = dimMin+dd;
+	dimMin = (md - dd) * static_cast<PointCoordinateType>(0.5);
+	dimMax = dimMin + dd;
 }
 
 /**** tribox3.c *****/

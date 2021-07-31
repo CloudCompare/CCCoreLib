@@ -7,6 +7,8 @@
 #include "CCConst.h"
 #include "CCToolbox.h"
 #include "DgmOctree.h"
+#include "Grid3D.h"
+#include "GridAndMeshIntersection.h"
 #include "SquareMatrix.h"
 
 namespace CCCoreLib
@@ -19,8 +21,9 @@ namespace CCCoreLib
 	class PointCloud;
 	class Polyline;
 	class GenericProgressCallback;
-	struct OctreeAndMeshIntersection;
 	class ScalarField;
+	class SaitoSquaredDistanceTransform;
+	struct TriangleList;
 
 	//! Several entity-to-entity distances computation algorithms (cloud-cloud, cloud-mesh, point-triangle, etc.)
 	class CC_CORE_LIB_API DistanceComputationTools : public CCToolbox
@@ -208,6 +211,34 @@ namespace CCCoreLib
 												Cloud2MeshDistancesComputationParams& params,
 												GenericProgressCallback* progressCb = nullptr,
 												DgmOctree* cloudOctree = nullptr);
+
+		//! Computes the distances between a point cloud and a mesh projected into a grid structure
+		/** This method is used by computeCloud2MeshDistances, after intersectMeshWithOctree has been called.
+			\param intersection	a specific structure corresponding the intersection of the mesh with the grid
+			\param params		parameters
+			\param progressCb	the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+		**/
+		static int computeCloud2MeshDistancesWithOctree(const DgmOctree* octree,
+														const GridAndMeshIntersection& intersection,
+														Cloud2MeshDistancesComputationParams& params,
+														GenericProgressCallback* progressCb = nullptr);
+
+		//! Computes the distances between a point and a mesh projected into a grid structure
+		/** \warning Distance Transform acceleration is not supported.
+			\warning No multi-thread support.
+			\warning No Closest Point Set support.
+
+			\param P				the point
+			\param distance			the output distance
+			\param intersection		a specific structure corresponding the intersection of the mesh with the grid
+			\param params			parameters
+			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+		**/
+		static int computePoint2MeshDistancesWithOctree(const CCVector3& P,
+														ScalarType& distance,
+														const GridAndMeshIntersection& intersection,
+														Cloud2MeshDistancesComputationParams& params);
 
 	public: //approximate distances to clouds or meshes
 
@@ -410,7 +441,8 @@ namespace CCCoreLib
 			ERROR_TOOSMALL_REFERENCEPOLYLINE,
 			NULL_PLANE_EQUATION,
 			ERROR_NULL_OCTREE,
-			ERROR_NULL_OCTREE_AND_MESH_INTERSECTION,
+			ERROR_INVALID_OCTREE_AND_MESH_INTERSECTION,
+			ERROR_OCTREE_AND_MESH_INTERSECTION_MISMATCH,
 			ERROR_CANT_USE_MAX_SEARCH_DIST_AND_CLOSEST_POINT_SET,
 			ERROR_EXECUTE_FUNCTION_FOR_ALL_CELLS_AT_LEVEL_FAILURE,
 			ERROR_EXECUTE_GET_POINTS_IN_CELL_BY_INDEX_FAILURE,
@@ -436,6 +468,7 @@ namespace CCCoreLib
 			ERROR_BUILD_OCTREE_FAILURE,
 			ERROR_BUILD_FAST_MARCHING_FAILURE,
 			ERROR_UNKOWN_ERRORMEASURES_TYPE,
+			INVALID_INPUT,
 			SUCCESS = 1,
 		};
 
@@ -550,28 +583,6 @@ namespace CCCoreLib
 		static bool MultiThreadSupport();
 
 	protected:
-
-		//! Intersects a mesh with a grid structure
-		/** This method is used by computeCloud2MeshDistances.
-			\param theIntersection a specific structure to store the result of the intersection
-			\param octreeLevel the octree subdivision level corresponding to the grid
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-		**/
-		static int intersectMeshWithOctree(	OctreeAndMeshIntersection* theIntersection,
-											unsigned char octreeLevel,
-											GenericProgressCallback* progressCb = nullptr);
-
-		//! Computes the distances between a point cloud and a mesh projected into a grid structure
-		/** This method is used by computeCloud2MeshDistances, after intersectMeshWithOctree has been called.
-			\param theIntersection a specific structure corresponding the intersection of the mesh with the grid
-			\param params parameters
-			\param progressCb the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
-		**/
-		static int computeCloud2MeshDistancesWithOctree(OctreeAndMeshIntersection* theIntersection,
-														Cloud2MeshDistancesComputationParams& params,
-														GenericProgressCallback* progressCb = nullptr);
-
 		//! Computes the "nearest neighbor distance" without local modeling for all points of an octree cell
 		/** This method has the generic syntax of a "cellular function" (see DgmOctree::localFunctionPtr).
 			Specific parameters are transmitted via the "additionalParameters" structure.

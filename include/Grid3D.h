@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdio>
 #include <vector>
+#include <functional>
 
 namespace CCCoreLib
 {
@@ -31,7 +32,7 @@ namespace CCCoreLib
 
 		//! Default constructor
 		Grid3D()
-			: m_innerSize      (0,0,0)
+			: m_innerSize      (0, 0, 0)
 			, m_margin         (0)
 			, m_rowSize        (0)
 			, m_sliceSize      (0)
@@ -46,6 +47,22 @@ namespace CCCoreLib
 		//! Returns whether the grid has been initialized or not
 		inline bool isInitialized() const { return m_totalCellCount != 0; }
 
+		//! Clears the grid
+		/** \warning If Type is a pointer type, memory should be released first
+		**/
+		void clear()
+		{
+			m_innerSize			= Tuple3ui(0, 0, 0);
+			m_margin			=  0;
+			m_innerCellCount	=  0;
+			m_rowSize			=  0;
+			m_sliceSize			=  0;
+			m_totalCellCount	=  0;
+			m_marginShift		=  0;
+
+			m_grid.clear();
+		}
+
 		//! Initializes the grid
 		/** The grid must be explicitelty initialized prior to any action.
 			\param di grid size along the X dimension
@@ -57,13 +74,13 @@ namespace CCCoreLib
 		**/
 		bool init(unsigned di, unsigned dj, unsigned dk, unsigned margin, GridElement defaultCellValue = 0)
 		{
-			m_innerSize      = Tuple3ui(di,dj,dk);
-			m_margin         = margin;
-			m_innerCellCount = m_innerSize.x * m_innerSize.y * m_innerSize.z;
-			m_rowSize        = (m_innerSize.x + 2*m_margin);
-			m_sliceSize      = (m_innerSize.y + 2*m_margin) * m_rowSize;
-			m_totalCellCount = (m_innerSize.z + 2*m_margin) * m_sliceSize;
-			m_marginShift    = m_margin * (1 + m_rowSize + m_sliceSize);
+			m_innerSize			= Tuple3ui(di, dj, dk);
+			m_margin			= margin;
+			m_innerCellCount	= m_innerSize.x * m_innerSize.y * m_innerSize.z;
+			m_rowSize			= (m_innerSize.x + 2 * m_margin);
+			m_sliceSize			= (m_innerSize.y + 2 * m_margin) * m_rowSize;
+			m_totalCellCount	= (m_innerSize.z + 2 * m_margin) * m_sliceSize;
+			m_marginShift		= m_margin * (1 + m_rowSize + m_sliceSize);
 
 			if (m_totalCellCount == 0)
 			{
@@ -74,7 +91,7 @@ namespace CCCoreLib
 			//grid initialization
 			try
 			{
-				m_grid.resize(m_totalCellCount,defaultCellValue);
+				m_grid.resize(m_totalCellCount, defaultCellValue);
 			}
 			catch (const std::bad_alloc&)
 			{
@@ -86,7 +103,20 @@ namespace CCCoreLib
 			return true;
 		}
 
-		//Internal structure used by 'intersecthWith'
+		//! Computes the (grid) cell position that contains a given point
+		inline Tuple3i computeCellPos(const CCVector3& P, const CCVector3& gridMinCorner,PointCoordinateType cellSize) const
+		{
+			assert(cellSize > 0);
+
+			//DGM: if we admit that cellLength > 0, then the 'floor' operator is useless (int cast = truncation)
+			Tuple3i cellPos(static_cast<int>(/*floor*/(P.x - gridMinCorner.x) / cellSize),
+							static_cast<int>(/*floor*/(P.y - gridMinCorner.y) / cellSize),
+							static_cast<int>(/*floor*/(P.z - gridMinCorner.z) / cellSize));
+
+			return cellPos;
+		}
+
+		//Internal structure used by 'intersectWith'
 		struct CellToTest
 		{
 			//! Cell position
@@ -96,10 +126,32 @@ namespace CCCoreLib
 		};
 
 		//! Intersects this grid with a mesh
-		bool intersecthWith(GenericIndexedMesh* mesh,
+		bool intersectWith(	GenericIndexedMesh* mesh,
 							PointCoordinateType cellLength,
 							const CCVector3& gridMinCorner,
 							GridElement intersectValue = 0,
+							GenericProgressCallback* progressCb = nullptr)
+		{
+			auto setIntersectValue = [&](const Tuple3i& cellPos, unsigned triIndex)
+			{
+				this->setValue(cellPos, intersectValue);
+			};
+
+			return intersectWith(	mesh,
+									cellLength,
+									gridMinCorner,
+									setIntersectValue,
+									progressCb);
+		}
+		
+		//! Generic function applied to a cell intersected by a triangle (used by the generic form of intersectWith)
+		using genericCellTriIntersectionAction = std::function<void(const Tuple3i&, unsigned)>;
+
+		//! Intersects this grid with a mesh (generic form)
+		bool intersectWith(	GenericIndexedMesh* mesh,
+							PointCoordinateType cellLength,
+							const CCVector3& gridMinCorner,
+							genericCellTriIntersectionAction action,
 							GenericProgressCallback* progressCb = nullptr)
 		{
 			if (!mesh || !isInitialized())
@@ -134,7 +186,7 @@ namespace CCCoreLib
 
 			//for each triangle: look for intersecting cells
 			mesh->placeIteratorAtBeginning();
-			for (unsigned n = 0; n<numberOfTriangles; ++n)
+			for (unsigned n = 0; n < numberOfTriangles; ++n)
 			{
 				//get the positions (in the grid) of each vertex
 				const GenericTriangle* T = mesh->_getNextTriangle();
@@ -148,30 +200,24 @@ namespace CCCoreLib
 				CCVector3 BC = (*triPoints[2]) - (*triPoints[1]);
 				CCVector3 CA = (*triPoints[0]) - (*triPoints[2]);
 
-				//be sure that the triangle is not degenerate!!!
+				//make sure that the triangle is not degenerate!!!
 				if ( GreaterThanSquareEpsilon( AB.norm2() ) &&
 					 GreaterThanSquareEpsilon( BC.norm2() ) &&
 					 GreaterThanSquareEpsilon( CA.norm2() ) )
 				{
-					Tuple3i cellPos[3];
+					Tuple3i cellPos[3] =
 					{
-						for (int k = 0; k<3; k++)
-						{
-							CCVector3 P = *(triPoints[k]) - gridMinCorner;
-							cellPos[k].x = std::min(static_cast<int>(P.x / cellLength), static_cast<int>(size().x) - 1);
-							cellPos[k].y = std::min(static_cast<int>(P.y / cellLength), static_cast<int>(size().y) - 1);
-							cellPos[k].z = std::min(static_cast<int>(P.z / cellLength), static_cast<int>(size().z) - 1);
-						}
-					}
+						computeCellPos(*(triPoints[0]), gridMinCorner, cellLength),
+						computeCellPos(*(triPoints[1]), gridMinCorner, cellLength),
+						computeCellPos(*(triPoints[2]), gridMinCorner, cellLength)
+					};
 
 					//compute the triangle bounding-box
 					Tuple3i minPos, maxPos;
+					for (int k = 0; k < 3; k++)
 					{
-						for (int k = 0; k < 3; k++)
-						{
-							minPos.u[k] = std::min(cellPos[0].u[k], std::min(cellPos[1].u[k], cellPos[2].u[k]));
-							maxPos.u[k] = std::max(cellPos[0].u[k], std::max(cellPos[1].u[k], cellPos[2].u[k]));
-						}
+						minPos.u[k] = std::min(cellPos[0].u[k], std::min(cellPos[1].u[k], cellPos[2].u[k]));
+						maxPos.u[k] = std::max(cellPos[0].u[k], std::max(cellPos[1].u[k], cellPos[2].u[k]));
 					}
 
 					//first cell
@@ -180,7 +226,6 @@ namespace CCCoreLib
 					CellToTest* _currentCell = &cellsToTest[0/*cellsToTestCount-1*/];
 
 					_currentCell->pos = minPos;
-					CCVector3 distanceToMinBorder = gridMinCorner - (*triPoints[0]);
 
 					//compute the triangle normal
 					CCVector3 N = AB.cross(BC);
@@ -206,7 +251,7 @@ namespace CCCoreLib
 						//so we need to remember its position!
 						Tuple3i currentCellPos = _currentCell->pos;
 
-						//if we have reached the maximal subdivision level
+						//if we have reached the maximum subdivision level
 						if (_currentCell->cellSize == 1)
 						{
 							//compute the (absolute) cell center
@@ -215,11 +260,11 @@ namespace CCCoreLib
 							//check that the triangle does intersect the cell (box)
 							if (CCMiscTools::TriBoxOverlap(AB, halfCellDimensions, triPoints))
 							{
-								if ((currentCellPos.x >= 0 && currentCellPos.x < static_cast<int>(size().x)) &&
+								if (	(currentCellPos.x >= 0 && currentCellPos.x < static_cast<int>(size().x)) &&
 										(currentCellPos.y >= 0 && currentCellPos.y < static_cast<int>(size().y)) &&
 										(currentCellPos.z >= 0 && currentCellPos.z < static_cast<int>(size().z)))
 								{
-									setValue(currentCellPos, intersectValue);
+									action(currentCellPos, n);
 								}
 							}
 						}
@@ -231,6 +276,7 @@ namespace CCCoreLib
 							char pointsPosition[27];
 							{
 								char* _pointsPosition = pointsPosition;
+								CCVector3 distanceToMinBorder = gridMinCorner - (*triPoints[0]);
 								for (int i = 0; i<3; ++i)
 								{
 									AB.x = distanceToMinBorder.x + static_cast<PointCoordinateType>(currentCellPos.x + i*halfCellSize) * cellLength;
@@ -310,7 +356,6 @@ namespace CCCoreLib
 
 				if (progressCb && !nProgress.oneStep())
 				{
-					//cancel by user
 					return false;
 				}
 			}
@@ -318,8 +363,8 @@ namespace CCCoreLib
 			return true;
 		}
 
-		//! Intersects this grid with a mesh
-		bool intersecthWith(GenericCloud* cloud,
+		//! Intersects this grid with a cloud
+		bool intersectWith(GenericCloud* cloud,
 							PointCoordinateType cellLength,
 							const CCVector3& gridMinCorner,
 							GridElement intersectValue = 0,
@@ -354,14 +399,11 @@ namespace CCCoreLib
 
 			//for each point: look for the intersecting cell
 			cloud->placeIteratorAtBeginning();
-			for (unsigned n = 0; n<numberOfPoints; ++n)
+			for (unsigned n = 0; n < numberOfPoints; ++n)
 			{
-				CCVector3 P = *cloud->getNextPoint() - gridMinCorner;
-				Tuple3i cellPos(std::min(static_cast<int>(P.x / cellLength), static_cast<int>(size().x) - 1),
-								std::min(static_cast<int>(P.y / cellLength), static_cast<int>(size().y) - 1),
-								std::min(static_cast<int>(P.z / cellLength), static_cast<int>(size().z) - 1) );
+				Tuple3i cellPos = computeCellPos(*cloud->getNextPoint(), gridMinCorner, cellLength);
 
-				if ((cellPos.x >= 0 && cellPos.x < static_cast<int>(size().x)) &&
+				if (	(cellPos.x >= 0 && cellPos.x < static_cast<int>(size().x)) &&
 						(cellPos.y >= 0 && cellPos.y < static_cast<int>(size().y)) &&
 						(cellPos.z >= 0 && cellPos.z < static_cast<int>(size().z)))
 				{
@@ -393,7 +435,7 @@ namespace CCCoreLib
 		/** \param cellPos the cell position
 			\param value new cell value
 		**/
-		inline void setValue(Tuple3i& cellPos, GridElement value)
+		inline void setValue(const Tuple3i& cellPos, GridElement value)
 		{
 			m_grid[pos2index(cellPos.x, cellPos.y, cellPos.z)] = value;
 		}
@@ -423,17 +465,17 @@ namespace CCCoreLib
 		/** \param cellPos the cell position
 			\return the cell value
 		**/
-		const GridElement& getValue(Tuple3i& cellPos) const
+		const GridElement& getValue(const Tuple3i& cellPos) const
 		{
-			return m_grid[pos2index(cellPos.x,cellPos.y,cellPos.z)];
+			return m_grid[pos2index(cellPos.x, cellPos.y, cellPos.z)];
 		}
 		//! Returns the value of a given cell
 		/** \param cellPos the cell position
 			\return the cell value
 		**/
-		GridElement& getValue(Tuple3i& cellPos)
+		GridElement& getValue(const Tuple3i& cellPos)
 		{
-			return m_grid[pos2index(cellPos.x,cellPos.y,cellPos.z)];
+			return m_grid[pos2index(cellPos.x, cellPos.y, cellPos.z)];
 		}
 
 		//! Gives access to the internal grid data (with margin)

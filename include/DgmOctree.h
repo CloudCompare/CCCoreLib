@@ -406,8 +406,8 @@ namespace CCCoreLib
 			points will be taken into account. Octree 3D limits in space should be cubical.
 			\param octreeMin the lower limits for the octree cells along X, Y and Z
 			\param octreeMax the upper limits for the octree cells along X, Y and Z
-			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (is specified)
-			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (is specified)
+			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified)
+			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
@@ -747,9 +747,9 @@ namespace CCCoreLib
 		{
 			const PointCoordinateType& cs = getCellSize(MAX_OCTREE_LEVEL);
 			//DGM: if we admit that cs >= 0, then the 'floor' operator is useless (int cast = truncation)
-			cellPos.x = static_cast<int>(/*floor*/(thePoint->x - m_dimMin.x)/cs);
-			cellPos.y = static_cast<int>(/*floor*/(thePoint->y - m_dimMin.y)/cs);
-			cellPos.z = static_cast<int>(/*floor*/(thePoint->z - m_dimMin.z)/cs);
+			cellPos.x = static_cast<int>(/*floor*/(thePoint->x - m_dimMin.x) / cs);
+			cellPos.y = static_cast<int>(/*floor*/(thePoint->y - m_dimMin.y) / cs);
+			cellPos.z = static_cast<int>(/*floor*/(thePoint->z - m_dimMin.z) / cs);
 		}
 
 		//! Returns the position for a given level of subdivision of the cell that includes a given point
@@ -762,14 +762,13 @@ namespace CCCoreLib
 		**/
 		inline void getTheCellPosWhichIncludesThePoint(const CCVector3* thePoint, Tuple3i& cellPos, unsigned char level) const
 		{
-			assert(level <= MAX_OCTREE_LEVEL);
-
 			getTheCellPosWhichIncludesThePoint(thePoint, cellPos);
 
-			const unsigned char dec = MAX_OCTREE_LEVEL - level;
-			cellPos.x >>= dec;
-			cellPos.y >>= dec;
-			cellPos.z >>= dec;
+			assert(level <= MAX_OCTREE_LEVEL);
+			const unsigned char shift = MAX_OCTREE_LEVEL - level;
+			cellPos.x >>= shift;
+			cellPos.y >>= shift;
+			cellPos.z >>= shift;
 		}
 
 		//! Returns the position for a given level of subdivision of the cell that includes a given point
@@ -789,13 +788,13 @@ namespace CCCoreLib
 			getTheCellPosWhichIncludesThePoint(thePoint, cellPos);
 
 			inBounds =	(	cellPos.x >= 0 && cellPos.x < MAX_OCTREE_LENGTH
-							&& cellPos.y >= 0 && cellPos.y < MAX_OCTREE_LENGTH
-							&& cellPos.z >= 0 && cellPos.z < MAX_OCTREE_LENGTH );
+						&&	cellPos.y >= 0 && cellPos.y < MAX_OCTREE_LENGTH
+						&&	cellPos.z >= 0 && cellPos.z < MAX_OCTREE_LENGTH );
 
-			const unsigned char dec = MAX_OCTREE_LEVEL - level;
-			cellPos.x >>= dec;
-			cellPos.y >>= dec;
-			cellPos.z >>= dec;
+			const unsigned char shift = MAX_OCTREE_LEVEL - level;
+			cellPos.x >>= shift;
+			cellPos.y >>= shift;
+			cellPos.z >>= shift;
 		}
 
 		//! Returns the cell position for a given level of subdivision of a cell designated by its code
@@ -817,7 +816,7 @@ namespace CCCoreLib
 			Tuple3i cellPos;
 			getCellPos(code,level,cellPos,isCodeTruncated);
 
-			return computeCellCenter(cellPos,level,center);
+			return computeCellCenter(cellPos, level, center);
 		}
 
 		//! Returns the cell center for a given level of subdivision of a cell designated by its position
@@ -828,9 +827,9 @@ namespace CCCoreLib
 		inline void computeCellCenter(const Tuple3i& cellPos, unsigned char level, CCVector3& center) const
 		{
 			const PointCoordinateType& cs = getCellSize(level);
-			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.x));
-			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.y));
-			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.z));
+			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
+			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
+			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
 		}
 
 #ifndef OCTREE_CODES_64_BITS
@@ -838,9 +837,9 @@ namespace CCCoreLib
 		inline void computeCellCenter(const Tuple3s& cellPos, unsigned char level, CCVector3& center) const
 		{
 			const PointCoordinateType& cs = getCellSize(level);
-			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.x));
-			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.y));
-			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + static_cast<PointCoordinateType>(cellPos.z));
+			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
+			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
+			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
 		}
 #endif
 
@@ -858,11 +857,11 @@ namespace CCCoreLib
 			is between 0 and the number of points projected in the octree minus 1. If
 			the cell code cannot be found in the octree structure, then the method returns
 			an index equal to the number of projected points (m_numberOfProjectedPoints).
-			\param truncatedCellCode truncated cell code (i.e. original cell code shifted of 'bitDec' bits)
-			\param bitDec binary shift corresponding to the level of subdivision (see GET_BIT_SHIFT)
+			\param truncatedCellCode truncated cell code (i.e. original cell code shifted of 'bitShift' bits)
+			\param bitShift binary shift corresponding to the level of subdivision (see GET_BIT_SHIFT)
 			\return the index of the cell (or 'm_numberOfProjectedPoints' if none found)
 		**/
-		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitDec) const;
+		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitShift) const;
 
 		/**** OCTREE DIAGNOSIS ****/
 
@@ -1134,7 +1133,7 @@ namespace CCCoreLib
 		//! Number of points projected in the octree
 		unsigned m_numberOfProjectedPoints;
 
-		//! Nearest power of 2 less than the number of points (used for binary search)
+		//! Nearest power of 2 smaller than the number of points (used for binary search)
 		unsigned m_nearestPow2;
 
 		//! Min coordinates of the octree bounding-box
@@ -1169,9 +1168,6 @@ namespace CCCoreLib
 			\return the number of points projected in the octree
 		**/
 		int genericBuild(GenericProgressCallback* progressCb = nullptr);
-
-		//! Updates the tables containing octree limits and boundaries
-		void updateMinAndMaxTables();
 
 		//! Updates the tables containing the octree cells length for each level of subdivision
 		void updateCellSizeTable();
@@ -1210,13 +1206,13 @@ namespace CCCoreLib
 		//! Returns the index of a given cell represented by its code
 		/** Same algorithm as the other "getCellIndex" method, but in an optimized form.
 			The binary search can be performed on a sub-part of the DgmOctree structure.
-			\param truncatedCellCode truncated cell code (i.e. original cell code shifted of 'bitDec' bits)
-			\param bitDec binary shift corresponding to the level of subdivision (see GET_BIT_SHIFT)
+			\param truncatedCellCode truncated cell code (i.e. original cell code shifted of 'bitShift' bits)
+			\param bitShift binary shift corresponding to the level of subdivision (see GET_BIT_SHIFT)
 			\param begin first index of the sub-list in which to perform the binary search
 			\param end last index of the sub-list in which to perform the binary search
 			\return the index of the cell (or 'm_numberOfProjectedPoints' if none found)
 		**/
-		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitDec, unsigned begin, unsigned end) const;
+		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitShift, unsigned begin, unsigned end) const;
 
 #ifdef ENABLE_MT_OCTREE
 		//! Octree cell description helper struct
