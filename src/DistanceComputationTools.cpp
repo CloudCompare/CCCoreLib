@@ -1210,6 +1210,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 		}
 	}
 
+	const Tuple3ui& gridSize = intersection.internalGridSize();
+
 	//let's find the nearest triangles for each point in the neighborhood 'Yk'
 	ScalarType maxRadius = 0;
 	for (int dist = minDistToBoundaries; dist <= maxDistToBoundaries && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellSize))
@@ -1228,10 +1230,14 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 		{
 			bool imax = (std::abs(i) == dist);
 			Tuple3i localCellPos(startPos.x + i, 0, 0);
+			if (localCellPos.x < 0 || static_cast<unsigned>(localCellPos.x) >= gridSize.x)
+				continue;
 
 			for (int j = -c; j <= d; j++)
 			{
 				localCellPos.y = startPos.y + j;
+				if (localCellPos.y < 0 || static_cast<unsigned>(localCellPos.y) >= gridSize.y)
+					continue;
 
 				//if i or j is 'maximal'
 				if (imax || std::abs(j) == dist)
@@ -1241,6 +1247,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + k;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{
@@ -1275,6 +1283,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z - e;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{
@@ -1307,6 +1317,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + f;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{

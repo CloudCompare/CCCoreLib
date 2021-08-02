@@ -114,6 +114,18 @@ void GridAndMeshIntersection::computeSignedDistToBoundaries(const Tuple3i& cellP
 	distToUpperBorder = m_maxFillIndexes - cellPos;
 }
 
+const Tuple3ui& GridAndMeshIntersection::internalGridSize() const
+{
+	if (m_distanceTransform)
+	{
+		return m_distanceTransform->size();
+	}
+	else
+	{
+		return m_perCellTriangleList.size();
+	}
+}
+
 bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 														const CCVector3& minGridBB,
 														const CCVector3& maxGridBB,
@@ -158,7 +170,9 @@ bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 			}
 		}
 	}
-	CCVector3 realMinGridBB = m_minGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
+	CCVector3 realMinGridBB = m_minGridBB + CCVector3(	m_minFillIndexes.x * m_cellSize,
+														m_minFillIndexes.y * m_cellSize,
+														m_minFillIndexes.z * m_cellSize );
 
 	//we need to build the list of triangles intersecting each cell of the 3D grid
 	if (!m_perCellTriangleList.init(gridSize.x, gridSize.y, gridSize.z, 0, nullptr))

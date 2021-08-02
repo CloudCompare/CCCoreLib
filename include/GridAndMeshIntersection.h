@@ -47,6 +47,9 @@ namespace CCCoreLib
 											PointCoordinateType cellSize,
 											GenericProgressCallback* progressCb = nullptr);
 
+		//! Returns the grid size
+		const Tuple3ui& internalGridSize() const;
+
 		//! Computes the (grid) cell position that contains a given point
 		inline Tuple3i computeCellPos(const CCVector3& P) const
 		{
