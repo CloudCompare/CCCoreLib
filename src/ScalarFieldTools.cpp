@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
-// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
+// Copyright Â© EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 #include <ScalarFieldTools.h>
 
