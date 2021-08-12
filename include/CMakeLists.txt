@@ -71,6 +71,7 @@ install(
 		CCConst.h
 		CCCoreLib.h
 		CCGeom.h
+		CCMath.h
 		CCMiscTools.h
 		CCPlatform.h
 		CCShareable.h
