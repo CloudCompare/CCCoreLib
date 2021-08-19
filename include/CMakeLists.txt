@@ -98,6 +98,7 @@ install(
 		GenericProgressCallback.h
 		GenericTriangle.h
 		GeometricalAnalysisTools.h
+		GridAndMeshIntersection.h
 		Grid3D.h
 		Jacobi.h
 		KdTree.h
