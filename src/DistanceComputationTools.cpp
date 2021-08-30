@@ -861,15 +861,25 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	s_octree_MT->getCellPos(desc.theCode, s_params_MT.octreeLevel, cellPos, true);
 
 	//get the distance to the nearest and farthest boundaries
-	Tuple3i distToLowerBorder, distToUpperBorder;
-	int maxIntDist = s_intersection_MT->computeMaxDistToBoundaries(cellPos, distToLowerBorder, distToUpperBorder);
+	Tuple3i signedDistToLowerBorder, signedDistToUpperBorder;
+	s_intersection_MT->computeSignedDistToBoundaries(cellPos, signedDistToLowerBorder, signedDistToUpperBorder);
+
+	Tuple3i minDistToGridBoundaries, maxDistToGridBoundaries;
+	for (unsigned char k = 0; k < 3; ++k)
+	{
+		minDistToGridBoundaries.u[k] = std::max(std::max(-signedDistToLowerBorder.u[k], 0), std::max(0, -signedDistToUpperBorder.u[k]));
+		maxDistToGridBoundaries.u[k] = std::max(std::max(signedDistToLowerBorder.u[k], 0), std::max(0, signedDistToUpperBorder.u[k]));
+	}
+	int minDistToBoundaries = std::max(minDistToGridBoundaries.x, std::max(minDistToGridBoundaries.y, minDistToGridBoundaries.z));
+	int maxDistToBoundaries = std::max(maxDistToGridBoundaries.x, std::max(maxDistToGridBoundaries.y, maxDistToGridBoundaries.z));
+
 
 	if (s_params_MT.maxSearchDist > 0)
 	{
 		//no need to look farther than 'maxNeighbourhoodLength'
 		int maxNeighbourhoodLength = ComputeMaxNeighborhoodLength(s_params_MT.maxSearchDist, s_octree_MT->getCellSize(s_params_MT.octreeLevel));
-		if (maxNeighbourhoodLength < maxIntDist)
-			maxIntDist = maxNeighbourhoodLength;
+		if (maxNeighbourhoodLength < maxDistToBoundaries)
+			maxDistToBoundaries = maxNeighbourhoodLength;
 
 		ScalarType maxDistance = s_params_MT.maxSearchDist;
 		if (!s_params_MT.signedDistances)
@@ -930,17 +940,17 @@ void cloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 
 	//let's find the nearest triangles for each point in the neighborhood 'Yk'
 	ScalarType maxRadius = 0;
-	for (int dist = 0; remainingPoints != 0 && dist <= maxIntDist; ++dist, maxRadius += static_cast<ScalarType>(cellLength))
+	for (int dist = minDistToBoundaries; remainingPoints != 0 && dist <= maxDistToBoundaries; ++dist, maxRadius += static_cast<ScalarType>(cellLength))
 	{
 		//test the neighbor cells at distance = 'dist'
 		//a,b,c,d,e,f are the extents of this neighborhood
 		//for the 6 main directions -X,+X,-Y,+Y,-Z,+Z
-		int a = std::min(dist, distToLowerBorder.x);
-		int b = std::min(dist, distToUpperBorder.x);
-		int c = std::min(dist, distToLowerBorder.y);
-		int d = std::min(dist, distToUpperBorder.y);
-		int e = std::min(dist, distToLowerBorder.z);
-		int f = std::min(dist, distToUpperBorder.z);
+		int a = std::min(dist, signedDistToLowerBorder.x);
+		int b = std::min(dist, signedDistToUpperBorder.x);
+		int c = std::min(dist, signedDistToLowerBorder.y);
+		int d = std::min(dist, signedDistToUpperBorder.y);
+		int e = std::min(dist, signedDistToLowerBorder.z);
+		int f = std::min(dist, signedDistToUpperBorder.z);
 
 		for (int i = -a; i <= b; ++i)
 		{
@@ -1117,8 +1127,17 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 	)
 {
 	//get the distance to the nearest and farthest boundaries
-	Tuple3i distToLowerBorder, distToUpperBorder;
-	int maxIntDist = intersection.computeMaxDistToBoundaries(cellPos, distToLowerBorder, distToUpperBorder);
+	Tuple3i signedDistToLowerBorder, signedDistToUpperBorder;
+	intersection.computeSignedDistToBoundaries(cellPos, signedDistToLowerBorder, signedDistToUpperBorder);
+
+	Tuple3i minDistToGridBoundaries, maxDistToGridBoundaries;
+	for (unsigned char k = 0; k < 3; ++k)
+	{
+		minDistToGridBoundaries.u[k] = std::max(std::max(-signedDistToLowerBorder.u[k], 0), std::max(0, -signedDistToUpperBorder.u[k]));
+		maxDistToGridBoundaries.u[k] = std::max(std::max(signedDistToLowerBorder.u[k], 0), std::max(0, signedDistToUpperBorder.u[k]));
+	}
+	int minDistToBoundaries = std::max(minDistToGridBoundaries.x, std::max(minDistToGridBoundaries.y, minDistToGridBoundaries.z));
+	int maxDistToBoundaries = std::max(maxDistToGridBoundaries.x, std::max(maxDistToGridBoundaries.y, maxDistToGridBoundaries.z));
 
 	//determine the cell center
 	CCVector3 cellCenter;
@@ -1154,8 +1173,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 	if (boundedSearch)
 	{
 		//no need to look farther than 'maxNeighbourhoodLength'
-		if (maxNeighbourhoodLength < maxIntDist)
-			maxIntDist = maxNeighbourhoodLength;
+		if (maxNeighbourhoodLength < maxDistToBoundaries)
+			maxDistToBoundaries = maxNeighbourhoodLength;
 
 		//we compute squared distances when not in 'signed' mode!
 		ScalarType maxDistance = params.maxSearchDist;
@@ -1173,17 +1192,17 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 
 	//let's find the nearest triangles for each point in the neighborhood 'Yk'
 	ScalarType maxRadius = 0;
-	for (int dist = 0; dist <= maxIntDist && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellSize))
+	for (int dist = minDistToBoundaries; dist <= maxDistToBoundaries && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellSize))
 	{
 		//test the neighbor cells at distance = 'dist'
 		//a,b,c,d,e,f are the extents of this neighborhood
 		//for the 6 main directions -X,+X,-Y,+Y,-Z,+Z
-		int a = std::min(dist, distToLowerBorder.x);
-		int b = std::min(dist, distToUpperBorder.x);
-		int c = std::min(dist, distToLowerBorder.y);
-		int d = std::min(dist, distToUpperBorder.y);
-		int e = std::min(dist, distToLowerBorder.z);
-		int f = std::min(dist, distToUpperBorder.z);
+		int a = std::min(dist, signedDistToLowerBorder.x);
+		int b = std::min(dist, signedDistToUpperBorder.x);
+		int c = std::min(dist, signedDistToLowerBorder.y);
+		int d = std::min(dist, signedDistToUpperBorder.y);
+		int e = std::min(dist, signedDistToLowerBorder.z);
+		int f = std::min(dist, signedDistToUpperBorder.z);
 
 		for (int i = -a; i <= b; i++)
 		{

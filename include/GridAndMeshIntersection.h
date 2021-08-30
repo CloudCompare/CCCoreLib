@@ -90,7 +90,7 @@ namespace CCCoreLib
 		const TriangleList* trianglesInCell(const Tuple3i& cellPos, bool isLocalCellPos) const;
 
 		//! Computes the distances between a given cell and the inner grid boundaries
-		int computeMaxDistToBoundaries(const Tuple3i& cellPos, Tuple3i& distToLowerBorder, Tuple3i& distToUpperBorder) const;
+		void computeSignedDistToBoundaries(const Tuple3i& cellPos, Tuple3i& distToLowerBorder, Tuple3i& distToUpperBorder) const;
 
 	protected:
 

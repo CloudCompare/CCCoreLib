@@ -108,18 +108,10 @@ const CCCoreLib::TriangleList* GridAndMeshIntersection::trianglesInCell(const Tu
 }
 
 
-int GridAndMeshIntersection::computeMaxDistToBoundaries(const Tuple3i& cellPos, Tuple3i& distToLowerBorder, Tuple3i& distToUpperBorder) const
+void GridAndMeshIntersection::computeSignedDistToBoundaries(const Tuple3i& cellPos, Tuple3i& distToLowerBorder, Tuple3i& distToUpperBorder) const
 {
 	distToLowerBorder = cellPos - m_minFillIndexes;
 	distToUpperBorder = m_maxFillIndexes - cellPos;
-
-	int maxDistToBoundaries = 0;
-	for (unsigned char k = 0; k < 3; ++k)
-	{
-		maxDistToBoundaries = std::max(maxDistToBoundaries, distToLowerBorder.u[k]);
-		maxDistToBoundaries = std::max(maxDistToBoundaries, distToUpperBorder.u[k]);
-	}
-	return maxDistToBoundaries;
 }
 
 bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
