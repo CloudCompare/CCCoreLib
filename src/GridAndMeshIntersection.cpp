@@ -148,6 +148,14 @@ bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 			m_minFillIndexes.u[k] = static_cast<int>(floor((meshMinBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
 			m_maxFillIndexes.u[k] = static_cast<int>(floor((meshMaxBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
 			gridSize.u[k] = static_cast<unsigned>(m_maxFillIndexes.u[k] - m_minFillIndexes.u[k] + 1);
+			if (gridSize.u[k] == 1)
+			{
+				// to avoid corner cases (with flat triangles on a border of the unique cell)
+				// we prefer to increase the intersection grid by one cell on each side
+				m_minGridBB.u[k] -= m_cellSize;
+				m_maxFillIndexes.u[k] += 2;
+				gridSize.u[k] = 3;
+			}
 		}
 	}
 	CCVector3 realMinGridBB = m_minGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
@@ -219,6 +227,14 @@ bool GridAndMeshIntersection::initDistanceTransformWithMesh(GenericIndexedMesh* 
 			m_minFillIndexes.u[k] = static_cast<int>(floor((minFilledBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
 			m_maxFillIndexes.u[k] = static_cast<int>(floor((maxFilledBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
 			gridSize.u[k] = static_cast<unsigned>(m_maxFillIndexes.u[k] - m_minFillIndexes.u[k] + 1);
+			if (gridSize.u[k] == 1)
+			{
+				// to avoid corner cases (with flat triangles on a border of the unique cell)
+				// we prefer to increase the intersection grid by one cell on each side
+				m_minGridBB.u[k] -= m_cellSize;
+				m_maxFillIndexes.u[k] += 2;
+				gridSize.u[k] = 3;
+			}
 		}
 	}
 	CCVector3 realMinGridBB = m_minGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);

@@ -225,12 +225,10 @@ namespace CCCoreLib
 					cellsToTestCount = 1;
 					CellToTest* _currentCell = &cellsToTest[0/*cellsToTestCount-1*/];
 
-					_currentCell->pos = minPos;
-
 					//compute the triangle normal
 					CCVector3 N = AB.cross(BC);
 
-					//max distance (in terms of cell) between the vertices
+					//max distance (in terms of number of cells) between the vertices
 					int maxSize = 0;
 					{
 						Tuple3i delta = maxPos - minPos + Tuple3i(1, 1, 1);
@@ -241,6 +239,19 @@ namespace CCCoreLib
 					//we deduce the smallest bounding cell
 					static const double LOG_2 = log(2.0);
 					_currentCell->cellSize = (1 << (maxSize > 1 ? static_cast<unsigned char>(ceil(log(static_cast<double>(maxSize)) / LOG_2)) : 0));
+
+					if (_currentCell->cellSize > 1)
+					{
+						//center the virtual cell on the triangle
+						for (int k = 0; k < 3; k++)
+						{
+							_currentCell->pos.u[k] = std::max(0, ((minPos.u[k] + maxPos.u[k]) - _currentCell->cellSize) / 2);
+						}
+					}
+					else
+					{
+						_currentCell->pos = minPos;
+					}
 
 					//now we can (recursively) find the intersecting cells
 					while (cellsToTestCount != 0)
