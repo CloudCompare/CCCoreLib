@@ -19,7 +19,7 @@
 #else
 	#define CC_LINUX
 #endif
-#if defined(__x86_64__) || defined(__ppc64__)
+#if defined(__x86_64__) || defined(__ppc64__) || defined(__arm64__)
 	#define CC_ENV_64
 #else
 	#define CC_ENV_32
