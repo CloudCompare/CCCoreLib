@@ -26,6 +26,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 		int subOption,
 		GenericIndexedCloudPersist* cloud,
 		PointCoordinateType kernelRadius,
+		const CCVector3* roughnessUpDir/*=nullptr*/,
 		GenericProgressCallback* progressCb/*=nullptr*/,
 		DgmOctree* inputOctree/*=nullptr*/)
 {
@@ -104,7 +105,8 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 	{
 		static_cast<void*>(&c),
 		static_cast<void*>(&subOption),
-		static_cast<void*>(&kernelRadius)
+		static_cast<void*>(&kernelRadius),
+		static_cast<void*>(const_cast<CCVector3*>(roughnessUpDir))
 	};
 
 	ErrorCode result = NoError;
@@ -165,12 +167,13 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 
 bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree::octreeCell& cell,
 																void** additionalParameters,
-																NormalizedProgress* nProgress/*=0*/)
+																NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//parameters
-	GeomCharacteristic c       = *static_cast<GeomCharacteristic*>(additionalParameters[0]);
-	int subOption              = *static_cast<Neighbourhood::CurvatureType*>(additionalParameters[1]);
-	PointCoordinateType radius = *static_cast<PointCoordinateType*>(additionalParameters[2]);
+	GeomCharacteristic c            = *static_cast<GeomCharacteristic*>(additionalParameters[0]);
+	int subOption                   = *static_cast<Neighbourhood::CurvatureType*>(additionalParameters[1]);
+	PointCoordinateType radius      = *static_cast<PointCoordinateType*>(additionalParameters[2]);
+	const CCVector3* roughnessUpDir = static_cast<const CCVector3*>(additionalParameters[3]);
 
 	//structure for nearest neighbors search
 	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
@@ -257,7 +260,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 
 					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount - 1); //we don't take the query point into account!
 					Neighbourhood Z(&neighboursCloud);
-					value = Z.computeRoughness(nNSS.queryPoint);
+					value = Z.computeRoughness(nNSS.queryPoint, roughnessUpDir);
 
 					//swap the points back to their original position (DGM: not necessary in this case)
 					//if (localIndex+1 < neighborCount)

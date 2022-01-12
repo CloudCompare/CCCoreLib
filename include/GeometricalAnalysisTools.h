@@ -48,6 +48,7 @@ namespace CCCoreLib
 			\param subOption feature / curvature type / local density computation algorithm or nothing (0)
 			\param cloud cloud to compute the characteristic on
 			\param kernelRadius neighbouring sphere radius
+			\param roughnessUpDir up direction to compute signed roughness values (optional)
 			\param progressCb client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return succes
@@ -56,6 +57,7 @@ namespace CCCoreLib
 												int subOption,
 												GenericIndexedCloudPersist* cloud,
 												PointCoordinateType kernelRadius,
+												const CCVector3* roughnessUpDir = nullptr,
 												GenericProgressCallback* progressCb = nullptr,
 												DgmOctree* inputOctree = nullptr);
 

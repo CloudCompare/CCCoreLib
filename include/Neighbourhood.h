@@ -194,11 +194,13 @@ namespace CCCoreLib
 		**/
 		ScalarType computeMomentOrder1(const CCVector3& P);
 
-		//! Computes the roughness of a set of point (by fitting a 2D plane)
-		/** \return roughness value at a given position P
+		//! Computes the roughness of a point (by fitting a 2D plane on its neighbors)
+		/** \param P point for which to compute the roughness value
+			\param roughnessUpDir up direction to compute a signed roughness value (optional)
+			\return roughness value at a given position P
 			\warning The point P shouldn't be in the set of points
 		**/
-		ScalarType computeRoughness(const CCVector3& P);
+		ScalarType computeRoughness(const CCVector3& P, const CCVector3* roughnessUpDir = nullptr);
 
 		//! Computes the curvature of a set of point (by fitting a 2.5D quadric)
 		/** \return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation failed

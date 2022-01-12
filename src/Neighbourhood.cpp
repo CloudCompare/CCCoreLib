@@ -901,12 +901,24 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 	return value;
 }
 
-ScalarType Neighbourhood::computeRoughness(const CCVector3& P)
+ScalarType Neighbourhood::computeRoughness(const CCVector3& P, const CCVector3* roughnessUpDir/*=nullptr*/)
 {
 	const PointCoordinateType* lsPlane = getLSPlane();
 	if (lsPlane)
 	{
-		return std::abs(DistanceComputationTools::computePoint2PlaneDistance(&P, lsPlane));
+		ScalarType distToPlane = DistanceComputationTools::computePoint2PlaneDistance(&P, lsPlane);
+		if (roughnessUpDir)
+		{
+			if (CCVector3::vdot(lsPlane, roughnessUpDir->u) < 0)
+			{
+				distToPlane = -distToPlane;
+			}
+		}
+		else
+		{
+			distToPlane = std::abs(distToPlane);
+		}
+		return distToPlane;
 	}
 	else
 	{
