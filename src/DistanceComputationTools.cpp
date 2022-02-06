@@ -496,7 +496,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 
 	//structures for determining the nearest neighbours of the 'nearest neighbour' (to compute the local model)
 	//either inside a sphere or the k nearest
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS_Model;
+	DgmOctree::NearestNeighboursSearchStruct nNSS_Model;
 	nNSS_Model.level = cell.level;
 	if (!params->useSphericalSearchForLocalModel)
 	{

@@ -738,7 +738,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 	double absoluteError				= *static_cast<double*>(additionalParameters[7]);
 
 	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	if (useKnn)
 	{
@@ -843,7 +843,7 @@ bool CloudSamplingTools::applySORFilterAtLevel(	const DgmOctree::octreeCell& cel
 	std::vector<PointCoordinateType>& meanDistances = *static_cast<std::vector<PointCoordinateType>*>(additionalParameters[1]);
 
 	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	nNSS.minNumberOfNeighbors = knn; //DGM: I woud have put knn+1 (as the point itself will be ignored) but in this case we won't get the same result as PCL!
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);

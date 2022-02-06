@@ -176,7 +176,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 	const CCVector3* roughnessUpDir = static_cast<const CCVector3*>(additionalParameters[3]);
 
 	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
@@ -361,7 +361,7 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctre
 	double minDistBetweenPoints = *static_cast<double*>(additionalParameters[0]);
 
 	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);

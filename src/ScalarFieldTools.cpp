@@ -133,7 +133,7 @@ bool ScalarFieldTools::computeMeanGradientOnPatch(	const DgmOctree::octreeCell& 
 	unsigned n = cell.points->size();
 
 	//spherical neighborhood extraction structure
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
@@ -321,7 +321,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 	unsigned n = cell.points->size();
 
 	//structures pour la recherche de voisinages SPECIFIQUES
-	DgmOctree::NearestNeighboursSphericalSearchStruct nNSS;
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
 	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);

@@ -1949,7 +1949,7 @@ static double s_testedPoints = 0.0;
 
 //search for all neighbors inside a sphere
 //warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors!
-int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSphericalSearchStruct &nNSS, double radius, bool sortValues) const
+int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSearchStruct &nNSS, double radius, bool sortValues) const
 {
 	//current level cell size
 	const PointCoordinateType& cs = getCellSize(nNSS.level);

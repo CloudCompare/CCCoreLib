@@ -257,17 +257,6 @@ namespace CCCoreLib
 			{}
 		};
 
-		struct NearestNeighboursSphericalSearchStruct : public NearestNeighboursSearchStruct
-		{
-			//! Whether pointsInSphericalNeighbourhood is ready or not
-			bool ready;
-
-			NearestNeighboursSphericalSearchStruct()
-				: NearestNeighboursSearchStruct()
-				, ready(false)
-			{}
-		};
-
 		//! Association between an index and the code of an octree cell
 		/** Index could be the index of a point, in which case the code
 			would correspond to the octree cell where the point lies.
@@ -594,7 +583,7 @@ namespace CCCoreLib
 			\param sortValues specifies if the neighbours needs to be sorted by their distance to the query point or not
 			\return the number of neighbours found
 		**/
-		int findNeighborsInASphereStartingFromCell(	NearestNeighboursSphericalSearchStruct &nNSS,
+		int findNeighborsInASphereStartingFromCell(	NearestNeighboursSearchStruct &nNSS,
 													double radius,
 													bool sortValues = true) const;
 
