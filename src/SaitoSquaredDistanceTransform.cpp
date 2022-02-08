@@ -181,7 +181,7 @@ bool SaitoSquaredDistanceTransform::SDT_2D(Grid3D<GridElement>& grid, std::size_
 	return true;
 }
 
-bool SaitoSquaredDistanceTransform::SDT_3D(Grid3D<GridElement>& grid, GenericProgressCallback* progressCb/*=0*/)
+bool SaitoSquaredDistanceTransform::SDT_3D(Grid3D<GridElement>& grid, GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	const Tuple3ui& gridSize = grid.size();
 	std::size_t r = gridSize.y;

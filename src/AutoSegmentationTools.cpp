@@ -18,8 +18,8 @@ using namespace CCCoreLib;
 int AutoSegmentationTools::labelConnectedComponents(GenericIndexedCloudPersist* theCloud,
 													unsigned char level,
 													bool sixConnexity/*=false*/,
-													GenericProgressCallback* progressCb/*=0*/,
-													DgmOctree* inputOctree/*=0*/)
+													GenericProgressCallback* progressCb/*=nullptr*/,
+													DgmOctree* inputOctree/*=nullptr*/)
 {
 	if (!theCloud)
 	{

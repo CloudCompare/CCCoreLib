@@ -42,10 +42,10 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 															unsigned numberOfClasses,
 															unsigned& finalNumberOfClasses,
 															bool noClassCompression/*=false*/,
-															const ScalarType* histoMin/*=0*/,
-															const ScalarType* histoMax/*=0*/,
-															unsigned* histoValues/*=0*/,
-															double* npis/*=0*/)
+															const ScalarType* histoMin/*=nullptr*/,
+															const ScalarType* histoMax/*=nullptr*/,
+															unsigned* histoValues/*=nullptr*/,
+															double* npis/*=nullptr*/)
 {
 	assert(distrib && cloud);
 	unsigned n = cloud->size();
@@ -284,8 +284,8 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 															  GenericIndexedCloudPersist* theCloud,
 															  unsigned numberOfNeighbours,
 															  double pTrust,
-															  GenericProgressCallback* progressCb/*=0*/,
-															  DgmOctree* inputOctree/*=0*/)
+															  GenericProgressCallback* progressCb/*=nullptr*/,
+															  DgmOctree* inputOctree/*=nullptr*/)
 {
 	assert(theCloud);
 
@@ -386,7 +386,7 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 
 bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octreeCell& cell,
 															void** additionalParameters,
-															NormalizedProgress* nProgress/*=0*/)
+															NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//variables additionnelles
 	GenericDistribution* statModel		= reinterpret_cast<GenericDistribution*>(additionalParameters[0]);

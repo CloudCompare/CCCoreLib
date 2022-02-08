@@ -50,8 +50,8 @@ GenericIndexedCloud* CloudSamplingTools::resampleCloudWithOctree(	GenericIndexed
 PointCloud* CloudSamplingTools::resampleCloudWithOctreeAtLevel(GenericIndexedCloudPersist* inputCloud,
 															   unsigned char octreeLevel,
 															   RESAMPLING_CELL_METHOD resamplingMethod,
-															   GenericProgressCallback* progressCb/*=0*/,
-															   DgmOctree* inputOctree/*=0*/)
+															   GenericProgressCallback* progressCb/*=nullptr*/,
+															   DgmOctree* inputOctree/*=nullptr*/)
 {
 	assert(inputCloud);
 
@@ -103,8 +103,8 @@ PointCloud* CloudSamplingTools::resampleCloudWithOctreeAtLevel(GenericIndexedClo
 ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctree(	GenericIndexedCloudPersist* inputCloud,
 																int newNumberOfPoints,
 																SUBSAMPLING_CELL_METHOD subsamplingMethod,
-																GenericProgressCallback* progressCb/*=0*/,
-																DgmOctree* inputOctree/*=0*/)
+																GenericProgressCallback* progressCb/*=nullptr*/,
+																DgmOctree* inputOctree/*=nullptr*/)
 {
 	assert(inputCloud);
 
@@ -119,7 +119,7 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctree(	GenericIndexedClou
 	//on cherche le niveau qui donne le nombre de points le plus proche de la consigne
 	unsigned char bestLevel = octree->findBestLevelForAGivenCellNumber(newNumberOfPoints);
 
-	ReferenceCloud* subsampledCloud = subsampleCloudWithOctreeAtLevel(inputCloud,bestLevel,subsamplingMethod,progressCb,octree);
+	ReferenceCloud* subsampledCloud = subsampleCloudWithOctreeAtLevel(inputCloud, bestLevel, subsamplingMethod, progressCb, octree);
 
 	if (!inputOctree)
 		delete octree;
@@ -130,8 +130,8 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctree(	GenericIndexedClou
 ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctreeAtLevel(GenericIndexedCloudPersist* inputCloud,
 																	unsigned char octreeLevel,
 																	SUBSAMPLING_CELL_METHOD subsamplingMethod,
-																	GenericProgressCallback* progressCb/*=0*/,
-																	DgmOctree* inputOctree/*=0*/)
+																	GenericProgressCallback* progressCb/*=nullptr*/,
+																	DgmOctree* inputOctree/*=nullptr*/)
 {
 	assert(inputCloud);
 
@@ -179,7 +179,9 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudWithOctreeAtLevel(GenericIndex
 	return cloud;
 }
 
-ReferenceCloud* CloudSamplingTools::subsampleCloudRandomly(GenericIndexedCloudPersist* inputCloud, unsigned newNumberOfPoints, GenericProgressCallback* progressCb/*=0*/)
+ReferenceCloud* CloudSamplingTools::subsampleCloudRandomly(	GenericIndexedCloudPersist* inputCloud,
+															unsigned newNumberOfPoints,
+															GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	assert(inputCloud);
 
@@ -187,7 +189,7 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudRandomly(GenericIndexedCloudPe
 
 	//we put all input points in a ReferenceCloud
 	ReferenceCloud* newCloud = new ReferenceCloud(inputCloud);
-	if (!newCloud->addPointIndex(0,theCloudSize))
+	if (!newCloud->addPointIndex(0, theCloudSize))
 	{
 		delete newCloud;
 		return nullptr;
@@ -215,12 +217,12 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudRandomly(GenericIndexedCloudPe
 	}
 
 	//we randomly remove "inputCloud.size() - newNumberOfPoints" points (much simpler)
-	unsigned lastPointIndex = theCloudSize-1;
-	for (unsigned i=0; i<pointsToRemove; ++i)
+	unsigned lastPointIndex = theCloudSize - 1;
+	for (unsigned i = 0; i < pointsToRemove; ++i)
 	{
 		std::uniform_int_distribution<unsigned> dist(0, lastPointIndex);
 		unsigned index = dist(gen);
-		newCloud->swap(index,lastPointIndex);
+		newCloud->swap(index, lastPointIndex);
 		--lastPointIndex;
 
 		if (progressCb && !normProgress.oneStep())
@@ -239,8 +241,8 @@ ReferenceCloud* CloudSamplingTools::subsampleCloudRandomly(GenericIndexedCloudPe
 ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPersist* inputCloud,
 														   PointCoordinateType minDistance,
 														   const SFModulationParams& modParams,
-														   DgmOctree* inputOctree/*=0*/,
-														   GenericProgressCallback* progressCb/*=0*/)
+														   DgmOctree* inputOctree/*=nullptr*/,
+														   GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	assert(inputCloud);
 	unsigned cloudSize = inputCloud->size();
@@ -456,8 +458,8 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 ReferenceCloud* CloudSamplingTools::sorFilter(	GenericIndexedCloudPersist* inputCloud,
 												int knn/*=6*/,
 												double nSigma/*=1.0*/,
-												DgmOctree* inputOctree/*=0*/,
-												GenericProgressCallback* progressCb/*=0*/)
+												DgmOctree* inputOctree/*=nullptr*/,
+												GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (!inputCloud || knn <= 0 || inputCloud->size() <= static_cast<unsigned>(knn))
 	{
@@ -574,8 +576,8 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 												int knn/*=6*/,
 												bool useAbsoluteError/*=true*/,
 												double absoluteError/*=0.0*/,
-												DgmOctree* inputOctree/*=0*/,
-												GenericProgressCallback* progressCb/*=0*/)
+												DgmOctree* inputOctree/*=nullptr*/,
+												GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (!inputCloud || inputCloud->size() < 2 || (useKnn && knn <= 0) || (!useKnn && kernelRadius <= 0))
 	{
@@ -652,7 +654,7 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 
 bool CloudSamplingTools::resampleCellAtLevel(	const DgmOctree::octreeCell& cell,
 												void** additionalParameters,
-												NormalizedProgress* nProgress/*=0*/)
+												NormalizedProgress* nProgress/*=nullptr*/)
 {
 	PointCloud* cloud						= static_cast<PointCloud*>(additionalParameters[0]);
 	RESAMPLING_CELL_METHOD resamplingMethod	= *static_cast<RESAMPLING_CELL_METHOD*>(additionalParameters[1]);
@@ -681,7 +683,7 @@ bool CloudSamplingTools::resampleCellAtLevel(	const DgmOctree::octreeCell& cell,
 
 bool CloudSamplingTools::subsampleCellAtLevel(	const DgmOctree::octreeCell& cell,
 												void** additionalParameters,
-												NormalizedProgress* nProgress/*=0*/)
+												NormalizedProgress* nProgress/*=nullptr*/)
 {
 	ReferenceCloud* cloud						= static_cast<ReferenceCloud*>(additionalParameters[0]);
 	SUBSAMPLING_CELL_METHOD subsamplingMethod	= *static_cast<SUBSAMPLING_CELL_METHOD*>(additionalParameters[1]);
@@ -701,11 +703,11 @@ bool CloudSamplingTools::subsampleCellAtLevel(	const DgmOctree::octreeCell& cell
 	else // if (subsamplingMethod == NEAREST_POINT_TO_CELL_CENTER)
 	{
 		CCVector3 center;
-		cell.parentOctree->computeCellCenter(cell.truncatedCode,cell.level,center,true);
+		cell.parentOctree->computeCellCenter(cell.truncatedCode, cell.level, center, true);
 
 		PointCoordinateType minSquareDist = (*cell.points->getPoint(0) - center).norm2();
 
-		for (unsigned i=1; i<pointsCount; ++i)
+		for (unsigned i = 1; i < pointsCount; ++i)
 		{
 			PointCoordinateType squareDist = (*cell.points->getPoint(i) - center).norm2();
 			if (squareDist < minSquareDist)
@@ -726,7 +728,7 @@ bool CloudSamplingTools::subsampleCellAtLevel(	const DgmOctree::octreeCell& cell
 
 bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& cell,
 													void** additionalParameters,
-													NormalizedProgress* nProgress/*=0*/)
+													NormalizedProgress* nProgress/*=nullptr*/)
 {
 	ReferenceCloud* cloud				=  static_cast<ReferenceCloud*>(additionalParameters[0]);
 	PointCoordinateType kernelRadius	= *static_cast<PointCoordinateType*>(additionalParameters[1]);
@@ -837,7 +839,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 
 bool CloudSamplingTools::applySORFilterAtLevel(	const DgmOctree::octreeCell& cell,
 												void** additionalParameters,
-												NormalizedProgress* nProgress/*=0*/)
+												NormalizedProgress* nProgress/*=nullptr*/)
 {
 	int knn											= *static_cast<int*>(additionalParameters[0]);
 	std::vector<PointCoordinateType>& meanDistances = *static_cast<std::vector<PointCoordinateType>*>(additionalParameters[1]);

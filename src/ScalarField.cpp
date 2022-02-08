@@ -9,7 +9,7 @@
 
 using namespace CCCoreLib;
 
-ScalarField::ScalarField(const char* name/*=0*/)
+ScalarField::ScalarField(const char* name/*=nullptr*/)
 {
 	setName(name);
 }

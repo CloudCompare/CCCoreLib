@@ -35,8 +35,8 @@ int ScalarFieldTools::computeScalarFieldGradient(	GenericIndexedCloudPersist* th
 													PointCoordinateType radius,
 													bool euclideanDistances,
 													bool sameInAndOutScalarField/*=false*/,
-													GenericProgressCallback* progressCb/*=0*/,
-													DgmOctree* theCloudOctree/*=0*/)
+													GenericProgressCallback* progressCb/*=nullptr*/,
+													DgmOctree* theCloudOctree/*=nullptr*/)
 {
 	if (!theCloud)
 	{
@@ -122,7 +122,7 @@ int ScalarFieldTools::computeScalarFieldGradient(	GenericIndexedCloudPersist* th
 
 bool ScalarFieldTools::computeMeanGradientOnPatch(	const DgmOctree::octreeCell& cell,
 													void** additionalParameters,
-													NormalizedProgress* nProgress/*=0*/)
+													NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//additional parameters
 	bool euclideanDistances			= *reinterpret_cast<bool*>(additionalParameters[0]);
@@ -304,7 +304,7 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 // [1] -> (PointCoordinateType*) sigmaSF : used when in "bilateral modality" - if -1 pure gaussian filtering is performed
 bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& cell,
 													void** additionalParameters,
-													NormalizedProgress* nProgress/*=0*/)
+													NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//variables additionnelles
 	PointCoordinateType sigma	= *(static_cast<PointCoordinateType*>(additionalParameters[0]));

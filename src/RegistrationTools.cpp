@@ -944,7 +944,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 												GenericCloud* X, //model
 												ScaledTransformation& trans,
 												bool adjustScale/*=false*/,
-												ScalarField* coupleWeights/*=0*/,
+												ScalarField* coupleWeights/*=nullptr*/,
 												PointCoordinateType aPrioriScale/*=1.0f*/)
 {
 	//resulting transformation (R is invalid on initialization, T is (0,0,0) and s==1)

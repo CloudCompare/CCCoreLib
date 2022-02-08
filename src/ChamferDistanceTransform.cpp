@@ -87,7 +87,7 @@ const signed char BackwardNeighbours111[14*4] = {
 //																					unsigned kStart,
 //																					bool forward,
 //																					const signed char neighbours[14][4],
-//																					NormalizedProgress* normProgress/*=0*/)
+//																					NormalizedProgress* normProgress/*=nullptr*/)
 //{
 //	assert(!m_grid.empty());
 //

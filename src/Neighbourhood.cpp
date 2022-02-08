@@ -88,7 +88,7 @@ const CCVector3* Neighbourhood::getLSPlaneNormal()
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneVectors + 2 : nullptr);
 }
 
-const PointCoordinateType* Neighbourhood::getQuadric(Tuple3ub* dims/*=0*/)
+const PointCoordinateType* Neighbourhood::getQuadric(Tuple3ub* dims/*=nullptr*/)
 {
 	if (!(m_structuresValidity & FLAG_QUADRIC))
 	{

@@ -13,7 +13,6 @@
 #include <cstdint>
 #include <map>
 
-
 using namespace CCCoreLib;
 
 ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCloud, const Polyline* poly, bool keepInside, const float* viewMat)
@@ -59,7 +58,7 @@ bool ManualSegmentationTools::isPointInsidePoly(const CCVector2& P, const Generi
 {
 	//number of vertices
 	unsigned vertCount = (polyVertices ? polyVertices->size() : 0);
-	if (vertCount<2)
+	if (vertCount < 2)
 		return false;
 
 	bool inside = false;
@@ -82,7 +81,7 @@ bool ManualSegmentationTools::isPointInsidePoly(const CCVector2& P, const Generi
 				inside = !inside;
 		}
 
-		A=B;
+		A = B;
 	}
 
 	return inside;
@@ -633,13 +632,13 @@ bool ImportSourceVertices(GenericIndexedCloudPersist* srcVertices,
 bool ManualSegmentationTools::segmentMeshWithAAPlane(GenericIndexedMesh* mesh,
 													 GenericIndexedCloudPersist* vertices,
 													 MeshCutterParams& ioParams,
-													 GenericProgressCallback* progressCb/*=0*/)
+													 GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (	!mesh
-			||	!vertices
-			|| mesh->size() == 0
-			|| vertices->size() < 3
-			||	ioParams.planeOrthoDim > 2)
+		||	!vertices
+		||	mesh->size() == 0
+		||	vertices->size() < 3
+		||	ioParams.planeOrthoDim > 2)
 	{
 		//invalid input parameters
 		return false;
@@ -926,15 +925,15 @@ bool ManualSegmentationTools::segmentMeshWithAAPlane(GenericIndexedMesh* mesh,
 bool ManualSegmentationTools::segmentMeshWithAABox(GenericIndexedMesh* origMesh,
 												   GenericIndexedCloudPersist* origVertices,
 												   MeshCutterParams& ioParams,
-												   GenericProgressCallback* progressCb/*=0*/)
+												   GenericProgressCallback* progressCb/*=nullptr*/)
 {
-	if (!origMesh
-			|| !origVertices
-			|| origMesh->size() == 0
-			|| origVertices->size() < 3
-			|| ioParams.bbMin.x >= ioParams.bbMax.x
-			|| ioParams.bbMin.y >= ioParams.bbMax.y
-			|| ioParams.bbMin.z >= ioParams.bbMax.z)
+	if (	!origMesh
+		||	!origVertices
+		||	origMesh->size() == 0
+		||	origVertices->size() < 3
+		||	ioParams.bbMin.x >= ioParams.bbMax.x
+		||	ioParams.bbMin.y >= ioParams.bbMax.y
+		||	ioParams.bbMin.z >= ioParams.bbMax.z)
 	{
 		//invalid input parameters
 		return false;

@@ -163,7 +163,7 @@ bool MeshSamplingTools::computeMeshEdgesConnectivity(GenericIndexedMesh* mesh, E
 	return true;
 }
 
-bool MeshSamplingTools::flagMeshVerticesByType(GenericIndexedMesh* mesh, ScalarField* flags, EdgeConnectivityStats* stats/*=0*/)
+bool MeshSamplingTools::flagMeshVerticesByType(GenericIndexedMesh* mesh, ScalarField* flags, EdgeConnectivityStats* stats/*=nullptr*/)
 {
 	if (!mesh || !flags || flags->currentSize() == 0)
 		return false;
@@ -224,8 +224,8 @@ bool MeshSamplingTools::flagMeshVerticesByType(GenericIndexedMesh* mesh, ScalarF
 
 PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 													unsigned numberOfPoints,
-													GenericProgressCallback* progressCb/*=0*/,
-													std::vector<unsigned>* triIndices/*=0*/)
+													GenericProgressCallback* progressCb/*=nullptr*/,
+													std::vector<unsigned>* triIndices/*=nullptr*/)
 {
 	if (!mesh)
 		return nullptr;
@@ -244,8 +244,8 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 
 PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 													double samplingDensity,
-													GenericProgressCallback* progressCb/*=0*/,
-													std::vector<unsigned>* triIndices/*=0*/)
+													GenericProgressCallback* progressCb/*=nullptr*/,
+													std::vector<unsigned>* triIndices/*=nullptr*/)
 {
 	if (!mesh)
 		return nullptr;
@@ -261,8 +261,8 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 													double samplingDensity,
 													unsigned theoreticNumberOfPoints,
-													GenericProgressCallback* progressCb,
-													std::vector<unsigned>* triIndices/*=0*/)
+													GenericProgressCallback* progressCb/*=nullptr*/,
+													std::vector<unsigned>* triIndices/*=nullptr*/)
 {
 	if (theoreticNumberOfPoints < 1)
 		return nullptr;

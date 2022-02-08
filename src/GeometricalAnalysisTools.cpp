@@ -298,8 +298,8 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoints(
 		GenericIndexedCloudPersist* cloud,
 		double minDistanceBetweenPoints/*=1.0e-12*/,
-		GenericProgressCallback* progressCb/*=0*/,
-		DgmOctree* inputOctree/*=0*/)
+		GenericProgressCallback* progressCb/*=nullptr*/,
+		DgmOctree* inputOctree/*=nullptr*/)
 {
 	if (!cloud)
 		return InvalidInput;
@@ -355,7 +355,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoint
 // [0] -> (double*) maxSquareDistBetweenPoints: max square distance between points
 bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctree::octreeCell& cell,
 																	void** additionalParameters,
-																	NormalizedProgress* nProgress/*=0*/)
+																	NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//parameter(s)
 	double minDistBetweenPoints = *static_cast<double*>(additionalParameters[0]);
@@ -405,8 +405,8 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctre
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeLocalDensityApprox(
 		GenericIndexedCloudPersist* cloud,
 		Density densityType,
-		GenericProgressCallback* progressCb/*=0*/,
-		DgmOctree* inputOctree/*=0*/)
+		GenericProgressCallback* progressCb/*=nullptr*/,
+		DgmOctree* inputOctree/*=nullptr*/)
 {
 	if (!cloud)
 		return InvalidInput;
@@ -460,7 +460,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeLocalDensit
 //ADDITIONAL PARAMETERS (0): NONE
 bool GeometricalAnalysisTools::ComputeApproxPointsDensityInACellAtLevel(const DgmOctree::octreeCell& cell,
 																		void** additionalParameters,
-																		NormalizedProgress* nProgress/*=0*/)
+																		NormalizedProgress* nProgress/*=nullptr*/)
 {
 	//extract additional parameter(s)
 	Density densityType = *static_cast<Density*>(additionalParameters[0]);
