@@ -47,68 +47,72 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 	{
 		const SquareMatrix R(inTrans.R); //copy it in case inTrans and outTrans are the same!
 		outTrans.R.toIdentity();
-		if (filters & SKIP_RYZ) //keep only the rotation component around X
+		if (filters == SKIP_RYZ) //keep only the rotation component around X
 		{
 			//we use a specific Euler angles convention here
-			if (R.getValue(0,2) < 1.0)
+			if (R.getValue(0, 2) < 1.0)
 			{
-				PointCoordinateType phi = -asin(R.getValue(0,2));
+				PointCoordinateType phi = -asin(R.getValue(0, 2));
 				PointCoordinateType cos_phi = cos(phi);
-				PointCoordinateType theta = atan2(R.getValue(1,2)/cos_phi,R.getValue(2,2)/cos_phi);
+				PointCoordinateType theta = atan2(R.getValue(1, 2) / cos_phi, R.getValue(2, 2) / cos_phi);
 				PointCoordinateType cos_theta = cos(theta);
 				PointCoordinateType sin_theta = sin(theta);
 
-				outTrans.R.setValue(1,1,cos_theta);
-				outTrans.R.setValue(2,2,cos_theta);
-				outTrans.R.setValue(2,1,sin_theta);
-				outTrans.R.setValue(1,2,-sin_theta);
+				outTrans.R.setValue(1, 1, cos_theta);
+				outTrans.R.setValue(2, 2, cos_theta);
+				outTrans.R.setValue(2, 1, sin_theta);
+				outTrans.R.setValue(1, 2, -sin_theta);
 			}
 			else
 			{
 				//simpler/faster to ignore this (very) specific case!
 			}
 		}
-		else if (filters & SKIP_RXZ) //keep only the rotation component around Y
+		else if (filters == SKIP_RXZ) //keep only the rotation component around Y
 		{
 			//we use a specific Euler angles convention here
-			if (R.getValue(2,1) < 1.0)
+			if (R.getValue(2, 1) < 1.0)
 			{
-				PointCoordinateType theta = asin(R.getValue(2,1));
+				PointCoordinateType theta = asin(R.getValue(2, 1));
 				PointCoordinateType cos_theta = cos(theta);
 				PointCoordinateType phi = atan2(-R.getValue(2, 0) / cos_theta, R.getValue(2, 2) / cos_theta);
 				PointCoordinateType cos_phi = cos(phi);
 				PointCoordinateType sin_phi = sin(phi);
 
-				outTrans.R.setValue(0,0,cos_phi);
-				outTrans.R.setValue(2,2,cos_phi);
-				outTrans.R.setValue(0,2,sin_phi);
-				outTrans.R.setValue(2,0,-sin_phi);
+				outTrans.R.setValue(0, 0, cos_phi);
+				outTrans.R.setValue(2, 2, cos_phi);
+				outTrans.R.setValue(0, 2, sin_phi);
+				outTrans.R.setValue(2, 0, -sin_phi);
 			}
 			else
 			{
 				//simpler/faster to ignore this (very) specific case!
 			}
 		}
-		else if (filters & SKIP_RXY) //keep only the rotation component around Z
+		else if (filters == SKIP_RXY) //keep only the rotation component around Z
 		{
 			//we use a specific Euler angles convention here
-			if (R.getValue(2,0) < 1.0)
+			if (R.getValue(2, 0) < 1.0)
 			{
-				PointCoordinateType theta_rad = -asin(R.getValue(2,0));
+				PointCoordinateType theta_rad = -asin(R.getValue(2, 0));
 				PointCoordinateType cos_theta = cos(theta_rad);
 				PointCoordinateType phi_rad = atan2(R.getValue(1, 0) / cos_theta, R.getValue(0, 0) / cos_theta);
-				PointCoordinateType cos_phi	= cos(phi_rad);
-				PointCoordinateType sin_phi	= sin(phi_rad);
+				PointCoordinateType cos_phi = cos(phi_rad);
+				PointCoordinateType sin_phi = sin(phi_rad);
 
-				outTrans.R.setValue(0,0,cos_phi);
-				outTrans.R.setValue(1,1,cos_phi);
-				outTrans.R.setValue(1,0,sin_phi);
-				outTrans.R.setValue(0,1,-sin_phi);
+				outTrans.R.setValue(0, 0, cos_phi);
+				outTrans.R.setValue(1, 1, cos_phi);
+				outTrans.R.setValue(1, 0, sin_phi);
+				outTrans.R.setValue(0, 1, -sin_phi);
 			}
 			else
 			{
 				//simpler/faster to ignore this (very) specific case!
 			}
+		}
+		else
+		{
+			//we ignore all rotation components
 		}
 	}
 }
