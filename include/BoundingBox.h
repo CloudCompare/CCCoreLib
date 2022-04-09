@@ -25,10 +25,10 @@ namespace CCCoreLib
 		{}
 
 		//! Constructor from two vectors (lower min. and upper max. corners)
-		BoundingBoxTpl(const Vector3Tpl<T>& minCorner, const Vector3Tpl<T>& maxCorner)
+		BoundingBoxTpl(const Vector3Tpl<T>& minCorner, const Vector3Tpl<T>& maxCorner, bool valid)
 			: m_bbMin(minCorner)
 			, m_bbMax(maxCorner)
-			, m_valid(true)
+			, m_valid(valid)
 		{}
 
 		//! Returns the 'sum' of this bounding-box and another one
