@@ -112,13 +112,6 @@ namespace CCCoreLib
 												Transformation& trans,
 												GenericProgressCallback* progressCb = nullptr);
 
-		//! Applies a geometrical transformation to a single point
-		/** \param P the point
-			\param trans the geometrical transformation
-			\return the "transformed" point
-		**/
-		//static CCVector3 applyTransformation(const CCVector3& P, Transformation& trans);
-
 		//! Computes a 2.5D Delaunay triangulation
 		/** The triangulation can be either computed on the points projected
 			in the XY plane (by default), or projected on the best least-square

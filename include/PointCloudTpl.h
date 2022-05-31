@@ -222,14 +222,14 @@ namespace CCCoreLib
 			\param newNumberOfPoints the new number of points
 			\return true if the method succeeds, false otherwise
 		**/
-		virtual bool resize(unsigned newCount)
+		virtual bool resize(unsigned newNumberOfPoints)
 		{
 			std::size_t oldCount = m_points.size();
 
 			//we try to enlarge the 3D points array
 			try
 			{
-				m_points.resize(newCount);
+				m_points.resize(newNumberOfPoints);
 			}
 			catch (const std::bad_alloc&)
 			{
@@ -239,7 +239,7 @@ namespace CCCoreLib
 			//then the scalar fields
 			for (std::size_t i = 0; i < m_scalarFields.size(); ++i)
 			{
-				if (!m_scalarFields[i]->resizeSafe(newCount))
+				if (!m_scalarFields[i]->resizeSafe(newNumberOfPoints))
 				{
 					//if something fails, we restore the previous size for already processed SFs!
 					for (std::size_t j = 0; j < i; ++j)
@@ -247,7 +247,7 @@ namespace CCCoreLib
 						m_scalarFields[j]->resize(oldCount);
 						m_scalarFields[j]->computeMinAndMax();
 					}
-					//we can assume that newCount > oldNumberOfPoints, so it should always be ok
+					//we can assume that newNumberOfPoints > oldCount, so it should always be ok
 					m_points.resize(oldCount);
 					return false;
 				}
@@ -262,7 +262,7 @@ namespace CCCoreLib
 			that will be inserted later (with PointCloud::addPoint).
 			If the new number of points is smaller than the actual one,
 			nothing happens.
-			\param newNumberOfPoints the new number of points
+			\param newCapacity the new capacity
 			\return true if the method succeeds, false otherwise
 		**/
 		virtual bool reserve(unsigned newCapacity)

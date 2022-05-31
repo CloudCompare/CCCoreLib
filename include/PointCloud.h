@@ -38,9 +38,9 @@ namespace CCCoreLib
 		}
 
 		//inherited from PointCloudTpl
-		bool resize(unsigned newCount) override
+		bool resize(unsigned newNumberOfPoints) override
 		{
-			if (!PointCloudTpl<GenericIndexedCloudPersist>::resize(newCount))
+			if (!PointCloudTpl<GenericIndexedCloudPersist>::resize(newNumberOfPoints))
 			{
 				return false;
 			}
@@ -50,7 +50,7 @@ namespace CCCoreLib
 			{
 				try
 				{
-					m_normals.resize(newCount);
+					m_normals.resize(newNumberOfPoints);
 				}
 				catch (const std::bad_alloc&)
 				{

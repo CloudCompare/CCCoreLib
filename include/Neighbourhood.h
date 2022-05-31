@@ -66,6 +66,7 @@ namespace CCCoreLib
 		//! Fit a quadric on point set (see getQuadric) then triangulates it inside bounding box
 		GenericIndexedMesh* triangulateFromQuadric(unsigned stepsX, unsigned stepsY);
 
+		//! Defines how input vectors of projectPointsOn2DPlane should be used
 		enum InputVectorsUsage { UseOXYasBase, UseYAsUpDir, None };
 
 		//! Projects points on the best fitting LS plane
@@ -75,7 +76,7 @@ namespace CCCoreLib
 			\param O if set, the local plane base origin will be output here
 			\param X if set, the local plane base X vector will be output here
 			\param Y if set, the local plane base Y vector will be output here
-			\param useOXYasBase whether O, X and Y should be used as input base
+			\param vectorsUsage Defines how input vectors should be used
 			\return success
 		**/
 		template<class Vec2D> bool projectPointsOn2DPlane(	std::vector<Vec2D>& points2D,

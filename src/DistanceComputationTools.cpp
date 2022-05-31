@@ -1830,7 +1830,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 // http://www.geometrictools.com/
 ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVector3* P,
 																	const GenericTriangle* theTriangle,
-																	bool signedDist,
+																	bool signedDistances,
 																	CCVector3* nearestP/*=nullptr*/)
 {
 	assert(P && theTriangle);
@@ -2043,7 +2043,7 @@ ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVect
 	}
 
 	double squareDist = (Q - AP).norm2();
-	if (signedDist)
+	if (signedDistances)
 	{
 		ScalarType d = static_cast<ScalarType>(sqrt(squareDist));
 
@@ -2499,7 +2499,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 																PointCoordinateType widthY,
 																const SquareMatrix& rotationTransform,
 																const CCVector3& center,
-																bool signedDist/*=true*/,
+																bool signedDistances/*=true*/,
 																double* rms/*=nullptr*/)
 {
 	// p3---------------------p2
@@ -2577,7 +2577,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 		}
 		PointCoordinateType d = static_cast<PointCoordinateType>(dist.normd());
 		dSumSq += d * d;
-		if (signedDist && pe->dot(normalVector) - planeDistance < 0)
+		if (signedDistances && pe->dot(normalVector) - planeDistance < 0)
 		{
 			d = -d;
 		}
@@ -2594,7 +2594,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 														const CCVector3& boxDimensions,
 														const SquareMatrix& rotationTransform,
 														const CCVector3& boxCenter,
-														bool signedDist/*=true*/,
+														bool signedDistances/*=true*/,
 														double* rms/*=nullptr*/)
 {
 	assert(cloud);
@@ -2698,7 +2698,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 		}
 		PointCoordinateType d = static_cast<PointCoordinateType>(dist.normd());
 		dSumSq += d * d;
-		if (signedDist && insideBox)
+		if (signedDistances && insideBox)
 		{
 			d = -d;
 		}

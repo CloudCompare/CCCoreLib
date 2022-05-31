@@ -541,7 +541,7 @@ namespace CCCoreLib
 			\param level the subdivision level of the octree at which to perform the search
 			\param maxSquareDist the square distance between the farthest "nearest neighbour" and the query point
 			\param maxSearchDist the maximum search distance (ignored if <= 0)
-			\param[out] the final neighborhood (half)size (optional)
+			\param[out] finalNeighbourhoodSize the final neighborhood (half)size (optional)
 			\return the number of neighbours found
 		**/
 		unsigned findPointNeighbourhood(const CCVector3* _queryPoint,
