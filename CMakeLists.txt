@@ -167,11 +167,17 @@ if ( CCCORELIB_USE_TBB )
 	find_package( TBB COMPONENTS tbb CONFIG )
 
 	if ( TBB_FOUND )
-		target_link_libraries( CCCoreLib
-			PUBLIC
+		if ( ${TBB_VERSION} VERSION_GREATER 2021.0.0 )
+			target_link_libraries( CCCoreLib
+				PUBLIC
+				TBB::tbb
+			)
+		else()
+			target_link_libraries( CCCoreLib
+				PUBLIC
 				${TBB_IMPORTED_TARGETS}
-		)
-
+			)
+		endif()
 		target_compile_definitions( CCCoreLib
 			PUBLIC
 				CC_CORE_LIB_USES_TBB
