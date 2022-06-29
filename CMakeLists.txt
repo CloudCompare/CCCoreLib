@@ -181,6 +181,7 @@ if ( CCCORELIB_USE_TBB )
 		target_compile_definitions( CCCoreLib
 			PUBLIC
 				CC_CORE_LIB_USES_TBB
+				TBB_VERSION="${TBB_VERSION}"
 		)
 	endif()
 endif()
