@@ -229,9 +229,9 @@ namespace CCCoreLib
 					CCVector3 N = AB.cross(BC);
 
 					//max distance (in terms of number of cells) between the vertices
+					Tuple3i delta = maxPos - minPos + Tuple3i(1, 1, 1);
 					int maxSize = 0;
 					{
-						Tuple3i delta = maxPos - minPos + Tuple3i(1, 1, 1);
 						maxSize = std::max(delta.x, delta.y);
 						maxSize = std::max(maxSize, delta.z);
 					}
@@ -245,7 +245,7 @@ namespace CCCoreLib
 						//center the virtual cell on the triangle
 						for (int k = 0; k < 3; k++)
 						{
-							_currentCell->pos.u[k] = std::max(0, ((minPos.u[k] + maxPos.u[k]) - _currentCell->cellSize) / 2);
+							_currentCell->pos.u[k] = std::max(0, minPos.u[k] + (delta.u[k] - _currentCell->cellSize) / 2);
 						}
 					}
 					else
@@ -288,15 +288,15 @@ namespace CCCoreLib
 							{
 								char* _pointsPosition = pointsPosition;
 								CCVector3 distanceToMinBorder = gridMinCorner - (*triPoints[0]);
-								for (int i = 0; i<3; ++i)
+								for (int i = 0; i < 3; ++i)
 								{
-									AB.x = distanceToMinBorder.x + static_cast<PointCoordinateType>(currentCellPos.x + i*halfCellSize) * cellLength;
-									for (int j = 0; j<3; ++j)
+									AB.x = distanceToMinBorder.x + static_cast<PointCoordinateType>(currentCellPos.x + i * halfCellSize) * cellLength;
+									for (int j = 0; j < 3; ++j)
 									{
-										AB.y = distanceToMinBorder.y + static_cast<PointCoordinateType>(currentCellPos.y + j*halfCellSize) * cellLength;
-										for (int k = 0; k<3; ++k)
+										AB.y = distanceToMinBorder.y + static_cast<PointCoordinateType>(currentCellPos.y + j * halfCellSize) * cellLength;
+										for (int k = 0; k < 3; ++k)
 										{
-											AB.z = distanceToMinBorder.z + static_cast<PointCoordinateType>(currentCellPos.z + k*halfCellSize) * cellLength;
+											AB.z = distanceToMinBorder.z + static_cast<PointCoordinateType>(currentCellPos.z + k * halfCellSize) * cellLength;
 
 											//determine on which side the triangle is
 											*_pointsPosition++/*pointsPosition[i*9+j*3+k]*/ = (AB.dot(N) < 0 ? -1 : 1);
@@ -324,29 +324,30 @@ namespace CCCoreLib
 							_newCell->cellSize = halfCellSize;
 
 							//we look at the position of the 8 sub-cells relatively to the triangle
-							for (int i = 0; i<2; ++i)
+							for (int i = 0; i < 2; ++i)
 							{
-								_newCell->pos.x = currentCellPos.x + i*halfCellSize;
+								_newCell->pos.x = currentCellPos.x + i * halfCellSize;
 								//quick test to determine if the cube is potentially intersecting the triangle's bbox
 								if (	static_cast<int>(_newCell->pos.x) + halfCellSize >= minPos.x
-										&&	static_cast<int>(_newCell->pos.x) <= maxPos.x)
+									&&	static_cast<int>(_newCell->pos.x) <= maxPos.x)
 								{
-									for (int j = 0; j<2; ++j)
+									for (int j = 0; j < 2; ++j)
 									{
-										_newCell->pos.y = currentCellPos.y + j*halfCellSize;
+										_newCell->pos.y = currentCellPos.y + j * halfCellSize;
 										if (	static_cast<int>(_newCell->pos.y) + halfCellSize >= minPos.y
-												&&	static_cast<int>(_newCell->pos.y) <= maxPos.y)
+											&&	static_cast<int>(_newCell->pos.y) <= maxPos.y)
 										{
-											for (int k = 0; k<2; ++k)
+											for (int k = 0; k < 2; ++k)
 											{
-												_newCell->pos.z = currentCellPos.z + k*halfCellSize;
+												_newCell->pos.z = currentCellPos.z + k * halfCellSize;
 												if (	static_cast<int>(_newCell->pos.z) + halfCellSize >= minPos.z
-														&&	static_cast<int>(_newCell->pos.z) <= maxPos.z)
+													&&	static_cast<int>(_newCell->pos.z) <= maxPos.z)
 												{
 													const char* _pointsPosition = pointsPosition + (i * 9 + j * 3 + k);
-													char sum =		_pointsPosition[ 0] + _pointsPosition[ 1] + _pointsPosition[ 3]
-																	+	_pointsPosition[ 4] + _pointsPosition[ 9] + _pointsPosition[10]
-																	+	_pointsPosition[12] + _pointsPosition[13];
+													char sum = _pointsPosition[0]  + _pointsPosition[1]
+															+  _pointsPosition[3]  + _pointsPosition[4]
+															+  _pointsPosition[9]  + _pointsPosition[10]
+															+  _pointsPosition[12] + _pointsPosition[13];
 
 													//if not all the vertices of this sub-cube are on the same side, then the triangle may intersect the sub-cube
 													if (sum > -8 && sum < 8)

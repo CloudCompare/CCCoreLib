@@ -691,14 +691,14 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 }
 
 //! Method used by computeCloud2MeshDistancesWithOctree
-void ComparePointsAndTriangles( ReferenceCloud& Yk,
-								unsigned& remainingPoints,
-								const GenericIndexedMesh* mesh,
-								std::vector<unsigned>& trianglesToTest,
-								std::size_t& trianglesToTestCount,
-								std::vector<ScalarType>& minDists,
-								ScalarType maxRadius,
-								DistanceComputationTools::Cloud2MeshDistancesComputationParams& params)
+static void ComparePointsAndTriangles(	ReferenceCloud& Yk,
+										unsigned& remainingPoints,
+										const GenericIndexedMesh* mesh,
+										std::vector<unsigned>& trianglesToTest,
+										std::size_t& trianglesToTestCount,
+										std::vector<ScalarType>& minDists,
+										ScalarType maxRadius,
+										DistanceComputationTools::Cloud2MeshDistancesComputationParams& params)
 {
 	assert(mesh);
 	assert(remainingPoints <= Yk.size());
@@ -769,7 +769,7 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 	if (firstComparisonDone)
 	{
 		Yk.placeIteratorAtBeginning();
-		for (unsigned j = 0; j < remainingPoints; ++j)
+		for (unsigned j = 0; j < remainingPoints; )
 		{
 			//eligibility distance
 			ScalarType eligibleDist = minDists[j] + maxRadius;
@@ -782,16 +782,16 @@ void ComparePointsAndTriangles( ReferenceCloud& Yk,
 			if (dPTri <= eligibleDist*eligibleDist)
 			{
 				//remove this point
-				Yk.removeCurrentPointGlobalIndex();
-				//and do the same for the 'minDists' array! (see ReferenceCloud::removeCurrentPointGlobalIndex)
+				Yk.removePointGlobalIndex(j);
+				//and do the same for the 'minDists' array! (see ReferenceCloud::removePointGlobalIndex)
 				assert(remainingPoints != 0);
 				minDists[j] = minDists[--remainingPoints];
 				//minDists.pop_back();
-				--j;
 			}
 			else
 			{
 				Yk.forwardIterator();
+				++j;
 			}
 		}
 	}
@@ -1230,11 +1230,10 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (std::size_t p = 0; p < triList->indexes.size(); ++p)
+							for (unsigned indexTri : triList->indexes)
 							{
 								if (!ttt.processTriangles.empty())
 								{
-									unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
 									if (ttt.processTriangles[indexTri] != cellIndex)
 									{
@@ -1244,7 +1243,7 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 								}
 								else
 								{
-									ttt.trianglesToTest[ttt.trianglesToTestCount++] = triList->indexes[p];
+									ttt.trianglesToTest[ttt.trianglesToTestCount++] = indexTri;
 								}
 							}
 						}
@@ -1265,7 +1264,7 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (unsigned int triIndex : triList->indexes)
+							for (unsigned triIndex : triList->indexes)
 							{
 								if (!ttt.processTriangles.empty())
 								{
@@ -1297,7 +1296,7 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 								ttt.trianglesToTest.resize(ttt.trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (unsigned int triIndex : triList->indexes)
+							for (unsigned triIndex : triList->indexes)
 							{
 								if (!ttt.processTriangles.empty())
 								{

@@ -174,10 +174,9 @@ void ReferenceCloud::removePointGlobalIndex(unsigned localIndex)
 
 	if (localIndex < size())
 	{
-		unsigned lastIndex = size() - 1;
 		//swap the value to be removed with the last one
-		m_theIndexes[localIndex] = m_theIndexes[lastIndex];
-		m_theIndexes.resize(lastIndex);
+		m_theIndexes[localIndex] = m_theIndexes.back();
+		m_theIndexes.pop_back();
 	}
 	else
 	{

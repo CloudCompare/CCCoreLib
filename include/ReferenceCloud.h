@@ -42,7 +42,7 @@ namespace CCCoreLib
 		inline unsigned char testVisibility(const CCVector3& P) const override { assert(m_theAssociatedCloud); return m_theAssociatedCloud->testVisibility(P); }
 		inline void placeIteratorAtBeginning() override { m_globalIterator = 0; }
 		inline const CCVector3* getNextPoint() override { assert(m_theAssociatedCloud); return (m_globalIterator < size() ? m_theAssociatedCloud->getPoint(m_theIndexes[m_globalIterator++]) : nullptr); }
-			inline bool enableScalarField() override { assert(m_theAssociatedCloud); return m_theAssociatedCloud->enableScalarField(); }
+		inline bool enableScalarField() override { assert(m_theAssociatedCloud); return m_theAssociatedCloud->enableScalarField(); }
 		inline bool isScalarFieldEnabled() const override { assert(m_theAssociatedCloud); return m_theAssociatedCloud->isScalarFieldEnabled(); }
 		inline void setPointScalarValue(unsigned pointIndex, ScalarType value) override { assert(m_theAssociatedCloud && pointIndex < size()); m_theAssociatedCloud->setPointScalarValue(m_theIndexes[pointIndex], value); }
 		inline ScalarType getPointScalarValue(unsigned pointIndex) const override { assert(m_theAssociatedCloud && pointIndex < size()); return m_theAssociatedCloud->getPointScalarValue(m_theIndexes[pointIndex]); }
@@ -77,6 +77,9 @@ namespace CCCoreLib
 
 		//! Forwards the local element iterator
 		inline virtual void forwardIterator() { ++m_globalIterator; }
+
+		//! Returns the local element iterator value
+		inline unsigned currentIteratorIndex() const { return m_globalIterator; }
 
 		//! Clears the cloud
 		/** Thread safe.
@@ -128,14 +131,14 @@ namespace CCCoreLib
 		**/
 		inline virtual void swap(unsigned i, unsigned j) { m_mutex.lock(); std::swap(m_theIndexes[i], m_theIndexes[j]); m_mutex.unlock(); }
 
-		//! Removes current element
-		/** WARNING: this method changes the cloud size!
+		//! Removes the current element (by swapping it with the last element)
+		/** WARNING: this method changes the cloud size and the points order!
 			Thread safe.
 		**/
 		inline virtual void removeCurrentPointGlobalIndex() { removePointGlobalIndex(m_globalIterator); }
 
-		//! Removes a given element
-		/** WARNING: this method changes the cloud size!
+		//! Removes a given element (by swapping it with the last element)
+		/** WARNING: this method changes the cloud size and the points order!
 			Thread safe.
 		**/
 		virtual void removePointGlobalIndex(unsigned localIndex);
