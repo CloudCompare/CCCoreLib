@@ -140,14 +140,14 @@ ReferenceCloud* ManualSegmentationTools::segmentReferenceCloud(ReferenceCloud* c
 			{
 				//not enough memory
 				delete Y;
-				Y = nullptr;
-				break;
+				return nullptr;
 			}
 		}
 	}
 
-	return Y;
+	Y->resize(Y->size()); // internally, we use a std::vector that may have a larger capacity than what's needed
 
+	return Y;
 }
 
 ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cloud,
@@ -163,12 +163,14 @@ ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cl
 
 	ReferenceCloud* cloudREFTest = dynamic_cast<ReferenceCloud*>(cloud);
 	if (cloudREFTest)
+	{
 		return segmentReferenceCloud(cloudREFTest, minDist, maxDist, outside);
+	}
 
 	ReferenceCloud* Y = new ReferenceCloud(cloud);
 
 	//for each point
-	for (unsigned i=0; i<cloud->size(); ++i)
+	for (unsigned i = 0; i < cloud->size(); ++i)
 	{
 		const ScalarType dist = cloud->getPointScalarValue(i);
 		//we test if its associated scalar value falls inside the specified interval
@@ -178,11 +180,12 @@ ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cl
 			{
 				//not enough memory
 				delete Y;
-				Y = nullptr;
-				break;
+				return nullptr;
 			}
 		}
 	}
+
+	Y->resize(Y->size()); // internally, we use a std::vector that may have a larger capacity than what's needed
 
 	return Y;
 }

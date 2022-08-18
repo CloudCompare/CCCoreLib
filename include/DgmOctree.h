@@ -535,11 +535,12 @@ namespace CCCoreLib
 			DgmOctree::findNearestNeighborsStartingFromCell for example). Moreover,
 			distances between each neighbour and the query aren't stored in this
 			version of the algorithm.
+			\warning If the output maxSquareDist value is NaN, this means that the process has failed due to insufficient memory.
 			\param _queryPoint the query point
 			\param Yk the nearest neighbours
 			\param maxNumberOfNeighbors the maximal number of points to find
 			\param level the subdivision level of the octree at which to perform the search
-			\param maxSquareDist the square distance between the farthest "nearest neighbour" and the query point
+			\param maxSquareDist the square distance between the farthest "nearest neighbour" and the query point (if NaN, the process has failed due to insufficient memory)
 			\param maxSearchDist the maximum search distance (ignored if <= 0)
 			\param[out] finalNeighbourhoodSize the final neighborhood (half)size (optional)
 			\return the number of neighbours found
@@ -556,7 +557,10 @@ namespace CCCoreLib
 		/** This version is optimized for a unique nearest-neighbour search.
 			See DgmOctree::NearestNeighboursSearchStruct for more details.
 			\param nNSS NN search parameters
-			\return the square distance between the query point and its nearest neighbour (or -1 if none was found - i.e. maxSearchDist was reached)
+			\return one of the following values:
+				- the square distance between the query point and its nearest neighbour
+				-1 if none was found - i.e. maxSearchDist was reached
+				- NaN if not enough memory)
 		**/
 		double findTheNearestNeighborStartingFromCell(NearestNeighboursSearchStruct &nNSS) const;
 
@@ -564,6 +568,7 @@ namespace CCCoreLib
 		/** This version is optimized for a multiple nearest neighbours search
 			that is applied around several query points included in the same octree
 			cell. See DgmOctree::NearestNeighboursSearchStruct for more details.
+			\warning May throw a std::bad_alloc exception if memory is insufficient.
 			\param nNSS NN search parameters
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 			\return the number of neighbours found
@@ -578,6 +583,7 @@ namespace CCCoreLib
 			than the actual count of closest points inside the sphere! (which is returned by the method).
 			Only the 'k' first points are actually inside the sphere (the others are not removed for the sake
 			of performance).
+			\warning May throw a std::bad_alloc exception if memory is insufficient.
 			\param nNSS a pack of parameters
 			\param radius the sphere radius
 			\param sortValues specifies if the neighbours needs to be sorted by their distance to the query point or not
@@ -673,6 +679,9 @@ namespace CCCoreLib
 		//! Same as getPointsInCylindricalNeighbourhood with progressive approach
 		/** Can be called multiple times (the 'currentHalfLength' parameter will increase
 			each time until 'maxHalfLength' is reached).
+			\warning May throw a std::bad_alloc exception.
+			\param params The input parameters
+			\return the number of extracted points
 		**/
 		std::size_t getPointsInCylindricalNeighbourhoodProgressive(ProgressiveCylindricalNeighbourhood& params) const;
 
@@ -920,8 +929,9 @@ namespace CCCoreLib
 			\param codesB the cell codes of the second octree for the implicit level
 			\param diffA the cells of the first octree that are not in the second octree
 			\param diffB the cells of the second octree that are not in the first octree
+			\return success
 		**/
-		void diff(const cellCodesContainer& codesA, const cellCodesContainer& codesB, cellCodesContainer& diffA, cellCodesContainer& diffB) const;
+		bool diff(const cellCodesContainer& codesA, const cellCodesContainer& codesB, cellCodesContainer& diffA, cellCodesContainer& diffB) const;
 
 		//! Returns the differences (in terms of number of cells) between two octrees for a given level of subdivision
 		/** Warning: the two octrees should have been computed with the same bounding-box.
@@ -1173,6 +1183,7 @@ namespace CCCoreLib
 
 		//! Returns the indexes of the neighbourhing (existing) cells of a given cell
 		/** This function is used by the nearest neighbours search algorithms.
+			\warning May throw a std::bad_alloc exception.
 			\param cellPos the query cell
 			\param neighborCellsIndexes the found neighbourhing cells
 			\param neighbourhoodLength the distance (in terms of cells) at which to look for neighbour cells
@@ -1184,7 +1195,8 @@ namespace CCCoreLib
 									unsigned char level) const;
 
 		//! Gets point in the neighbourhing cells of a specific cell
-		/** \param nNSS NN search parameters (from which are used: cellPos, pointsInNeighbourCells and level)
+		/** \warning May throw a std::bad_alloc exception if memory is insufficient.
+			\param nNSS NN search parameters (from which are used: cellPos, pointsInNeighbourCells and level)
 			\param neighbourhoodLength the new distance (in terms of cells) at which to look for neighbour cells
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 		**/

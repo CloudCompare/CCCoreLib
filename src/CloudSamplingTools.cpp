@@ -730,108 +730,116 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 													void** additionalParameters,
 													NormalizedProgress* nProgress/*=nullptr*/)
 {
-	ReferenceCloud* cloud				=  static_cast<ReferenceCloud*>(additionalParameters[0]);
-	PointCoordinateType kernelRadius	= *static_cast<PointCoordinateType*>(additionalParameters[1]);
-	double nSigma						= *static_cast<double*>(additionalParameters[2]);
-	bool removeIsolatedPoints			= *static_cast<bool*>(additionalParameters[3]);
-	bool useKnn							= *static_cast<bool*>(additionalParameters[4]);
-	int knn								= *static_cast<int*>(additionalParameters[5]);
-	bool useAbsoluteError				= *static_cast<bool*>(additionalParameters[6]);
-	double absoluteError				= *static_cast<double*>(additionalParameters[7]);
-
-	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSearchStruct nNSS;
-	nNSS.level = cell.level;
-	if (useKnn)
+	try
 	{
-		nNSS.minNumberOfNeighbors = knn;
-	}
-	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+		ReferenceCloud* cloud				=  static_cast<ReferenceCloud*>(additionalParameters[0]);
+		PointCoordinateType kernelRadius	= *static_cast<PointCoordinateType*>(additionalParameters[1]);
+		double nSigma						= *static_cast<double*>(additionalParameters[2]);
+		bool removeIsolatedPoints			= *static_cast<bool*>(additionalParameters[3]);
+		bool useKnn							= *static_cast<bool*>(additionalParameters[4]);
+		int knn								= *static_cast<int*>(additionalParameters[5]);
+		bool useAbsoluteError				= *static_cast<bool*>(additionalParameters[6]);
+		double absoluteError				= *static_cast<double*>(additionalParameters[7]);
 
-	unsigned n = cell.points->size(); //number of points in the current cell
-
-	//for each point in the cell
-	for (unsigned i = 0; i < n; ++i)
-	{
-		cell.points->getPoint(i, nNSS.queryPoint);
-
-		//look for neighbors (either inside a sphere or the k nearest ones)
-		//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (neighborCount)!
-		unsigned neighborCount = 0;
-
+		//structure for nearest neighbors search
+		DgmOctree::NearestNeighboursSearchStruct nNSS;
+		nNSS.level = cell.level;
 		if (useKnn)
-			neighborCount = cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS);
-		else
-			neighborCount = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, kernelRadius, false);
-
-		if (neighborCount > 3) //we want 3 points or more (other than the point itself!)
 		{
-			//find the query point in the nearest neighbors set and place it at the end
-			const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
-			unsigned localIndex = 0;
-			while (localIndex < neighborCount && nNSS.pointsInNeighbourhood[localIndex].pointIndex != globalIndex)
-				++localIndex;
-			//the query point should be in the nearest neighbors set!
-			assert(localIndex < neighborCount);
-			if (localIndex + 1 < neighborCount) //no need to swap with another point if it's already at the end!
-			{
-				std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
-			}
+			nNSS.minNumberOfNeighbors = knn;
+		}
+		cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
+		cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
 
-			unsigned realNeighborCount = neighborCount - 1;
-			DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, realNeighborCount); //we don't take the query point into account!
-			Neighbourhood Z(&neighboursCloud);
+		unsigned n = cell.points->size(); //number of points in the current cell
 
-			const PointCoordinateType* lsPlane = Z.getLSPlane();
-			if (lsPlane)
+		//for each point in the cell
+		for (unsigned i = 0; i < n; ++i)
+		{
+			cell.points->getPoint(i, nNSS.queryPoint);
+
+			//look for neighbors (either inside a sphere or the k nearest ones)
+			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (neighborCount)!
+			unsigned neighborCount = 0;
+
+			if (useKnn)
+				neighborCount = cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS);
+			else
+				neighborCount = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, kernelRadius, false);
+
+			if (neighborCount > 3) //we want 3 points or more (other than the point itself!)
 			{
-				double maxD = absoluteError;
-				if (!useAbsoluteError)
+				//find the query point in the nearest neighbors set and place it at the end
+				const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
+				unsigned localIndex = 0;
+				while (localIndex < neighborCount && nNSS.pointsInNeighbourhood[localIndex].pointIndex != globalIndex)
+					++localIndex;
+				//the query point should be in the nearest neighbors set!
+				assert(localIndex < neighborCount);
+				if (localIndex + 1 < neighborCount) //no need to swap with another point if it's already at the end!
 				{
-					//compute the std. dev. to this plane
-					double sum_d = 0;
-					double sum_d2 = 0;
-					for (unsigned j = 0; j < realNeighborCount; ++j)
-					{
-						const CCVector3* P = neighboursCloud.getPoint(j);
-						double d = DistanceComputationTools::computePoint2PlaneDistance(P, lsPlane);
-						sum_d += d;
-						sum_d2 += d*d;
-					}
-
-					double stddev = sqrt(std::abs(sum_d2*realNeighborCount - sum_d*sum_d)) / realNeighborCount;
-					maxD = stddev * nSigma;
+					std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
 				}
 
-				//distance from the query point to the plane
-				double d = std::abs(DistanceComputationTools::computePoint2PlaneDistance(&nNSS.queryPoint, lsPlane));
+				unsigned realNeighborCount = neighborCount - 1;
+				DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, realNeighborCount); //we don't take the query point into account!
+				Neighbourhood Z(&neighboursCloud);
 
-				if (d <= maxD)
+				const PointCoordinateType* lsPlane = Z.getLSPlane();
+				if (lsPlane)
 				{
-					cloud->addPointIndex(globalIndex);
+					double maxD = absoluteError;
+					if (!useAbsoluteError)
+					{
+						//compute the std. dev. to this plane
+						double sum_d = 0;
+						double sum_d2 = 0;
+						for (unsigned j = 0; j < realNeighborCount; ++j)
+						{
+							const CCVector3* P = neighboursCloud.getPoint(j);
+							double d = DistanceComputationTools::computePoint2PlaneDistance(P, lsPlane);
+							sum_d += d;
+							sum_d2 += d*d;
+						}
+
+						double stddev = sqrt(std::abs(sum_d2*realNeighborCount - sum_d*sum_d)) / realNeighborCount;
+						maxD = stddev * nSigma;
+					}
+
+					//distance from the query point to the plane
+					double d = std::abs(DistanceComputationTools::computePoint2PlaneDistance(&nNSS.queryPoint, lsPlane));
+
+					if (d <= maxD)
+					{
+						cloud->addPointIndex(globalIndex);
+					}
+				}
+				else
+				{
+					//TODO: ???
 				}
 			}
 			else
 			{
-				//TODO: ???
+				//not enough points to fit a plane AND compute distances to it
+				if (!removeIsolatedPoints)
+				{
+					//we keep the point
+					unsigned globalIndex = cell.points->getPointGlobalIndex(i);
+					cloud->addPointIndex(globalIndex);
+				}
 			}
-		}
-		else
-		{
-			//not enough points to fit a plane AND compute distances to it
-			if (!removeIsolatedPoints)
-			{
-				//we keep the point
-				unsigned globalIndex = cell.points->getPointGlobalIndex(i);
-				cloud->addPointIndex(globalIndex);
-			}
-		}
 
-		if (nProgress && !nProgress->oneStep())
-		{
-			return false;
+			if (nProgress && !nProgress->oneStep())
+			{
+				return false;
+			}
 		}
+	}
+	catch (const std::bad_alloc&)
+	{
+		// Not enough memory
+		return false;
 	}
 
 	return true;
@@ -841,51 +849,59 @@ bool CloudSamplingTools::applySORFilterAtLevel(	const DgmOctree::octreeCell& cel
 												void** additionalParameters,
 												NormalizedProgress* nProgress/*=nullptr*/)
 {
-	int knn											= *static_cast<int*>(additionalParameters[0]);
-	std::vector<PointCoordinateType>& meanDistances = *static_cast<std::vector<PointCoordinateType>*>(additionalParameters[1]);
-
-	//structure for nearest neighbors search
-	DgmOctree::NearestNeighboursSearchStruct nNSS;
-	nNSS.level = cell.level;
-	nNSS.minNumberOfNeighbors = knn; //DGM: I woud have put knn+1 (as the point itself will be ignored) but in this case we won't get the same result as PCL!
-	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
-
-	unsigned n = cell.points->size(); //number of points in the current cell
-
-	//for each point in the cell
-	for (unsigned i = 0; i < n; ++i)
+	try
 	{
-		cell.points->getPoint(i, nNSS.queryPoint);
-		const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
+		int knn											= *static_cast<int*>(additionalParameters[0]);
+		std::vector<PointCoordinateType>& meanDistances = *static_cast<std::vector<PointCoordinateType>*>(additionalParameters[1]);
 
-		//look for the k nearest neighbors
-		cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS);
-		double sumDist = 0;
-		unsigned count = 0;
-		for (int j = 0; j < knn; ++j)
+		//structure for nearest neighbors search
+		DgmOctree::NearestNeighboursSearchStruct nNSS;
+		nNSS.level = cell.level;
+		nNSS.minNumberOfNeighbors = knn; //DGM: I woud have put knn+1 (as the point itself will be ignored) but in this case we won't get the same result as PCL!
+		cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
+		cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+
+		unsigned n = cell.points->size(); //number of points in the current cell
+
+		//for each point in the cell
+		for (unsigned i = 0; i < n; ++i)
 		{
-			if (nNSS.pointsInNeighbourhood[j].pointIndex != globalIndex)
+			cell.points->getPoint(i, nNSS.queryPoint);
+			const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
+
+			//look for the k nearest neighbors
+			cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS);
+			double sumDist = 0;
+			unsigned count = 0;
+			for (int j = 0; j < knn; ++j)
 			{
-				sumDist += sqrt(nNSS.pointsInNeighbourhood[j].squareDistd);
-				++count;
+				if (nNSS.pointsInNeighbourhood[j].pointIndex != globalIndex)
+				{
+					sumDist += sqrt(nNSS.pointsInNeighbourhood[j].squareDistd);
+					++count;
+				}
+			}
+
+			if (count)
+			{
+				meanDistances[globalIndex] = static_cast<PointCoordinateType>(sumDist / count);
+			}
+			else
+			{
+				//shouldn't happen
+				assert(false);
+			}
+
+			if (nProgress && !nProgress->oneStep())
+			{
+				return false;
 			}
 		}
-
-		if (count)
-		{
-			meanDistances[globalIndex] = static_cast<PointCoordinateType>(sumDist / count);
-		}
-		else
-		{
-			//shouldn't happen
-			assert(false);
-		}
-
-		if (nProgress && !nProgress->oneStep())
-		{
-			return false;
-		}
+	}
+	catch (const std::bad_alloc&)
+	{
+		// Not enough memory
+		return false;
 	}
 
 	return true;

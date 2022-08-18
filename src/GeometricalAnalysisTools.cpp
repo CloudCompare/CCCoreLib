@@ -294,12 +294,10 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 	return true;
 }
 
-
-GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoints(
-		GenericIndexedCloudPersist* cloud,
-		double minDistanceBetweenPoints/*=1.0e-12*/,
-		GenericProgressCallback* progressCb/*=nullptr*/,
-		DgmOctree* inputOctree/*=nullptr*/)
+GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoints(	GenericIndexedCloudPersist* cloud,
+																					double minDistanceBetweenPoints/*=1.0e-12*/,
+																					GenericProgressCallback* progressCb/*=nullptr*/,
+																					DgmOctree* inputOctree/*=nullptr*/)
 {
 	if (!cloud)
 		return InvalidInput;
@@ -319,7 +317,11 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoint
 		}
 	}
 
-	cloud->enableScalarField();
+	if (false == cloud->enableScalarField())
+	{
+		return NotEnoughMemory;
+	}
+	
 	//set all flags to 0 by default
 	cloud->forEach(ScalarFieldTools::SetScalarValueToZero);
 
