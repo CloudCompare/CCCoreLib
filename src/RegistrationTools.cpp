@@ -43,11 +43,12 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 	}
 
 	//filter rotation
-	if (inTrans.R.isValid() && (filters & SKIP_ROTATION))
+	int rotationFilter = (filters & SKIP_ROTATION);
+	if (inTrans.R.isValid() && (rotationFilter != 0))
 	{
 		const SquareMatrix R(inTrans.R); //copy it in case inTrans and outTrans are the same!
 		outTrans.R.toIdentity();
-		if (filters == SKIP_RYZ) //keep only the rotation component around X
+		if (rotationFilter == SKIP_RYZ) //keep only the rotation component around X
 		{
 			//we use a specific Euler angles convention here
 			if (R.getValue(0, 2) < 1.0)
@@ -68,7 +69,7 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 				//simpler/faster to ignore this (very) specific case!
 			}
 		}
-		else if (filters == SKIP_RXZ) //keep only the rotation component around Y
+		else if (rotationFilter == SKIP_RXZ) //keep only the rotation component around Y
 		{
 			//we use a specific Euler angles convention here
 			if (R.getValue(2, 1) < 1.0)
@@ -89,7 +90,7 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 				//simpler/faster to ignore this (very) specific case!
 			}
 		}
-		else if (filters == SKIP_RXY) //keep only the rotation component around Z
+		else if (rotationFilter == SKIP_RXY) //keep only the rotation component around Z
 		{
 			//we use a specific Euler angles convention here
 			if (R.getValue(2, 0) < 1.0)
