@@ -71,25 +71,27 @@ namespace CCCoreLib
 		//! Segments a mesh knowing which vertices should be kept or not
 		/** This method takes as input a set of vertex indexes and creates a new mesh
 			composed either of:
-			- the triangles that have exactly those points as vertices (pointsWillBeInside = true)
-			- or all the triangles for which no vertices are part of this subset (pointsWillBeInside = false).
+			- the triangles that have exactly those points as vertices (useSelectedVertices = true)
+			- or all the triangles for which no vertex is part of this subset (useSelectedVertices = false).
 
 			\warning No re-triangulation on the border will occur.
 
-			\param theMesh a mesh
-			\param pointsIndexes the vertices indexes as a set of references
-			\param pointsWillBeInside specifies if the points corresponding to the input indexes should be the new mesh vertices, or the opposite
+			\param mesh a mesh
+			\param selectedVertexIndexes the indexes of selected vertices
+			\param useSelectedVertices specifies if the points corresponding to the input indexes should be the new mesh vertices, or the opposite
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param destCloud optionally, a cloud object can be specified to be associated to the new created mesh object, instead of the cloud associated to the ReferenceCloud "pointsIndexes"
 			\param indexShift optionally, a shift can be added to all vertex indexes of the new mesh
+			\param triangleIndexMap optionally, a vector can be filled to record the new indexes of the triangles in the destination mesh (or -1 if they are discarded)
 			\return a new mesh structure, or 0 if something went wrong
 		**/
-		static GenericIndexedMesh* segmentMesh(	GenericIndexedMesh* theMesh,
-												ReferenceCloud* pointsIndexes,
-												bool pointsWillBeInside,
+		static GenericIndexedMesh* segmentMesh(	GenericIndexedMesh* mesh,
+												ReferenceCloud* selectedVertexIndexes,
+												bool useSelectedVertices,
 												GenericProgressCallback* progressCb = nullptr,
 												GenericIndexedCloud* destCloud = nullptr,
-												unsigned indexShift = 0);
+												unsigned indexShift = 0,
+												std::vector<int>* triangleIndexMap = nullptr);
 
 		//! Input/output parameters for the segmentMeshWitAAPlane method
 		struct MeshCutterParams

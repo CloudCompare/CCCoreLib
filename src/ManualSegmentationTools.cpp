@@ -190,47 +190,66 @@ ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cl
 	return Y;
 }
 
-GenericIndexedMesh* ManualSegmentationTools::segmentMesh(GenericIndexedMesh* theMesh, ReferenceCloud* pointIndexes, bool pointsWillBeInside, GenericProgressCallback* progressCb, GenericIndexedCloud* destCloud, unsigned indexShift)
+GenericIndexedMesh* ManualSegmentationTools::segmentMesh(	GenericIndexedMesh* mesh,
+															ReferenceCloud* selectedVertexIndexes,
+															bool useSelectedVertices,
+															GenericProgressCallback* progressCb/*=nullptr*/,
+															GenericIndexedCloud* destCloud/*=nullptr*/,
+															unsigned indexShift/*=0*/,
+															std::vector<int>* triangleIndexMap/*=nullptr*/)
 {
-	if (!theMesh || !pointIndexes || !pointIndexes->getAssociatedCloud())
+	if (!mesh || !selectedVertexIndexes || !selectedVertexIndexes->getAssociatedCloud())
 		return nullptr;
 
 	//by default we try a fast process (but with a higher memory consumption)
-	unsigned numberOfPoints = pointIndexes->getAssociatedCloud()->size();
-	unsigned numberOfIndexes = pointIndexes->size();
+	unsigned totalNumberOfVertices = selectedVertexIndexes->getAssociatedCloud()->size();
+	unsigned numberOfSelectedVertices = selectedVertexIndexes->size();
 
 	//we determine for each point if it is used in the output mesh or not
 	//(and we compute its new index by the way: 0 means that the point is not used, otherwise its index will be newPointIndexes-1)
-	std::vector<unsigned> newPointIndexes;
+	std::vector<int> newPointIndexes;
 	{
 		try
 		{
-			newPointIndexes.resize(numberOfPoints, 0);
+			newPointIndexes.resize(totalNumberOfVertices, -1); //an index < 0 means that the point is discarded
 		}
 		catch (const std::bad_alloc&)
 		{
 			return nullptr; //not enough memory
 		}
 
-		for (unsigned i = 0; i < numberOfIndexes; ++i)
+		for (unsigned i = 0; i < numberOfSelectedVertices; ++i)
 		{
-			assert(pointIndexes->getPointGlobalIndex(i) < numberOfPoints);
-			newPointIndexes[pointIndexes->getPointGlobalIndex(i)] = i + 1;
+			unsigned vertexIndex = selectedVertexIndexes->getPointGlobalIndex(i);
+			assert(vertexIndex < totalNumberOfVertices);
+			newPointIndexes[vertexIndex] = static_cast<int>(i);
 		}
-	}
 
-	//negative array for the case where input points are "outside"
-	if (!pointsWillBeInside)
-	{
-		unsigned newIndex = 0;
-		for (unsigned i = 0; i < numberOfPoints; ++i)
-			newPointIndexes[i] = (newPointIndexes[i] == 0 ? ++newIndex : 0);
+		//negative array for the case where selected vertices are "outside"
+		if (!useSelectedVertices)
+		{
+			int newIndex = 0;
+			for (unsigned i = 0; i < totalNumberOfVertices; ++i)
+				newPointIndexes[i] = (newPointIndexes[i] < 0 ? newIndex++ : -1);
+		}
 	}
 
 	//create resulting mesh
 	SimpleMesh* newMesh = nullptr;
 	{
-		unsigned numberOfTriangles = theMesh->size();
+		unsigned numberOfTriangles = mesh->size();
+
+		if (triangleIndexMap)
+		{
+			try
+			{
+				triangleIndexMap->resize(numberOfTriangles);
+			}
+			catch (const std::bad_alloc&)
+			{
+				return nullptr; //not enough memory
+			}
+		}
 
 		//progress notification
 		NormalizedProgress nprogress(progressCb, numberOfTriangles);
@@ -240,42 +259,42 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(GenericIndexedMesh* the
 			{
 				progressCb->setMethodTitle("Extract mesh");
 				char buffer[256];
-				sprintf(buffer, "New vertex number: %u", numberOfIndexes);
+				sprintf(buffer, "New vertex number: %u", numberOfSelectedVertices);
 				progressCb->setInfo(buffer);
 			}
 			progressCb->update(0);
 			progressCb->start();
 		}
 
-		newMesh = new SimpleMesh(destCloud ? destCloud : pointIndexes->getAssociatedCloud());
-		unsigned count = 0;
+		newMesh = new SimpleMesh(destCloud ? destCloud : selectedVertexIndexes->getAssociatedCloud());
+		unsigned newTriangleCount = 0;
 
-		theMesh->placeIteratorAtBeginning();
+		mesh->placeIteratorAtBeginning();
 		for (unsigned i = 0; i < numberOfTriangles; ++i)
 		{
-			bool triangleIsOnTheRightSide = true;
+			const VerticesIndexes* tsi = mesh->getNextTriangleVertIndexes(); //DGM: getNextTriangleVertIndexes is faster for mesh groups!
 
-			const VerticesIndexes* tsi = theMesh->getNextTriangleVertIndexes(); //DGM: getNextTriangleVertIndexes is faster for mesh groups!
+			//WE ONLY KEEP A TRIANGLE IF ITS 3 VERTICES ARE 'SELECTED'
+			bool keepTriangle = true;
 			int newVertexIndexes[3];
-
-			//VERSION: WE KEEP THE TRIANGLE ONLY IF ITS 3 VERTICES ARE INSIDE
 			for (unsigned char j = 0; j < 3; ++j)
 			{
-				const unsigned& currentVertexFlag = newPointIndexes[tsi->i[j]];
+				int vertexIndex = tsi->i[j];
+				assert(vertexIndex >= 0 && static_cast<unsigned>(vertexIndex) < totalNumberOfVertices);
+				newVertexIndexes[j] = newPointIndexes[vertexIndex];
 
-				//if the vertex is rejected, we discard this triangle
-				if (currentVertexFlag == 0)
+				//if any vertex is rejected, we discard this triangle
+				if (newVertexIndexes[j] < 0)
 				{
-					triangleIsOnTheRightSide = false;
+					keepTriangle = false;
 					break;
 				}
-				newVertexIndexes[j] = currentVertexFlag - 1;
 			}
 
 			//if we keep the triangle
-			if (triangleIsOnTheRightSide)
+			if (keepTriangle)
 			{
-				if (count == newMesh->capacity() && !newMesh->reserve(newMesh->size() + 4096)) //auto expand mesh size
+				if (newTriangleCount == newMesh->capacity() && !newMesh->reserve(newMesh->size() + 4096)) //auto expand mesh size
 				{
 					//stop process
 					delete newMesh;
@@ -284,9 +303,18 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(GenericIndexedMesh* the
 				}
 
 				newMesh->addTriangle(	indexShift + newVertexIndexes[0],
-						indexShift + newVertexIndexes[1],
-						indexShift + newVertexIndexes[2] );
-				++count;
+										indexShift + newVertexIndexes[1],
+										indexShift + newVertexIndexes[2] );
+
+				if (triangleIndexMap)
+				{
+					triangleIndexMap->at(i) = static_cast<int>(newTriangleCount);
+				}
+				++newTriangleCount;
+			}
+			else if (triangleIndexMap)
+			{
+				triangleIndexMap->at(i) = -1;
 			}
 
 			if (progressCb && !nprogress.oneStep())
@@ -296,6 +324,9 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(GenericIndexedMesh* the
 			}
 		}
 
+		// we don't need it anymore
+		newPointIndexes.clear();
+
 		if (newMesh)
 		{
 			if (newMesh->size() == 0)
@@ -303,9 +334,9 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(GenericIndexedMesh* the
 				delete newMesh;
 				newMesh = nullptr;
 			}
-			else if (count < newMesh->size())
+			else if (newTriangleCount < newMesh->size())
 			{
-				newMesh->resize(count); //should always be ok as count<maxNumberOfTriangles
+				newMesh->resize(newTriangleCount); //should always be ok as newTriangleCount < newMesh->size()
 			}
 		}
 	}
