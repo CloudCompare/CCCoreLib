@@ -35,24 +35,13 @@ namespace CCCoreLib
 
 		//! Selects the points which associated scalar value fall inside or outside a specified interval
 		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
-			\param cloud the RefrenceCloud to segment
-			\param minDist the lower boundary
-			\param maxDist the upper boundary
-			\param outside whether to select the points inside or outside
-			\return a new cloud structure containing the extracted points (references to - no duplication)
-		**/
-		static ReferenceCloud* segmentReferenceCloud(ReferenceCloud * cloud, ScalarType minDist, ScalarType maxDist, bool outside);
-
-		//! Selects the points which associated scalar value fall inside or outside a specified interval
-		/** \warning: be sure to activate an OUTPUT scalar field on the input cloud
-			\param cloud the cloud to segment
+			\param cloud the cloud to segment (note that if the cloud is a ReferenceCloud, the output ReferenceCloud will refer to its source cloud instead of the input cloud)
 			\param minDist the lower boundary
 			\param maxDist the upper boundary
 			\param outside whether to select the points inside or outside
 			\return a new cloud structure containing the extracted points (references to - no duplication)
 		**/
 		static ReferenceCloud* segment(GenericIndexedCloudPersist* cloud, ScalarType minDist, ScalarType maxDist, bool outside = false);
-
 
 		//! Tests if a point is inside a polygon (2D)
 		/** \param P a 2D point

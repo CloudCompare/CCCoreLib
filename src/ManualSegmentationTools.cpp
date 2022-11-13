@@ -117,39 +117,6 @@ bool ManualSegmentationTools::isPointInsidePoly(const CCVector2& P,
 	return inside;
 }
 
-ReferenceCloud* ManualSegmentationTools::segmentReferenceCloud(ReferenceCloud* cloud,
-															   ScalarType minDist,
-															   ScalarType maxDist,
-															   bool outside/*=false*/)
-{
-	if (!cloud)
-	{
-		assert(false);
-		return nullptr;
-	}
-	ReferenceCloud* Y = new ReferenceCloud(cloud->getAssociatedCloud());
-
-	//for each point
-	for (unsigned i = 0; i < cloud->size(); ++i)
-	{
-		const ScalarType dist = cloud->getPointScalarValue(i);
-		//we test if its associated scalar value falls inside the specified interval
-		if ((dist >= minDist && dist <= maxDist) ^ outside)
-		{
-			if (!Y->addPointIndex(cloud->getPointGlobalIndex(i)))
-			{
-				//not enough memory
-				delete Y;
-				return nullptr;
-			}
-		}
-	}
-
-	Y->resize(Y->size()); // internally, we use a std::vector that may have a larger capacity than what's needed
-
-	return Y;
-}
-
 ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cloud,
 													ScalarType minDist,
 													ScalarType maxDist,
@@ -161,13 +128,9 @@ ReferenceCloud* ManualSegmentationTools::segment(	GenericIndexedCloudPersist* cl
 		return nullptr;
 	}
 
+	// if the input cloud is a reference cloud, we use the source cloud directly
 	ReferenceCloud* cloudREFTest = dynamic_cast<ReferenceCloud*>(cloud);
-	if (cloudREFTest)
-	{
-		return segmentReferenceCloud(cloudREFTest, minDist, maxDist, outside);
-	}
-
-	ReferenceCloud* Y = new ReferenceCloud(cloud);
+	ReferenceCloud* Y = new ReferenceCloud(cloudREFTest ? cloudREFTest->getAssociatedCloud() : cloud);
 
 	//for each point
 	for (unsigned i = 0; i < cloud->size(); ++i)
