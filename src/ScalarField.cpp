@@ -28,6 +28,22 @@ void ScalarField::setName(const char* name)
 		strcpy(m_name, "Undefined");
 }
 
+std::size_t ScalarField::countValidValues() const
+{
+	std::size_t count = 0;
+
+	for (std::size_t i = 0; i < size(); ++i)
+	{
+		const ScalarType& val = at(i);
+		if (ValidValue(val))
+		{
+			++count;
+		}
+	}
+
+	return count;
+}
+
 void ScalarField::computeMeanAndVariance(ScalarType &mean, ScalarType* variance) const
 {
 	double _mean = 0.0;

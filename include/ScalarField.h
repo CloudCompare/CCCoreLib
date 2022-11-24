@@ -58,6 +58,9 @@ namespace CCCoreLib
 		//! Sets the value as 'invalid' (i.e. CCCoreLib::NAN_VALUE)
 		inline void flagValueAsInvalid(std::size_t index) { at(index) = NaN(); }
 
+		//! Returns the number of valid values in this scalar field
+		CC_CORE_LIB_API std::size_t countValidValues() const;
+
 		//! Returns the minimum value
 		inline ScalarType getMin() const { return m_minVal; }
 		//! Returns the maximum value
