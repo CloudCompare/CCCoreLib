@@ -1640,7 +1640,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		int maxThreadCount = params.maxThreadCount;
 		if (maxThreadCount == 0)
 		{
-			maxThreadCount = QThread::idealThreadCount();
+			maxThreadCount = std::max(1, QThread::idealThreadCount() - 1); // always leave one thread/core to let the application breath
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cellsDescs, cloudMeshDistCellFunc_MT);

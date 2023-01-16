@@ -3168,12 +3168,12 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
-			maxThreadCount = QThread::idealThreadCount();
+			maxThreadCount = std::max(1, QThread::idealThreadCount() - 1); // always leave one thread/core to let the application breath
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
-#else // Using TBB
-		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
+#elif defined(CC_CORE_LIB_USES_TBB)
+		tbb::parallel_for(tbb::blocked_range<int>(0, cells.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
 			});
@@ -3724,12 +3724,12 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
-			maxThreadCount = QThread::idealThreadCount();
+			maxThreadCount = std::max(1, QThread::idealThreadCount() - 1); // always leave one thread/core to let the application breath
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
 #elif defined(CC_CORE_LIB_USES_TBB)
-		tbb::parallel_for(tbb::blocked_range<int>(0,cells.size()),
+		tbb::parallel_for(tbb::blocked_range<int>(0, cells.size()),
 			[&](tbb::blocked_range<int> r) {
 				for (auto i = r.begin(); i<r.end(); ++i) { m_MT_wrapper.launchOctreeCellFunc(cells[i]); }
 			});
