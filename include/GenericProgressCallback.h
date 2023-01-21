@@ -9,8 +9,6 @@
 
 namespace CCCoreLib
 {
-	class AtomicCounter;
-
 	//! A generic progress indicator interface to notify algorithms progress to the client application
 	class CC_CORE_LIB_API GenericProgressCallback
 	{
@@ -65,6 +63,8 @@ namespace CCCoreLib
 
 	};
 
+	class StdMutex;
+
 	//! Efficient management of progress based on a total number of steps different than 100
 	/** DGM: can now be associated to a null 'callback' pointer to simplify the client code.
 	**/
@@ -104,8 +104,11 @@ namespace CCCoreLib
 		//! Percentage added to total progress value at each step
 		float m_percentAdd;
 
-		//! Current number of calls to 'oneStep' (thread safe)
-		AtomicCounter* m_counter;
+		//! Current number of calls to 'oneStep'
+		unsigned m_counter;
+
+		//! Mutex to manage concurrent calls to oneStep()
+		StdMutex* m_mutex;
 
 		//! associated GenericProgressCallback
 		GenericProgressCallback* progressCallback;

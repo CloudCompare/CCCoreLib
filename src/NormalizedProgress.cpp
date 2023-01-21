@@ -4,13 +4,13 @@
 #include "GenericProgressCallback.h"
 
 //system
-#include <atomic>
+#include <mutex>
 #include <cassert>
 
 using namespace CCCoreLib;
 
-// Use a class "wrapper" to avoid having to include <atomic> in header
-class CCCoreLib::AtomicCounter : public std::atomic_uint {};
+// Use a class "wrapper" to avoid having to include <mutex> in header
+class CCCoreLib::StdMutex : public std::mutex {};
 
 NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 										unsigned totalSteps,
@@ -18,7 +18,8 @@ NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 	: m_percent(0)
 	, m_step(1)
 	, m_percentAdd(1.0f)
-	, m_counter( new AtomicCounter{} )
+	, m_counter(0)
+	, m_mutex(new StdMutex)
 	, progressCallback(callback)
 {
 	scale(totalSteps, totalPercentage);
@@ -26,7 +27,8 @@ NormalizedProgress::NormalizedProgress(	GenericProgressCallback* callback,
 
 NormalizedProgress::~NormalizedProgress()
 {
-	delete m_counter;
+	delete m_mutex;
+	m_mutex = nullptr;
 }
 
 void NormalizedProgress::scale(	unsigned totalSteps,
@@ -54,25 +56,29 @@ void NormalizedProgress::scale(	unsigned totalSteps,
 			m_percentAdd = static_cast<float>(totalPercentage) / totalSteps;
 		}
 
+		m_mutex->lock();
 		if (updateCurrentProgress)
 		{
-			m_percent = static_cast<float>(totalPercentage) / totalSteps * static_cast<float>(m_counter->load());
+			m_percent = (static_cast<float>(totalPercentage) / totalSteps) * m_counter;
 		}
 		else
 		{
-			m_counter->store(0);
+			m_counter = 0;
 		}
+		m_mutex->unlock();
 	}
 }
 
 void NormalizedProgress::reset()
 {
+	m_mutex->lock();
 	m_percent = 0;
-	m_counter->store(0);
+	m_counter = 0;
 	if (progressCallback)
 	{
 		progressCallback->update(0);
 	}
+	m_mutex->unlock();
 }
 
 bool NormalizedProgress::oneStep()
@@ -82,12 +88,13 @@ bool NormalizedProgress::oneStep()
 		return true;
 	}
 
-	unsigned currentCount = m_counter->fetch_add( 1 ) + 1;
-	if ((currentCount % m_step) == 0)
+	m_mutex->lock();
+	if ((++m_counter % m_step) == 0)
 	{
 		m_percent += m_percentAdd;
 		progressCallback->update(m_percent);
 	}
+	m_mutex->unlock();
 
 	return !progressCallback->isCancelRequested();
 }
@@ -99,15 +106,16 @@ bool NormalizedProgress::steps(unsigned n)
 		return true;
 	}
 
-	unsigned currentCount = m_counter->fetch_add( n ) + n;
-	unsigned d1 = currentCount / m_step;
-	unsigned d2 = (currentCount + n) / m_step;
-
-	if (d2 != d1) //thread safe? Well '++int' is a kind of atomic operation ;)
+	m_mutex->lock();
+	m_counter += n;
+	unsigned d1 = m_counter / m_step;
+	unsigned d2 = (m_counter + n) / m_step;
+	if (d2 != d1)
 	{
 		m_percent += static_cast<float>(d2 - d1) * m_percentAdd;
 		progressCallback->update(m_percent);
 	}
+	m_mutex->unlock();
 
 	return !progressCallback->isCancelRequested();
 }

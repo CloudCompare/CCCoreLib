@@ -24,6 +24,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QtConcurrentMap>
+#include <QCoreApplication>
 #elif defined(CC_CORE_LIB_USES_TBB)
 #include <algorithm>
 #include <tbb/parallel_for.h>
@@ -2926,6 +2927,11 @@ void DgmOctree::multiThreadingWrapper::launchOctreeCellFunc(const octreeCellDesc
 		}
 
 		cellFunc_success &= (*cell_func)(cell, userParams, normProgressCb);
+
+		if (normProgressCb)
+		{
+			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+		}
 	}
 	else
 	{
@@ -3070,7 +3076,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			cell.points->addPointIndex(p->theIndex); //can't fail (see above)
 		}
 
-		//don't forget last cell!
+		//don't forget the last cell!
 		if (result)
 			result = (*func)(cell, additionalParameters, &nprogress);
 
@@ -3154,7 +3160,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 				progressCb->setInfo(buffer);
 			}
 			progressCb->update(0);
-			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb,m_theAssociatedCloud->size());
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, m_theAssociatedCloud->size());
 			progressCb->start();
 		}
 
@@ -3168,7 +3174,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
-			maxThreadCount = std::max(1, QThread::idealThreadCount() - 1); // always leave one thread/core to let the application breath
+			maxThreadCount = std::max(1, QThread::idealThreadCount()); // using half the cores by default, to let the application breath
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
@@ -3287,7 +3293,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			progressCb->start();
 		}
 #ifndef ENABLE_DOWN_TOP_TRAVERSAL
-		NormalizedProgress nprogress(progressCb,m_theAssociatedCloud->size());
+		NormalizedProgress nprogress(progressCb, m_theAssociatedCloud->size());
 #endif
 
 		//binary shift for cell code truncation at current level
@@ -3709,7 +3715,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			{
 				delete m_MT_wrapper.normProgressCb;
 			}
-			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb,static_cast<unsigned>(cells.size()));
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, static_cast<unsigned>(cells.size()));
 			progressCb->update(0);
 			progressCb->start();
 		}
@@ -3724,7 +3730,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		if (maxThreadCount == 0)
 		{
-			maxThreadCount = std::max(1, QThread::idealThreadCount() - 1); // always leave one thread/core to let the application breath
+			maxThreadCount = std::max(1, QThread::idealThreadCount()); // using half the cores by default, to let the application breath
 		}
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
