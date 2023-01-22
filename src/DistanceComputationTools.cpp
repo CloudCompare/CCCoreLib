@@ -1537,8 +1537,8 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		{
 			if (progressCb->textCanBeEdited())
 			{
-				char buffer[256];
-				sprintf(buffer, "Cells: %u", numberOfCells);
+				char buffer[32];
+				snprintf(buffer, 32, "Cells: %u", numberOfCells);
 				progressCb->setInfo(buffer);
 				progressCb->setMethodTitle(params.signedDistances ? "Compute signed distances" : "Compute distances");
 			}
@@ -1614,8 +1614,8 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		{
 			if (progressCb->textCanBeEdited())
 			{
-				char buffer[256];
-				sprintf(buffer, "Cells: %u", numberOfCells);
+				char buffer[32];
+				snprintf(buffer, 32, "Cells: %u", numberOfCells);
 				progressCb->setInfo(buffer);
 				progressCb->setMethodTitle("Compute signed distances");
 			}

@@ -52,9 +52,9 @@ PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 	{
 		if (progressCb->textCanBeEdited())
 		{
-			progressCb->setMethodTitle("Develop");
-			char buffer[256];
-			sprintf(buffer, "Number of points = %u", count);
+			progressCb->setMethodTitle("Develop on Cylinder");
+			char buffer[32];
+			snprintf(buffer, 32, "Number of points: %u", count);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);
@@ -114,9 +114,9 @@ PointCloud* PointProjectionTools::developCloudOnCone(GenericCloud* cloud, unsign
 	{
 		if (progressCb->textCanBeEdited())
 		{
-			progressCb->setMethodTitle("DevelopOnCone");
-			char buffer[256];
-			sprintf(buffer, "Number of points = %u", count);
+			progressCb->setMethodTitle("Develop on Cone");
+			char buffer[32];
+			snprintf(buffer, 32, "Number of points: %u", count);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);
@@ -182,9 +182,9 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 	{
 		if (progressCb->textCanBeEdited())
 		{
-			progressCb->setMethodTitle("ApplyTransformation");
-			char buffer[256];
-			sprintf(buffer, "Number of points = %u", count);
+			progressCb->setMethodTitle("Apply Transformation");
+			char buffer[32];
+			snprintf(buffer, 32, "Number of points: %u", count);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);
@@ -246,9 +246,9 @@ PointCloud* PointProjectionTools::applyTransformation(GenericIndexedCloud* cloud
 	{
 		if (progressCb->textCanBeEdited())
 		{
-			progressCb->setMethodTitle("ApplyTransformation");
-			char buffer[256];
-			sprintf(buffer, "Number of points = %u", count);
+			progressCb->setMethodTitle("Apply Transformation");
+			char buffer[32];
+			snprintf(buffer, 32, "Number of points: %u", count);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

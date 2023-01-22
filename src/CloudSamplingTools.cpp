@@ -349,8 +349,8 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("Spatial resampling");
-			char buffer[256];
-			sprintf(buffer, "Points: %u\nMin dist.: %f", cloudSize, minDistance);
+			char buffer[64];
+			snprintf(buffer, 64, "Points: %u\nMin dist.: %f", cloudSize, minDistance);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

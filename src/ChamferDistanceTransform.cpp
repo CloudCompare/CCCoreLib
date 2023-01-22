@@ -178,14 +178,14 @@ int ChamferDistanceTransform::propagateDistance(CHAMFER_DISTANCE_TYPE type, Gene
 		return -1;
 	}
 
-	NormalizedProgress normProgress(progressCb,m_innerSize.y*m_innerSize.z*2);
+	NormalizedProgress normProgress(progressCb, m_innerSize.y*m_innerSize.z * 2);
 	if (progressCb)
 	{
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("Chamfer distance");
-			char buffer[256];
-			sprintf(buffer, "Box: [%u x %u x %u]", m_innerSize.x, m_innerSize.y, m_innerSize.z);
+			char buffer[64];
+			snprintf(buffer, 64, "Box: [%u x %u x %u]", m_innerSize.x, m_innerSize.y, m_innerSize.z);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

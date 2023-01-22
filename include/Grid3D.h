@@ -175,8 +175,8 @@ namespace CCCoreLib
 			{
 				if (progressCb->textCanBeEdited())
 				{
-					char buffer[64];
-					sprintf(buffer, "Triangles: %u", numberOfTriangles);
+					char buffer[32];
+					snprintf(buffer, 32, "Triangles: %u", numberOfTriangles);
 					progressCb->setInfo(buffer);
 					progressCb->setMethodTitle("Intersect Grid/Mesh");
 				}
@@ -400,8 +400,8 @@ namespace CCCoreLib
 			{
 				if (progressCb->textCanBeEdited())
 				{
-					char buffer[64];
-					sprintf(buffer, "Points: %u", numberOfPoints);
+					char buffer[32];
+					snprintf(buffer, 32, "Points: %u", numberOfPoints);
 					progressCb->setInfo(buffer);
 					progressCb->setMethodTitle("Intersect Grid/Cloud");
 				}

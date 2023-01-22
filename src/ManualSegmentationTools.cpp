@@ -221,8 +221,8 @@ GenericIndexedMesh* ManualSegmentationTools::segmentMesh(	GenericIndexedMesh* me
 			if (progressCb->textCanBeEdited())
 			{
 				progressCb->setMethodTitle("Extract mesh");
-				char buffer[256];
-				sprintf(buffer, "New vertex number: %u", numberOfSelectedVertices);
+				char buffer[64];
+				snprintf(buffer, 64, "New vertex number: %u", numberOfSelectedVertices);
 				progressCb->setInfo(buffer);
 			}
 			progressCb->update(0);

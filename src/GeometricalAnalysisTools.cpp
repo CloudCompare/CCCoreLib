@@ -860,7 +860,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		if (progressCb->textCanBeEdited())
 		{
 			char buffer[64];
-			sprintf(buffer, "Least Median of Squares samples: %u", m);
+			snprintf(buffer, 64, "Least Median of Squares samples: %u", m);
 			progressCb->setInfo(buffer);
 			progressCb->setMethodTitle("Detect sphere");
 		}

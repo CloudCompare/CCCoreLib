@@ -256,7 +256,7 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 	}
 
 	//best octree level
-	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(3.0f*sigma);
+	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(3*sigma);
 
 	//output scalar field should be different than input one
 	if (!theCloud->enableScalarField())
@@ -271,8 +271,8 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("Gaussian filter");
-			char infos[256];
-			sprintf(infos, "Level: %i\n", level);
+			char infos[32];
+			snprintf(infos, 32, "Level: %i", level);
 			progressCb->setInfo(infos);
 		}
 		progressCb->update(0);
@@ -689,8 +689,8 @@ bool ScalarFieldTools::computeKmeans(	const GenericCloud* theCloud,
 				if (progressCb->textCanBeEdited())
 				{
 					progressCb->setMethodTitle("KMeans");
-					char buffer[256];
-					sprintf(buffer, "K=%i", K);
+					char buffer[16];
+					snprintf(buffer, 16, "K=%i", K);
 					progressCb->setInfo(buffer);
 					progressCb->start();
 				}

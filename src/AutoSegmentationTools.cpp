@@ -191,8 +191,8 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("FM Propagation");
-			char buffer[256];
-			sprintf(buffer, "Octree level: %i\nNumber of points: %u", octreeLevel, numberOfPoints);
+			char buffer[64];
+			snprintf(buffer, 64, "Octree level: %i\nNumber of points: %u", octreeLevel, numberOfPoints);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

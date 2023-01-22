@@ -216,8 +216,8 @@ bool SaitoSquaredDistanceTransform::SDT_3D(Grid3D<GridElement>& grid, GenericPro
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("Saito Distance Transform");
-			char buffer[256];
-			sprintf(buffer, "Box: [%u x %u x %u]", gridSize.x, gridSize.y, gridSize.z);
+			char buffer[64];
+			snprintf(buffer, 64, "Box: [%u x %u x %u]", gridSize.x, gridSize.y, gridSize.z);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

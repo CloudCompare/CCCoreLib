@@ -699,9 +699,9 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					//on the first iteration, we init/show the dialog
 					if (progressCb->textCanBeEdited())
 					{
-						progressCb->setMethodTitle("Clouds registration");
-						char buffer[256];
-						sprintf(buffer, "Initial RMS = %f\n", rms);
+						progressCb->setMethodTitle("Registration");
+						char buffer[32];
+						snprintf(buffer, 32, "Initial RMS = %f", rms);
 						progressCb->setInfo(buffer);
 					}
 					progressCb->update(0);
@@ -769,11 +769,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				{
 					if (progressCb->textCanBeEdited())
 					{
-						char buffer[256];
-						if (coupleWeights)
-							sprintf(buffer, "Weighted RMS = %f [-%f]\n", rms, deltaRMS);
-						else
-							sprintf(buffer, "RMS = %f [-%f]\n", rms, deltaRMS);
+						char buffer[64];
+						snprintf(buffer, 64, (coupleWeights ? "Weighted RMS = %f [-%f]" : "RMS = %f [-%f]"), rms, deltaRMS);
 						progressCb->setInfo(buffer);
 					}
 					if (iteration == 1)
@@ -1352,8 +1349,8 @@ bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
 		{
 			if (progressCb->textCanBeEdited())
 			{
-				char buffer[256];
-				sprintf(buffer, "Trial %u/%u [best score = %u]\n", i + 1, nbBases, bestScore);
+				char buffer[64];
+				snprintf(buffer, 64, "Trial %u/%u [best score = %u]", i + 1, nbBases, bestScore);
 				progressCb->setInfo(buffer);
 				progressCb->update(((i + 1)*100.0f) / nbBases);
 			}

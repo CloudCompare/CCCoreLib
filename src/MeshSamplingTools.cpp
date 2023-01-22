@@ -300,8 +300,8 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 		if (progressCb->textCanBeEdited())
 		{
 			progressCb->setMethodTitle("Mesh sampling");
-			char buffer[256];
-			sprintf(buffer, "Triangles: %u\nPoints: %u", triCount, theoreticNumberOfPoints);
+			char buffer[64];
+			snprintf(buffer, 64, "Triangles: %u\nPoints: %u", triCount, theoreticNumberOfPoints);
 			progressCb->setInfo(buffer);
 		}
 		progressCb->update(0);

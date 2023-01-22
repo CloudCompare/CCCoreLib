@@ -54,8 +54,8 @@ static void InitProgress(GenericProgressCallback* progressCb, unsigned totalCoun
 		if (progressCb->textCanBeEdited())
 		{
 			s_progressCb->setMethodTitle("Kd-tree computation");
-			char info[256];
-			sprintf(info, "Points: %u", totalCount);
+			char info[32];
+			snprintf(info, 32, "Points: %u", totalCount);
 			s_progressCb->setInfo(info);
 		}
 		s_progressCb->start();
