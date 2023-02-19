@@ -15,7 +15,10 @@ namespace CCCoreLib
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
 
-	//! Proper KD-tree implementation
+	//! KD-tree implementation to subdivide a 3D cloud based on a planarity criterion
+	/** The resulting subsets of points falling inside each partition will be as flat as required
+		(unless a minimum number of points is reached).
+	**/
 	class CC_CORE_LIB_API TrueKdTree
 	{
 	public:

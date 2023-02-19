@@ -113,23 +113,25 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 
 	/*** proceed with a 'standard' binary partition ***/
 
-	//cell limits (dimensions)
-	CCVector3 dims;
+	//find the subset largest dimension
+	uint8_t splitDim = X_DIM;
 	{
-		CCVector3 bbMin;
-		CCVector3 bbMax;
-		subset->getBoundingBox(bbMin,bbMax);
-		dims = bbMax - bbMin;
+		//compute the subset bounding-box
+		CCVector3 cellBB;
+		{
+			CCVector3 bbMin;
+			CCVector3 bbMax;
+			subset->getBoundingBox(bbMin, bbMax);
+			cellBB = bbMax - bbMin;
+		}
+
+		if (cellBB.y > cellBB.x)
+			splitDim = Y_DIM;
+		if (cellBB.z > cellBB.u[splitDim])
+			splitDim = Z_DIM;
 	}
 
-	//find the largest dimension
-	uint8_t splitDim = X_DIM;
-	if (dims.y > dims.x)
-		splitDim = Y_DIM;
-	if (dims.z > dims.u[splitDim])
-		splitDim = Z_DIM;
-
-	//find the median by sorting the points coordinates
+	//find the median by sorting the coordinates of the points along the split dimension
 	assert(s_sortedCoordsForSplit.size() >= static_cast<std::size_t>(count));
 	for (unsigned i = 0; i < count; ++i)
 	{
@@ -142,25 +144,23 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 	unsigned splitCount = count / 2;
 	assert(splitCount >= 3); //count >= 6 (see above)
 
-	//we must check that the split value is the 'first one'
-	if (s_sortedCoordsForSplit[splitCount - 1] == s_sortedCoordsForSplit[splitCount])
+	//we must check that the split value is really the first one with this value, and that the smallest subset after the split will have at least 2 or 3 points
+	if (splitCount >= 3 && s_sortedCoordsForSplit[splitCount - 1] == s_sortedCoordsForSplit[splitCount])
 	{
-		if (s_sortedCoordsForSplit[2] != s_sortedCoordsForSplit[splitCount]) //can we go backward?
+		if (s_sortedCoordsForSplit[2] != s_sortedCoordsForSplit[splitCount]) //is it worth looking for the split value backward? (we want to keep at least 3 points in the smallest cell)
 		{
-			while (/*splitCount>0 &&*/ s_sortedCoordsForSplit[splitCount-1] == s_sortedCoordsForSplit[splitCount])
+			while (s_sortedCoordsForSplit[splitCount - 1] == s_sortedCoordsForSplit[splitCount])
 			{
-				assert(splitCount > 3);
 				--splitCount;
 			}
 		}
-		else if (s_sortedCoordsForSplit[count - 3] != s_sortedCoordsForSplit[splitCount]) //can we go forward?
+		else if (s_sortedCoordsForSplit[count - 3] != s_sortedCoordsForSplit[splitCount]) //is it worth looking for the split value forward? (same thing, we want to keep at least 2 points in the smallest cell)
 		{
 			do
 			{
 				++splitCount;
-				assert(splitCount < count - 3);
 			}
-			while (/*splitCount+1<count &&*/ s_sortedCoordsForSplit[splitCount] == s_sortedCoordsForSplit[splitCount - 1]);
+			while (s_sortedCoordsForSplit[splitCount] == s_sortedCoordsForSplit[splitCount - 1]);
 		}
 		else //in fact we can't split this cell!
 		{
@@ -172,11 +172,11 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 		}
 	}
 
-	PointCoordinateType splitCoord = s_sortedCoordsForSplit[splitCount]; //count > 3 --> splitCount >= 2
+	PointCoordinateType splitCoord = s_sortedCoordsForSplit[splitCount]; //splitCount >= 2
 
 	ReferenceCloud* leftSubset = new ReferenceCloud(subset->getAssociatedCloud());
 	ReferenceCloud* rightSubset = new ReferenceCloud(subset->getAssociatedCloud());
-	if (!leftSubset->reserve(splitCount) || !rightSubset->reserve(count-splitCount))
+	if (!leftSubset->reserve(splitCount) || !rightSubset->reserve(count - splitCount))
 	{
 		//not enough memory!
 		delete leftSubset;
@@ -189,14 +189,7 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = subset->getPoint(i);
-		if (P->u[splitDim] < splitCoord)
-		{
-			leftSubset->addPointIndex(subset->getPointGlobalIndex(i));
-		}
-		else
-		{
-			rightSubset->addPointIndex(subset->getPointGlobalIndex(i));
-		}
+		(P->u[splitDim] < splitCoord ? leftSubset : rightSubset)->addPointIndex(subset->getPointGlobalIndex(i));
 	}
 
 	//process subsets (if any)
@@ -216,8 +209,8 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 		return nullptr;
 	}
 
-	if (	(leftChild->isLeaf() && static_cast<Leaf*>(leftChild)->points == nullptr)
-			||	(rightChild->isLeaf() && static_cast<Leaf*>(rightChild)->points == nullptr) )
+	if (	(leftChild->isLeaf()  && static_cast<Leaf*>(leftChild)->points == nullptr)
+		||	(rightChild->isLeaf() && static_cast<Leaf*>(rightChild)->points == nullptr) )
 	{
 		//at least one of the subsets couldn't be fitted with a plane!
 		delete leftChild;

@@ -1382,18 +1382,19 @@ unsigned FPCSRegistrationTools::ComputeRegistrationScore(	KDTree *modelTree,
 															const ScaledTransformation& dataToModel)
 {
 	CCVector3 Q;
-
 	unsigned score = 0;
 
 	unsigned count = dataCloud->size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		dataCloud->getPoint(i,Q);
+		dataCloud->getPoint(i, Q);
 		//Apply rigid transform to each point
 		Q = (dataToModel.R * Q + dataToModel.T).toPC();
 		//Check if there is a point in the model cloud that is close enough to q
-		if (modelTree->findPointBelowDistance(Q.u, delta))
-			score++;
+		if (modelTree->findNearestNeighbourWithMaxDist(Q.u, delta))
+		{
+			++score;
+		}
 	}
 
 	return score;
@@ -1588,12 +1589,12 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 
 		for (unsigned i = 0; i < count; i++)
 		{
-			const CCVector3 *q0 = cloud->getPoint(i);
+			const CCVector3* q0 = cloud->getPoint(i);
 			IndexPair idxPair;
 			idxPair.first = i;
 			//Extract all points from the cloud which are d1-appart (up to delta) from q0
 			pointsIndexes.clear();
-			tree->findPointsLyingToDistance(q0->u, static_cast<ScalarType>(d1), delta, pointsIndexes);
+			tree->findNearestNeighboursAtDist(q0->u, static_cast<ScalarType>(d1), delta, pointsIndexes);
 			{
 				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
 				{
@@ -1607,7 +1608,7 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 			}
 			//Extract all points from the cloud which are d2-appart (up to delta) from q0
 			pointsIndexes.clear();
-			tree->findPointsLyingToDistance(q0->u, static_cast<ScalarType>(d2), delta, pointsIndexes);
+			tree->findNearestNeighboursAtDist(q0->u, static_cast<ScalarType>(d2), delta, pointsIndexes);
 			{
 				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
 				{
