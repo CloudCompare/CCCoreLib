@@ -59,10 +59,10 @@ namespace CCCoreLib
 			\param[out] pointndexes array of point indexes
 			\return the number of matching points
 		**/
-		unsigned findNearestNeighboursAtDist(	const PointCoordinateType* queryPoint,
-												ScalarType distance,
-												ScalarType tolerance,
-												std::vector<unsigned>& pointndexes);
+		unsigned radiusSearch(	const PointCoordinateType* queryPoint,
+								ScalarType distance,
+								ScalarType tolerance,
+								std::vector<unsigned>& pointndexes);
 
 	protected:
 
