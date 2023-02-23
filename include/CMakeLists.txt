@@ -39,6 +39,7 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/GridAndMeshIntersection.h
 		${CMAKE_CURRENT_LIST_DIR}/Jacobi.h
 		${CMAKE_CURRENT_LIST_DIR}/KdTree.h
+		${CMAKE_CURRENT_LIST_DIR}/Kriging.h
 		${CMAKE_CURRENT_LIST_DIR}/LocalModel.h
 		${CMAKE_CURRENT_LIST_DIR}/ManualSegmentationTools.h
 		${CMAKE_CURRENT_LIST_DIR}/MathTools.h
@@ -102,6 +103,7 @@ install(
 		Grid3D.h
 		Jacobi.h
 		KdTree.h
+		Kriging.h
 		LocalModel.h
 		ManualSegmentationTools.h
 		MathTools.h
