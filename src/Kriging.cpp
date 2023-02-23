@@ -309,14 +309,13 @@ struct OrdinaryKrigeContext
 		kdTree = nullptr;
 	}
 
-	bool prepare(int _knn, bool withKDTree = false)
+	bool prepare(int _knn)
 	{
 		if (_knn <= 0)
 		{
 			assert(false);
 			return false;
 		}
-		knn = _knn;
 
 		size_t pointCount = nfWrapper.dataPointsRef.size();
 		if (pointCount < static_cast<size_t>(knn))
@@ -325,23 +324,22 @@ struct OrdinaryKrigeContext
 			return false;
 		}
 
+		knn = _knn;
+
 		try
 		{
 			dataPointCandidates.resize(knn);
-
-			if (withKDTree)
-			{
-				// create the kd-tree (nanoflann) and other structures required to search for NN
-				kdTree = new KdTreeType(/*dim=*/2, nfWrapper, { /*max leaf=*/10 });
-				kdIndexes.resize(knn);
-				kdDistances.resize(knn);
-			}
+			kdIndexes.resize(knn);
+			kdDistances.resize(knn);
 		}
 		catch (const std::bad_alloc&)
 		{
 			// not enough memory
 			return false;
 		}
+
+		// eventually, instantiate the kd-tree
+		kdTree = new KdTreeType(/*dim=*/2, nfWrapper, { /*max leaf=*/10 });
 
 		return true;
 	}
