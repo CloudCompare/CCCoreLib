@@ -131,6 +131,13 @@ else()
 	)
 endif()
 
+# Nanoflann
+option(NANOFLANN_BUILD_BENCHMARKS "" OFF)
+option(NANOFLANN_BUILD_EXAMPLES "" OFF)
+option(NANOFLANN_BUILD_TESTS "" OFF)
+add_subdirectory( extern/nanoflann EXCLUDE_FROM_ALL )
+target_link_libraries( CCCoreLib PUBLIC nanoflann::nanoflann )
+
 # Windows-specific flags
 if ( WIN32 )
 	# VLD for mem leak checking

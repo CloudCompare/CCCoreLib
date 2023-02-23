@@ -19,6 +19,7 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/GeometricalAnalysisTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/GridAndMeshIntersection.cpp
 		${CMAKE_CURRENT_LIST_DIR}/KdTree.cpp
+		${CMAKE_CURRENT_LIST_DIR}/Kriging.cpp
 		${CMAKE_CURRENT_LIST_DIR}/LocalModel.cpp
 		${CMAKE_CURRENT_LIST_DIR}/ManualSegmentationTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/MeshSamplingTools.cpp
