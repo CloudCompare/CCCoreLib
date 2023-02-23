@@ -1594,7 +1594,7 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 			idxPair.first = i;
 			//Extract all points from the cloud which are d1-appart (up to delta) from q0
 			pointsIndexes.clear();
-			tree->findNearestNeighboursAtDist(q0->u, static_cast<ScalarType>(d1), delta, pointsIndexes);
+			tree->radiusSearch(q0->u, static_cast<ScalarType>(d1), delta, pointsIndexes);
 			{
 				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
 				{
@@ -1608,7 +1608,7 @@ int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
 			}
 			//Extract all points from the cloud which are d2-appart (up to delta) from q0
 			pointsIndexes.clear();
-			tree->findNearestNeighboursAtDist(q0->u, static_cast<ScalarType>(d2), delta, pointsIndexes);
+			tree->radiusSearch(q0->u, static_cast<ScalarType>(d2), delta, pointsIndexes);
 			{
 				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
 				{

@@ -306,10 +306,10 @@ bool KDTree::findNearestNeighbourWithMaxDist(	const PointCoordinateType* queryPo
 	return false;
 }
 
-unsigned KDTree::findNearestNeighboursAtDist(	const PointCoordinateType* queryPoint,
-												ScalarType distance,
-												ScalarType tolerance,
-												std::vector<unsigned>& pointndexes)
+unsigned KDTree::radiusSearch(	const PointCoordinateType* queryPoint,
+								ScalarType distance,
+								ScalarType tolerance,
+								std::vector<unsigned>& pointndexes)
 {
 	if (m_root == nullptr)
 	{
