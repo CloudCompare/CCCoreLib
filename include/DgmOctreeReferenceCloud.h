@@ -4,9 +4,9 @@
 #pragma once
 
 //Local
+#include "BoundingBox.h"
 #include "DgmOctree.h"
 #include "GenericIndexedCloudPersist.h"
-
 
 namespace CCCoreLib
 {
@@ -19,48 +19,45 @@ namespace CCCoreLib
 		/** \param associatedSet associated NeighboursSet
 			\param count number of values to use (0 = all)
 		**/
-		DgmOctreeReferenceCloud(DgmOctree::NeighboursSet* associatedSet, unsigned count = 0);
+		DgmOctreeReferenceCloud(DgmOctree::NeighboursSet& associatedSet, unsigned count = 0);
 
 		//**** inherited form GenericCloud ****//
 		inline unsigned size() const override { return m_size; }
-		void forEach(genericPointAction action) override;
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
-		//virtual unsigned char testVisibility(const CCVector3& P) const; //not supported
+		void forEachScalarValue(GenericScalarValueAction action) override;
+		void getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
+		CCVector3d getLocalToGlobalTranslation() const override { return { 0.0, 0.0, 0.0 }; }
+		//inline uint8_t testVisibility(const CCVector3& localP) const override; //not supported
 		inline void placeIteratorAtBeginning() override { m_globalIterator = 0; }
-		inline const CCVector3* getNextPoint() override { return (m_globalIterator < size() ? m_set->at(m_globalIterator++).point : nullptr); }
+		inline const CCVector3* getNextLocalPoint() override { return (m_globalIterator < size() ? m_set[m_globalIterator++].localPoint : nullptr); }
 		inline bool enableScalarField() override { return true; } //use DgmOctree::PointDescriptor::squareDistd by default
 		inline bool isScalarFieldEnabled() const override { return true; } //use DgmOctree::PointDescriptor::squareDistd by default
-		inline void setPointScalarValue(unsigned pointIndex, ScalarType value) override { assert(pointIndex < size()); m_set->at(pointIndex).squareDistd = static_cast<double>(value); }
-		inline ScalarType getPointScalarValue(unsigned pointIndex) const override { assert(pointIndex < size()); return static_cast<ScalarType>(m_set->at(pointIndex).squareDistd); }
+		inline void setPointScalarValue(unsigned pointIndex, ScalarType value) override { assert(pointIndex < size()); m_set[pointIndex].squareDistd = static_cast<double>(value); }
+		inline ScalarType getPointScalarValue(unsigned pointIndex) const override { assert(pointIndex < size()); return static_cast<ScalarType>(m_set[pointIndex].squareDistd); }
 		//**** inherited form GenericIndexedCloud ****//
-		inline const CCVector3* getPoint(unsigned index) const override { assert(index < size()); return m_set->at(index).point; }
-		inline void getPoint(unsigned index, CCVector3& P) const override { assert(index < size()); P = *m_set->at(index).point; }
+		inline const CCVector3* getLocalPoint(unsigned index) const override { assert(index < size()); return m_set[index].localPoint; }
+		inline void getLocalPoint(unsigned index, CCVector3& P) const override { assert(index < size()); P = *m_set[index].localPoint; }
 		//**** inherited form GenericIndexedCloudPersist ****//
-		inline const CCVector3* getPointPersistentPtr(unsigned index) const override { assert(index < size()); return m_set->at(index).point; }
+		inline const CCVector3* getLocalPointPersistentPtr(unsigned index) const override { assert(index < size()); return m_set[index].localPoint; }
 
 		//! Forwards global iterator
 		inline void forwardIterator() { ++m_globalIterator; }
 
 		//! Returns a given point descriptor
-		inline const DgmOctree::PointDescriptor& getPointDescriptor(unsigned pointIndex) const { assert(pointIndex < size()); return m_set->at(pointIndex); }
+		inline const DgmOctree::PointDescriptor& getPointDescriptor(unsigned pointIndex) const { assert(pointIndex < size()); return m_set[pointIndex]; }
 
 	protected:
 
 		//! Computes the cloud bounding-box (internal)
-		virtual void computeBB();
+		virtual void computeLocalBB();
 
 		//! Iterator on the point references container
 		unsigned m_globalIterator;
 
-		//! Bounding-box min corner
-		CCVector3 m_bbMin;
-		//! Bounding-box max corner
-		CCVector3 m_bbMax;
-		//! Bounding-box validity
-		bool m_validBB;
+		//! Bounding-box
+		BoundingBox m_localBB;
 
 		//! Associated PointDescriptor set
-		DgmOctree::NeighboursSet* m_set;
+		DgmOctree::NeighboursSet& m_set;
 
 		//! Number of points
 		unsigned m_size;

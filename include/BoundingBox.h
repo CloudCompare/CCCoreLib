@@ -282,4 +282,7 @@ namespace CCCoreLib
 
 	//! Default bounding-box type
 	using BoundingBox = BoundingBoxTpl<PointCoordinateType>;
+
+	//! Bounding-box with double cooordinates
+	using BoundingBoxD = BoundingBoxTpl<double>;
 }

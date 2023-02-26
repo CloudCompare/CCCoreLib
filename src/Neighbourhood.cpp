@@ -18,12 +18,11 @@
 using namespace CCCoreLib;
 
 Neighbourhood::Neighbourhood(GenericIndexedCloudPersist* associatedCloud)
-	: m_structuresValidity(FLAG_DEPRECATED)
+	: m_localQuadricEquation{ 0, 0, 0, 0, 0, 0 }
+	, m_lsPlaneEquation{ 0, 0, 0, 0 }
+	, m_structuresValidity(FLAG_DEPRECATED)
 	, m_associatedCloud(associatedCloud)
 {
-	memset(m_quadricEquation,  0, sizeof(PointCoordinateType)*6);
-	memset(m_lsPlaneEquation,  0, sizeof(PointCoordinateType)*4);
-
 	assert(m_associatedCloud);
 }
 
@@ -32,23 +31,27 @@ void Neighbourhood::reset()
 	m_structuresValidity = FLAG_DEPRECATED;
 }
 
-const CCVector3* Neighbourhood::getGravityCenter()
+const CCVector3* Neighbourhood::getLocalGravityCenter()
 {
 	if (!(m_structuresValidity & FLAG_GRAVITY_CENTER))
-		computeGravityCenter();
-	return ((m_structuresValidity & FLAG_GRAVITY_CENTER) ? &m_gravityCenter : nullptr);
+	{
+		computeLocalGravityCenter();
+	}
+	return ((m_structuresValidity & FLAG_GRAVITY_CENTER) ? &m_localGravityCenter : nullptr);
 }
 
-void Neighbourhood::setGravityCenter(const CCVector3& G)
+void Neighbourhood::setLocalGravityCenter(const CCVector3& G)
 {
-	m_gravityCenter = G;
+	m_localGravityCenter = G;
 	m_structuresValidity |= FLAG_GRAVITY_CENTER;
 }
 
 const PointCoordinateType* Neighbourhood::getLSPlane()
 {
 	if (!(m_structuresValidity & FLAG_LS_PLANE))
+	{
 		computeLeastSquareBestFittingPlane();
+	}
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneEquation : nullptr);
 }
 
@@ -68,25 +71,32 @@ void Neighbourhood::setLSPlane(	const PointCoordinateType eq[4],
 const CCVector3* Neighbourhood::getLSPlaneX()
 {
 	if (!(m_structuresValidity & FLAG_LS_PLANE))
+	{
 		computeLeastSquareBestFittingPlane();
+	}
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneVectors : nullptr);
 }
 
 const CCVector3* Neighbourhood::getLSPlaneY()
 {
 	if (!(m_structuresValidity & FLAG_LS_PLANE))
+	{
 		computeLeastSquareBestFittingPlane();
+	}
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneVectors + 1 : nullptr);
 }
 
 const CCVector3* Neighbourhood::getLSPlaneNormal()
 {
 	if (!(m_structuresValidity & FLAG_LS_PLANE))
+	{
 		computeLeastSquareBestFittingPlane();
+	}
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneVectors + 2 : nullptr);
 }
 
-const PointCoordinateType* Neighbourhood::getQuadric(SquareMatrix* toLocalOrientation/*=nullptr*/)
+
+const PointCoordinateType* Neighbourhood::getLocalQuadric(SquareMatrix* toLocalOrientation/*=nullptr*/)
 {
 	if (!(m_structuresValidity & FLAG_QUADRIC))
 	{
@@ -98,43 +108,51 @@ const PointCoordinateType* Neighbourhood::getQuadric(SquareMatrix* toLocalOrient
 		*toLocalOrientation = m_quadricEquationOrientation;
 	}
 
-	return ((m_structuresValidity & FLAG_QUADRIC) ? m_quadricEquation : nullptr);
+	return ((m_structuresValidity & FLAG_QUADRIC) ? m_localQuadricEquation : nullptr);
 }
 
-void Neighbourhood::computeGravityCenter()
+bool Neighbourhood::computeLocalGravityCenter()
 {
-	//invalidate the previous centroid (if any)
+	//invalidate previous gravity center (if any)
 	m_structuresValidity &= (~FLAG_GRAVITY_CENTER);
 
 	assert(m_associatedCloud);
 	unsigned count = (m_associatedCloud ? m_associatedCloud->size() : 0);
-	if (!count)
-		return;
-
-	//sum
-	CCVector3d Psum(0, 0, 0);
-	for (unsigned i = 0; i < count; ++i)
+	if (count == 0)
 	{
-		const CCVector3* P = m_associatedCloud->getPoint(i);
-		Psum.x += P->x;
-		Psum.y += P->y;
-		Psum.z += P->z;
+		assert(false);
+		return false;
 	}
 
-	setGravityCenter( {	static_cast<PointCoordinateType>(Psum.x / count),
-						static_cast<PointCoordinateType>(Psum.y / count),
-						static_cast<PointCoordinateType>(Psum.z / count) } );
+	//sum
+	CCVector3d Psum{ 0, 0, 0 };
+	for (unsigned i = 0; i < count; ++i)
+	{
+		const CCVector3* Plocal = m_associatedCloud->getLocalPoint(i);
+		Psum.x += Plocal->x;
+		Psum.y += Plocal->y;
+		Psum.z += Plocal->z;
+	}
+
+	setLocalGravityCenter( {	static_cast<PointCoordinateType>(Psum.x / count),
+								static_cast<PointCoordinateType>(Psum.y / count),
+								static_cast<PointCoordinateType>(Psum.z / count)
+							} );
+
+	return true;
 }
 
 SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 {
 	assert(m_associatedCloud);
 	unsigned count = (m_associatedCloud ? m_associatedCloud->size() : 0);
-	if (!count)
-		return SquareMatrixd();
+	if (count == 0)
+	{
+		return {};
+	}
 
-	//get the centroid
-	const CCVector3* G = getGravityCenter();
+	//we get centroid
+	const CCVector3* G = getLocalGravityCenter();
 	assert(G);
 
 	//build up the covariance matrix
@@ -147,14 +165,14 @@ SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3 P = *m_associatedCloud->getPoint(i) - *G;
+		const CCVector3 Plocal = *m_associatedCloud->getLocalPoint(i) - *G;
 
-		mXX += static_cast<double>(P.x)*P.x;
-		mYY += static_cast<double>(P.y)*P.y;
-		mZZ += static_cast<double>(P.z)*P.z;
-		mXY += static_cast<double>(P.x)*P.y;
-		mXZ += static_cast<double>(P.x)*P.z;
-		mYZ += static_cast<double>(P.y)*P.z;
+		mXX += static_cast<double>(Plocal.x)*Plocal.x;
+		mYY += static_cast<double>(Plocal.y)*Plocal.y;
+		mZZ += static_cast<double>(Plocal.z)*Plocal.z;
+		mXY += static_cast<double>(Plocal.x)*Plocal.y;
+		mXZ += static_cast<double>(Plocal.x)*Plocal.z;
+		mYZ += static_cast<double>(Plocal.y)*Plocal.z;
 	}
 
 	//fill some elments by symmetry
@@ -178,7 +196,7 @@ PointCoordinateType Neighbourhood::computeLargestRadius()
 		return 0;
 
 	//get the centroid
-	const CCVector3* G = getGravityCenter();
+	const CCVector3* G = getLocalGravityCenter();
 	if (!G)
 	{
 		assert(false);
@@ -188,10 +206,12 @@ PointCoordinateType Neighbourhood::computeLargestRadius()
 	double maxSquareDist = 0;
 	for (unsigned i = 0; i < pointCount; ++i)
 	{
-		const CCVector3* P = m_associatedCloud->getPoint(i);
-		const double d2 = (*P-*G).norm2();
+		const CCVector3* Plocal = m_associatedCloud->getLocalPoint(i);
+		const double d2 = (*Plocal - *G).norm2();
 		if (d2 > maxSquareDist)
+		{
 			maxSquareDist = d2;
+		}
 	}
 
 	return static_cast<PointCoordinateType>(sqrt(maxSquareDist));
@@ -213,7 +233,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 		return false;
 	}
 
-	CCVector3 G(0, 0, 0);
+	CCVector3 G{ 0, 0, 0 };
 	if (pointCount > 3)
 	{
 		SquareMatrixd covMat = computeCovarianceMatrix();
@@ -245,14 +265,14 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 		}
 
 		//get the centroid (should already be up-to-date - see computeCovarianceMatrix)
-		G = *getGravityCenter();
+		G = *getLocalGravityCenter();
 	}
 	else
 	{
 		//we simply compute the normal of the 3 points by cross product!
-		const CCVector3* A = m_associatedCloud->getPoint(0);
-		const CCVector3* B = m_associatedCloud->getPoint(1);
-		const CCVector3* C = m_associatedCloud->getPoint(2);
+		const CCVector3* A = m_associatedCloud->getLocalPoint(0);
+		const CCVector3* B = m_associatedCloud->getLocalPoint(1);
+		const CCVector3* C = m_associatedCloud->getLocalPoint(2);
 
 		//get X (AB by default) and Y (AC - will be updated later) and deduce N = X ^ Y
 		m_lsPlaneVectors[0] = (*B - *A);
@@ -320,7 +340,7 @@ bool Neighbourhood::computeQuadric()
 	}
 
 	//we get the centroid (should already be up-to-date - see computeCovarianceMatrix)
-	const CCVector3* G = getGravityCenter();
+	const CCVector3* G = getLocalGravityCenter();
 	assert(G);
 
 	//transform the local coordinate system so that the LS plane normal direction becomes 'Z'
@@ -374,7 +394,7 @@ bool Neighbourhood::computeQuadric()
 		double* _b = b.data();
 		for (unsigned i = 0; i < count; ++i)
 		{
-			CCVector3 l = toLocalOrientation * (*m_associatedCloud->getPoint(i) - *G);
+			CCVector3 l = toLocalOrientation * (*m_associatedCloud->getLocalPoint(i) - *G);
 
 			*_A++ = 1.0;
 			*_A++ = l.x;
@@ -457,7 +477,7 @@ bool Neighbourhood::computeQuadric()
 	{
 		for (unsigned i = 0; i < 6; ++i)
 		{
-			m_quadricEquation[i] = static_cast<PointCoordinateType>(X0[i]);
+			m_localQuadricEquation[i] = static_cast<PointCoordinateType>(X0[i]);
 		}
 		m_quadricEquationOrientation = toLocalOrientation;
 
@@ -480,7 +500,7 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 	//"THREE-DIMENSIONAL SURFACE CURVATURE ESTIMATION USING QUADRIC SURFACE PATCHES", I. Douros & B. Buxton, University College London
 
 	//we get the centroid
-	const CCVector3* G = getGravityCenter();
+	const CCVector3* G = getLocalGravityCenter();
 	assert(G);
 
 	//we look for the eigen vector associated to the minimum eigen value of a matrix A
@@ -503,18 +523,18 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 		PointCoordinateType* _M = M.data();
 		for (unsigned i = 0; i < count; ++i)
 		{
-			const CCVector3 P = *m_associatedCloud->getPoint(i) - *G;
+			const CCVector3 Plocal = *m_associatedCloud->getLocalPoint(i) - *G;
 
 			//we fill the ith line
-			(*_M++) = P.x * P.x;
-			(*_M++) = P.y * P.y;
-			(*_M++) = P.z * P.z;
-			(*_M++) = P.x * P.y;
-			(*_M++) = P.y * P.z;
-			(*_M++) = P.x * P.z;
-			(*_M++) = P.x;
-			(*_M++) = P.y;
-			(*_M++) = P.z;
+			(*_M++) = Plocal.x * Plocal.x;
+			(*_M++) = Plocal.y * Plocal.y;
+			(*_M++) = Plocal.z * Plocal.z;
+			(*_M++) = Plocal.x * Plocal.y;
+			(*_M++) = Plocal.y * Plocal.z;
+			(*_M++) = Plocal.x * Plocal.z;
+			(*_M++) = Plocal.x;
+			(*_M++) = Plocal.y;
+			(*_M++) = Plocal.z;
 			(*_M++) = 1;
 		}
 	}
@@ -574,7 +594,7 @@ GenericIndexedMesh* Neighbourhood::triangulateOnPlane( bool duplicateVertices,
 	GenericIndexedMesh* mesh = nullptr;
 	std::vector<CCVector2> points2D;
 
-	if (projectPointsOn2DPlane<CCVector2>(points2D))
+	if (projectLocalPointsOn2DPlane<CCVector2>(points2D))
 	{
 		Delaunay2dMesh* dm = new Delaunay2dMesh();
 
@@ -588,22 +608,28 @@ GenericIndexedMesh* Neighbourhood::triangulateOnPlane( bool duplicateVertices,
 		//change the default mesh's reference
 		if (duplicateVertices)
 		{
-			PointCloud* cloud = new PointCloud();
+			PointCloud* newVertices = new PointCloud;
 			const unsigned count = m_associatedCloud->size();
-			if (!cloud->reserve(count))
+			if (!newVertices->reserve(count))
 			{
 				outputErrorStr = "Not enough memory";
 				delete dm;
-				delete cloud;
+				delete newVertices;
 				return nullptr;
 			}
-			for (unsigned i=0; i<count; ++i)
-				cloud->addPoint(*m_associatedCloud->getPoint(i));
-			dm->linkMeshWith(cloud,true);
+
+			// don't forget to transfer the 'local to global' translation
+			newVertices->setLocalToGlobalTranslation(m_associatedCloud->getLocalToGlobalTranslation());
+
+			for (unsigned i = 0; i < count; ++i)
+			{
+				newVertices->addLocalPoint(*m_associatedCloud->getLocalPoint(i));
+			}
+			dm->linkMeshWith(newVertices, true);
 		}
 		else
 		{
-			dm->linkMeshWith(m_associatedCloud,false);
+			dm->linkMeshWith(m_associatedCloud, false);
 		}
 
 		//remove triangles with too long edges
@@ -638,7 +664,7 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 	}
 
 	//qaudric fit
-	const PointCoordinateType* Q = getQuadric(); //Q: Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
+	const PointCoordinateType* Q = getLocalQuadric(); //Q: Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
 	if (!Q)
 	{
 		return nullptr;
@@ -654,14 +680,14 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 	const PointCoordinateType f = Q[5];
 
 	//gravity center (should be ok if the quadric is ok)
-	const CCVector3* G = getGravityCenter();
+	const CCVector3* G = getLocalGravityCenter();
 	assert(G);
 
 	//bounding box
 	BoundingBox bb;
 	for (unsigned i = 0; i < m_associatedCloud->size(); ++i)
 	{
-		CCVector3 P = m_quadricEquationOrientation * (*m_associatedCloud->getPoint(i) - *G);
+		CCVector3 P = m_quadricEquationOrientation * (*m_associatedCloud->getLocalPoint(i) - *G);
 		bb.add(P);
 	}
 	CCVector3 bboxDiag = bb.getDiagVec();
@@ -672,12 +698,15 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 	const PointCoordinateType stepX = spanX / (nStepX - 1);
 	const PointCoordinateType stepY = spanY / (nStepY - 1);
 
-	PointCloud* vertices = new PointCloud();
+	PointCloud* vertices = new PointCloud;
 	if (!vertices->reserve(nStepX*nStepY))
 	{
 		delete vertices;
 		return nullptr;
 	}
+
+	// don't forget to transfer the 'local to global' translation
+	vertices->setLocalToGlobalTranslation(m_associatedCloud->getLocalToGlobalTranslation());
 
 	SimpleMesh* quadMesh = new SimpleMesh(vertices, true);
 	if (!quadMesh->reserve((nStepX - 1)*(nStepY - 1) * 2))
@@ -704,7 +733,7 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 
 			CCVector3 Pc = toGlobalOrientation * P + *G;
 
-			vertices->addPoint(Pc);
+			vertices->addLocalPoint(Pc);
 
 			if (x != 0 && y != 0)
 			{
@@ -722,7 +751,7 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 	return quadMesh;
 }
 
-ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
+ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& Plocal)
 {
 	if (!m_associatedCloud || m_associatedCloud->size() < 3)
 	{
@@ -748,7 +777,7 @@ ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
 
 	for (unsigned i = 0; i < m_associatedCloud->size(); ++i)
 	{
-		double dotProd = (*m_associatedCloud->getPoint(i) - P).toDouble().dot(e2);
+		double dotProd = (*m_associatedCloud->getLocalPoint(i) - Plocal).toDouble().dot(e2);
 		m1 += dotProd;
 		m2 += dotProd * dotProd;
 	}
@@ -785,84 +814,84 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 
 	switch (feature)
 	{
-		case EigenValuesSum:
-			value = l1 + l2 + l3;
-			break;
-		case Omnivariance:
-			value = pow(l1 * l2 * l3, 1.0/3.0);
-			break;
-		case EigenEntropy:
-			value = -(l1 * log(l1) + l2 * log(l2) + l3 * log(l3));
-			break;
-		case Anisotropy:
-			if (std::abs(l1) > std::numeric_limits<double>::epsilon())
-				value = (l1 - l3) / l1;
-			break;
-		case Planarity:
-			if (std::abs(l1) > std::numeric_limits<double>::epsilon())
-				value = (l2 - l3) / l1;
-			break;
-		case Linearity:
-			if (std::abs(l1) > std::numeric_limits<double>::epsilon())
-				value = (l1 - l2) / l1;
-			break;
-		case PCA1:
-		{
-			double sum = l1 + l2 + l3;
-			if (std::abs(sum) > std::numeric_limits<double>::epsilon())
-				value = l1 / sum;
-		}
-			break;
-		case PCA2:
-		{
-			double sum = l1 + l2 + l3;
-			if (std::abs(sum) > std::numeric_limits<double>::epsilon())
-				value = l2 / sum;
-		}
-			break;
-		case SurfaceVariation:
-		{
-			double sum = l1 + l2 + l3;
-			if (std::abs(sum) > std::numeric_limits<double>::epsilon())
-				value = l3 / sum;
-		}
-			break;
-		case Sphericity:
-			if (std::abs(l1) > std::numeric_limits<double>::epsilon())
-				value = l3 / l1;
-			break;
-		case Verticality:
-		{
-			CCVector3d Z(0, 0, 1);
-			CCVector3d e3(Z);
-			Jacobi<double>::GetEigenVector(eigVectors, 2, e3.u);
+	case EigenValuesSum:
+		value = l1 + l2 + l3;
+		break;
+	case Omnivariance:
+		value = pow(l1 * l2 * l3, 1.0 / 3.0);
+		break;
+	case EigenEntropy:
+		value = -(l1 * log(l1) + l2 * log(l2) + l3 * log(l3));
+		break;
+	case Anisotropy:
+		if (std::abs(l1) > std::numeric_limits<double>::epsilon())
+			value = (l1 - l3) / l1;
+		break;
+	case Planarity:
+		if (std::abs(l1) > std::numeric_limits<double>::epsilon())
+			value = (l2 - l3) / l1;
+		break;
+	case Linearity:
+		if (std::abs(l1) > std::numeric_limits<double>::epsilon())
+			value = (l1 - l2) / l1;
+		break;
+	case PCA1:
+	{
+		double sum = l1 + l2 + l3;
+		if (std::abs(sum) > std::numeric_limits<double>::epsilon())
+			value = l1 / sum;
+	}
+	break;
+	case PCA2:
+	{
+		double sum = l1 + l2 + l3;
+		if (std::abs(sum) > std::numeric_limits<double>::epsilon())
+			value = l2 / sum;
+	}
+	break;
+	case SurfaceVariation:
+	{
+		double sum = l1 + l2 + l3;
+		if (std::abs(sum) > std::numeric_limits<double>::epsilon())
+			value = l3 / sum;
+	}
+	break;
+	case Sphericity:
+		if (std::abs(l1) > std::numeric_limits<double>::epsilon())
+			value = l3 / l1;
+		break;
+	case Verticality:
+	{
+		CCVector3d Z(0, 0, 1);
+		CCVector3d e3(Z);
+		Jacobi<double>::GetEigenVector(eigVectors, 2, e3.u);
 
-			value = 1.0 - std::abs(Z.dot(e3));
-		}
-			break;
-		case EigenValue1:
-			value = l1;
-			break;
-		case EigenValue2:
-			value = l2;
-			break;
-		case EigenValue3:
-			value = l3;
-			break;
-		default:
-			assert(false);
-			break;
+		value = 1.0 - std::abs(Z.dot(e3));
+	}
+	break;
+	case EigenValue1:
+		value = l1;
+		break;
+	case EigenValue2:
+		value = l2;
+		break;
+	case EigenValue3:
+		value = l3;
+		break;
+	default:
+		assert(false);
+		break;
 	}
 
 	return value;
 }
 
-ScalarType Neighbourhood::computeRoughness(const CCVector3& P, const CCVector3* roughnessUpDir/*=nullptr*/)
+ScalarType Neighbourhood::computeRoughness(const CCVector3& Plocal, const CCVector3* roughnessUpDir/*=nullptr*/)
 {
 	const PointCoordinateType* lsPlane = getLSPlane();
 	if (lsPlane)
 	{
-		ScalarType distToPlane = DistanceComputationTools::computePoint2PlaneDistance(&P, lsPlane);
+		ScalarType distToPlane = DistanceComputationTools::computePoint2PlaneDistance(Plocal, lsPlane);
 		if (roughnessUpDir)
 		{
 			if (CCVector3::vdot(lsPlane, roughnessUpDir->u) < 0)
@@ -882,64 +911,62 @@ ScalarType Neighbourhood::computeRoughness(const CCVector3& P, const CCVector3* 
 	}
 }
 
-ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cType)
+ScalarType Neighbourhood::computeCurvature(const CCVector3& Plocal, CurvatureType cType)
 {
 	switch (cType)
 	{
-		case GAUSSIAN_CURV:
-		case MEAN_CURV:
+	case GAUSSIAN_CURV:
+	case MEAN_CURV:
+	{
+		//we get 2D1/2 quadric parameters
+		const PointCoordinateType* H = getLocalQuadric();
+		if (!H)
+			return NAN_VALUE;
+
+		//compute centroid
+		const CCVector3* G = getLocalGravityCenter();
+
+		//we compute curvature at the input neighbour position
+		const CCVector3 Q = m_quadricEquationOrientation * (Plocal - *G);
+
+		//z = a+b.x+c.y+d.x^2+e.x.y+f.y^2
+		//const PointCoordinateType& a = H[0];
+		const PointCoordinateType& b = H[1];
+		const PointCoordinateType& c = H[2];
+		const PointCoordinateType& d = H[3];
+		const PointCoordinateType& e = H[4];
+		const PointCoordinateType& f = H[5];
+
+		//See "CURVATURE OF CURVES AND SURFACES – A PARABOLIC APPROACH" by ZVI HAR’EL
+		const PointCoordinateType  fx = b + (d * 2) * Q.x + (e)* Q.y;	// b+2d*X+eY
+		const PointCoordinateType  fy = c + (e)* Q.x + (f * 2) * Q.y;	// c+2f*Y+eX
+		const PointCoordinateType  fxx = d * 2;							// 2d
+		const PointCoordinateType  fyy = f * 2;							// 2f
+		const PointCoordinateType& fxy = e;								// e
+
+		const PointCoordinateType fx2 = fx * fx;
+		const PointCoordinateType fy2 = fy * fy;
+		const PointCoordinateType q = (1 + fx2 + fy2);
+
+		switch (cType)
 		{
-			//we get 2D1/2 quadric parameters
-			const PointCoordinateType* H = getQuadric();
-			if (!H)
+			case GAUSSIAN_CURV:
 			{
-				return NAN_VALUE;
+				//to sign the curvature, we need a normal!
+				const PointCoordinateType K = std::abs(fxx*fyy - fxy * fxy) / (q*q);
+				return static_cast<ScalarType>(K);
 			}
 
-			//compute gravity center
-			const CCVector3* G = getGravityCenter();
-			
-			//we compute curvature at the input neighbour position
-			const CCVector3 Q = m_quadricEquationOrientation * (P - *G);
-
-			//z = a+b.x+c.y+d.x^2+e.x.y+f.y^2
-			//const PointCoordinateType a = H[0];
-			const double b = H[1];
-			const double c = H[2];
-			const double d = H[3];
-			const double e = H[4];
-			const double f = H[5];
-
-			//See "CURVATURE OF CURVES AND SURFACES – A PARABOLIC APPROACH" by ZVI HAR’EL
-			const double fx	= b + (d*2) * Q.x + (e  ) * Q.y;	// b+2d*X+eY
-			const double fy	= c + (e  ) * Q.x + (f*2) * Q.y;	// c+2f*Y+eX
-			const double fxx	= d*2;							// 2d
-			const double fyy	= f*2;							// 2f
-			const double fxy	= e;							// e
-
-			const double fx2 = fx*fx;
-			const double fy2 = fy*fy;
-			const double q = (1 + fx2 + fy2);
-
-			switch (cType)
+			case MEAN_CURV:
 			{
-				case GAUSSIAN_CURV:
-				{
-					//to sign the curvature, we need a normal!
-					const double K = std::abs(fxx*fyy - fxy * fxy) / (q*q);
-					return static_cast<ScalarType>(K);
-				}
+				//to sign the curvature, we need a normal!
+				const double H2 = std::abs(((1 + fx2)*fyy - 2 * fx*fy*fxy + (1 + fy2)*fxx)) / (2 * sqrt(q)*q);
+				return static_cast<ScalarType>(H2);
+			}
 
-				case MEAN_CURV:
-				{
-					//to sign the curvature, we need a normal!
-					const double H2 = std::abs(((1 + fx2)*fyy - 2 * fx*fy*fxy + (1 + fy2)*fxx)) / (2 * sqrt(q)*q);
-					return static_cast<ScalarType>(H2);
-				}
-
-				default:
-					assert(false);
-					break;
+			default:
+				assert(false);
+				break;
 			}
 		}
 		break;

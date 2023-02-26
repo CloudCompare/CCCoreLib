@@ -79,14 +79,18 @@ namespace CCCoreLib
 
 		//inherited methods (see GenericMesh)
 		unsigned size() const override { return m_numberOfTriangles; }
-		void forEach(genericTriangleAction action) override;
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
+		void getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
+		void getGlobalBoundingBox(CCVector3d& bbMin, CCVector3d& bbMax) override;
 		void placeIteratorAtBeginning() override;
-		GenericTriangle* _getNextTriangle() override;
-		GenericTriangle* _getTriangle(unsigned triangleIndex) override;
+		GenericLocalTriangle* _getNextLocalTriangle() override; //temporary
+		GenericGlobalTriangle* _getNextGlobalTriangle() override; //temporary
+		GenericLocalTriangle* _getLocalTriangle(unsigned triangleIndex) override; //temporary
+		GenericGlobalTriangle* _getGlobalTriangle(unsigned triangleIndex) override; //temporary
 		VerticesIndexes* getNextTriangleVertIndexes() override;
 		VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) override;
-		void getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
+		void getLocalTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
+		void getGlobalTriangleVertices(unsigned triangleIndex, CCVector3d& A, CCVector3d& B, CCVector3d& C) const override;
+		CCVector3d getLocalToGlobalTranslation() const override;
 
 		//! Returns triangles indexes array (pointer to)
 		/** Handle with care!
@@ -129,8 +133,10 @@ namespace CCCoreLib
 		//! Specifies if the associated cloud should be deleted when the mesh is deleted
 		bool m_cloudIsOwnedByMesh;
 
-		//! Dump triangle structure to transmit temporary data
-		SimpleTriangle m_dumpTriangle;
+		//! Temporary local triangle structure
+		SimpleLocalTriangle m_tempLocalTriangle;
+		//! Temporary global triangle structure
+		SimpleGlobalTriangle m_tempGlobalTriangle;
 
 		//! Dump triangle index structure to transmit temporary data
 		VerticesIndexes m_dumpTriangleIndexes;

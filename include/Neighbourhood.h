@@ -69,8 +69,7 @@ namespace CCCoreLib
 		enum InputVectorsUsage { UseOXYasBase, UseYAsUpDir, None };
 
 		//! Projects points on the best fitting LS plane
-		/** Projected points are stored in the points2D vector.
-			\param points2D output set
+		/** \param points2D projected points (output)
 			\param planeEquation custom plane equation (otherwise the default Neighbouhood's one is used)
 			\param O if set, the local plane base origin will be output here
 			\param X if set, the local plane base X vector will be output here
@@ -78,12 +77,12 @@ namespace CCCoreLib
 			\param vectorsUsage Defines how input vectors should be used
 			\return success
 		**/
-		template<class Vec2D> bool projectPointsOn2DPlane(	std::vector<Vec2D>& points2D,
-															const PointCoordinateType* planeEquation = nullptr,
-															CCVector3* O = nullptr,
-															CCVector3* X = nullptr,
-															CCVector3* Y = nullptr,
-															InputVectorsUsage vectorsUsage = None)
+		template<class Vec2D> bool projectLocalPointsOn2DPlane(	std::vector<Vec2D>& points2D,
+																const PointCoordinateType* planeEquation = nullptr,
+																CCVector3* O = nullptr,
+																CCVector3* X = nullptr,
+																CCVector3* Y = nullptr,
+																InputVectorsUsage vectorsUsage = None)
 		{
 			//need at least one point ;)
 			unsigned count = (m_associatedCloud ? m_associatedCloud->size() : 0);
@@ -131,7 +130,7 @@ namespace CCCoreLib
 					CCMiscTools::ComputeBaseVectors(N, u, v);
 				}
 				//get the barycenter
-				const CCVector3* _G = getGravityCenter();
+				const CCVector3* _G = getLocalGravityCenter();
 				assert(_G);
 				G = *_G;
 			}
@@ -140,7 +139,7 @@ namespace CCCoreLib
 			for (unsigned i = 0; i < count; ++i)
 			{
 				//we recenter current point
-				const CCVector3 P = *m_associatedCloud->getPoint(i) - G;
+				const CCVector3 P = *m_associatedCloud->getLocalPoint(i) - G;
 
 				//then we project it on plane (with scalar prods)
 				points2D[i] = Vec2D(P.dot(u), P.dot(v));
@@ -188,38 +187,40 @@ namespace CCCoreLib
 		double computeFeature(GeomFeature feature);
 
 		//! Computes the 1st order moment of a set of point (based on the eigenvalues)
-		/** \return 1st order moment at a given position P
-			DGM: The article states that the result should be between 0 and 1,
+		/** DGM: The article states that the result should be between 0 and 1,
 			but this is actually wrong (as (a + b)^2 can be > a^2 + b^2)
+			\param Plocal (local) point where to compute the moment of order 1
+			\return 1st order moment at a given position P
 		**/
-		ScalarType computeMomentOrder1(const CCVector3& P);
+		ScalarType computeMomentOrder1(const CCVector3& Plocal);
 
 		//! Computes the roughness of a point (by fitting a 2D plane on its neighbors)
-		/** \param P point for which to compute the roughness value
+		/** \warning The input point shouldn't be in the set of points
+			\param Plocal (local) point where to compute the roughness value
 			\param roughnessUpDir up direction to compute a signed roughness value (optional)
-			\return roughness value at a given position P
-			\warning The point P shouldn't be in the set of points
+			\return roughness value
 		**/
-		ScalarType computeRoughness(const CCVector3& P, const CCVector3* roughnessUpDir = nullptr);
+		ScalarType computeRoughness(const CCVector3& Plocal, const CCVector3* roughnessUpDir = nullptr);
 
 		//! Computes the curvature of a set of point (by fitting a 2.5D quadric)
-		/** \return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation failed
-			\warning The curvature value is always unsigned
+		/** \warning The curvature value is always unsigned
+			\param Plocal (local) point where to compute the curvature
+			\return curvature value at a given position P or CCCoreLib::NAN_VALUE if the computation failed
 		**/
-		ScalarType computeCurvature(const CCVector3& P, CurvatureType cType);
+		ScalarType computeCurvature(const CCVector3& Plocal, CurvatureType cType);
 
 		/**** GETTERS ****/
 
-		//! Returns gravity center
+		//! Returns the (local) gravity center
 		/** \return nullptr if computation failed
 		**/
-		const CCVector3* getGravityCenter();
+		const CCVector3* getLocalGravityCenter();
 
 		//! Sets gravity center
 		/** Handle with care!
 			\param G gravity center
 		**/
-		void setGravityCenter(const CCVector3& G);
+		void setLocalGravityCenter(const CCVector3& G);
 
 		//! Returns best interpolating plane equation (Least-square)
 		/** Returns an array of the form [a,b,c,d] such as:
@@ -256,7 +257,7 @@ namespace CCCoreLib
 		**/
 		const CCVector3* getLSPlaneNormal();
 
-		//! Returns the best interpolating 2.5D quadric
+		//! Returns the best interpolating 2.5D quadric (in the global coordinate system)
 		/** Returns an array of the form [a,b,c,d,e,f] such as:
 				Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
 			\warning: 'X','Y' and 'Z' are implicitly expressed in a local coordinate system (see 'toLocalCS')
@@ -264,7 +265,7 @@ namespace CCCoreLib
 											(point coordinates should already be expressed relative to the gravity center)
 			\return nullptr if computation failed
 		**/
-		const PointCoordinateType* getQuadric(SquareMatrix* localOrientation = nullptr);
+		const PointCoordinateType* getLocalQuadric(SquareMatrix* toLocalOrientation = nullptr);
 
 		//! Computes the best interpolating quadric (Least-square)
 		/** \param[out] quadricEquation an array of 10 coefficients [a,b,c,d,e,f,g,l,m,n] such as
@@ -281,19 +282,19 @@ namespace CCCoreLib
 
 	protected:
 
-		//! 2.5D Quadric equation
+		//! 2.5D Quadric equation (in the Local coordinate system)
 		/** Array [a,b,c,d,e,f] such that Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2.
 			\warning: 'X','Y' and 'Z' are defined by 'm_quadricEquationDirections'
 			Only valid if 'structuresValidity & QUADRIC != 0'.
 		**/
-		PointCoordinateType m_quadricEquation[6];
+		PointCoordinateType m_localQuadricEquation[6];
 
 		//! 2.5D Quadric equation local coordinate/orientation system
 		/** Only valid if 'structuresValidity & QUADRIC != 0'.
 		**/
 		SquareMatrix m_quadricEquationOrientation;
 
-		//! Least-square best fitting plane parameters
+		//! Least-square best fitting plane parameters (in the Local coordinate system)
 		/** Array [a,b,c,d] such that ax+by+cz = d
 			Only valid if 'structuresValidity & LS_PLANE != 0'.
 		**/
@@ -304,16 +305,16 @@ namespace CCCoreLib
 		**/
 		CCVector3 m_lsPlaneVectors[3];
 
-		//! Gravity center
+		//! Gravity center (in the local coordinate system)
 		/** Only valid if 'structuresValidity & GRAVITY_CENTER != 0'.
 		**/
-		CCVector3 m_gravityCenter;
+		CCVector3 m_localGravityCenter;
 
 		//! Geometrical elements validity (flags)
 		unsigned char m_structuresValidity;
 
-		//! Computes the gravity center
-		void computeGravityCenter();
+		//! Computes the gravity center (local coordinate system)
+		bool computeLocalGravityCenter();
 		//! Computes the least-square best fitting plane
 		bool computeLeastSquareBestFittingPlane();
 		//! Computes best fitting 2.5D quadric

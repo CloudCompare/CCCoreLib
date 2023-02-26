@@ -36,19 +36,19 @@ namespace CCCoreLib
 		//! Initializes the distance transform with a mesh
 		inline bool initDT(	GenericIndexedMesh* mesh,
 							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
+							const CCVector3& localGridMinCorner,
 							GenericProgressCallback* progressCb = nullptr)
 		{
-			return intersectWith(mesh, cellLength, gridMinCorner, 1, progressCb);
+			return intersectWith(mesh, cellLength, localGridMinCorner, 1, progressCb);
 		}
 
 		//! Initializes the distance transform with a cloud
 		inline bool initDT(	GenericCloud* cloud,
 							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
+							const CCVector3& localGridMinCorner,
 							GenericProgressCallback* progressCb = nullptr)
 		{
-			return intersectWith(cloud, cellLength, gridMinCorner, 1, progressCb);
+			return intersectWith(cloud, cellLength, localGridMinCorner, 1, progressCb);
 		}
 
 		//! Computes the exact Squared Distance Transform on the whole grid

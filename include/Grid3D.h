@@ -105,14 +105,14 @@ namespace CCCoreLib
 		}
 
 		//! Computes the (grid) cell position that contains a given point
-		inline Tuple3i computeCellPos(const CCVector3& P, const CCVector3& gridMinCorner,PointCoordinateType cellSize) const
+		inline Tuple3i computeCellPos(const CCVector3& P, const CCVector3& gridLocalMinCorner,PointCoordinateType cellSize) const
 		{
 			assert(cellSize > 0);
 
 			//DGM: if we admit that cellLength > 0, then the 'floor' operator is useless (int cast = truncation)
-			Tuple3i cellPos(static_cast<int>(/*floor*/(P.x - gridMinCorner.x) / cellSize),
-							static_cast<int>(/*floor*/(P.y - gridMinCorner.y) / cellSize),
-							static_cast<int>(/*floor*/(P.z - gridMinCorner.z) / cellSize));
+			Tuple3i cellPos(static_cast<int>(/*floor*/(P.x - gridLocalMinCorner.x) / cellSize),
+							static_cast<int>(/*floor*/(P.y - gridLocalMinCorner.y) / cellSize),
+							static_cast<int>(/*floor*/(P.z - gridLocalMinCorner.z) / cellSize));
 
 			return cellPos;
 		}
@@ -129,7 +129,7 @@ namespace CCCoreLib
 		//! Intersects this grid with a mesh
 		bool intersectWith(	GenericIndexedMesh* mesh,
 							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
+							const CCVector3& gridLocalMinCorner,
 							GridElement intersectValue = 0,
 							GenericProgressCallback* progressCb = nullptr)
 		{
@@ -140,7 +140,7 @@ namespace CCCoreLib
 
 			return intersectWith(	mesh,
 									cellLength,
-									gridMinCorner,
+									gridLocalMinCorner,
 									setIntersectValue,
 									progressCb);
 		}
@@ -151,7 +151,7 @@ namespace CCCoreLib
 		//! Intersects this grid with a mesh (generic form)
 		bool intersectWith(	GenericIndexedMesh* mesh,
 							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
+							const CCVector3& gridLocalMinCorner,
 							genericCellTriIntersectionAction action,
 							GenericProgressCallback* progressCb = nullptr)
 		{
@@ -190,7 +190,7 @@ namespace CCCoreLib
 			for (unsigned n = 0; n < numberOfTriangles; ++n)
 			{
 				//get the positions (in the grid) of each vertex
-				const GenericTriangle* T = mesh->_getNextTriangle();
+				const GenericLocalTriangle* T = mesh->_getNextLocalTriangle();
 
 				//current triangle vertices
 				const CCVector3* triPoints[3] {	T->_getA(),
@@ -208,9 +208,9 @@ namespace CCCoreLib
 				{
 					Tuple3i cellPos[3]
 					{
-						computeCellPos(*(triPoints[0]), gridMinCorner, cellLength),
-						computeCellPos(*(triPoints[1]), gridMinCorner, cellLength),
-						computeCellPos(*(triPoints[2]), gridMinCorner, cellLength)
+						computeCellPos(*(triPoints[0]), gridLocalMinCorner, cellLength),
+						computeCellPos(*(triPoints[1]), gridLocalMinCorner, cellLength),
+						computeCellPos(*(triPoints[2]), gridLocalMinCorner, cellLength)
 					};
 
 					//compute the triangle bounding-box
@@ -267,7 +267,7 @@ namespace CCCoreLib
 						if (_currentCell->cellSize == 1)
 						{
 							//compute the (absolute) cell center
-							AB = gridMinCorner + CCVector3::fromArray(currentCellPos.u) * cellLength + halfCellDimensions;
+							AB = gridLocalMinCorner + CCVector3::fromArray(currentCellPos.u) * cellLength + halfCellDimensions;
 
 							//check that the triangle does intersect the cell (box)
 							if (CCMiscTools::TriBoxOverlap(AB, halfCellDimensions, triPoints))
@@ -288,7 +288,7 @@ namespace CCCoreLib
 							char pointsPosition[27];
 							{
 								char* _pointsPosition = pointsPosition;
-								CCVector3 distanceToMinBorder = gridMinCorner - (*triPoints[0]);
+								CCVector3 distanceToMinBorder = gridLocalMinCorner - (*triPoints[0]);
 								for (int i = 0; i < 3; ++i)
 								{
 									AB.x = distanceToMinBorder.x + static_cast<PointCoordinateType>(currentCellPos.x + i * halfCellSize) * cellLength;
@@ -379,7 +379,7 @@ namespace CCCoreLib
 		//! Intersects this grid with a cloud
 		bool intersectWith(GenericCloud* cloud,
 							PointCoordinateType cellLength,
-							const CCVector3& gridMinCorner,
+							const CCVector3& gridLocalMinCorner,
 							GridElement intersectValue = 0,
 							GenericProgressCallback* progressCb = nullptr)
 		{
@@ -414,7 +414,7 @@ namespace CCCoreLib
 			cloud->placeIteratorAtBeginning();
 			for (unsigned n = 0; n < numberOfPoints; ++n)
 			{
-				Tuple3i cellPos = computeCellPos(*cloud->getNextPoint(), gridMinCorner, cellLength);
+				Tuple3i cellPos = computeCellPos(*cloud->getNextLocalPoint(), gridLocalMinCorner, cellLength);
 
 				if (	(cellPos.x >= 0 && cellPos.x < static_cast<int>(size().x)) &&
 						(cellPos.y >= 0 && cellPos.y < static_cast<int>(size().y)) &&

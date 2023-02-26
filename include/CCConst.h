@@ -8,6 +8,7 @@
 //system
 #include <cmath>
 #include <limits>
+#include <stdint.h>
 
 //! Pi - outside namespace because it's mostly-standard
 #ifndef M_PI
@@ -56,10 +57,10 @@ namespace CCCoreLib
 	// Point visibility states
 	// By default visibility is expressed relative to the sensor point of view.
 	// Warning: 'visible' value must always be the lowest!
-	constexpr unsigned char POINT_VISIBLE			=	0;	//!< Point visibility state: visible
-	constexpr unsigned char POINT_HIDDEN			=	1;	//!< Point visibility state: hidden (e.g. behind other points)
-	constexpr unsigned char POINT_OUT_OF_RANGE		=	2;	//!< Point visibility state: out of range
-	constexpr unsigned char POINT_OUT_OF_FOV		=	4;	//!< Point visibility state: out of field of view
+	constexpr uint8_t POINT_VISIBLE			=	0;	//!< Point visibility state: visible
+	constexpr uint8_t POINT_HIDDEN			=	1;	//!< Point visibility state: hidden (e.g. behind other points)
+	constexpr uint8_t POINT_OUT_OF_RANGE	=	2;	//!< Point visibility state: out of range
+	constexpr uint8_t POINT_OUT_OF_FOV		=	4;	//!< Point visibility state: out of field of view
 	
 	//! Chamfer distances types
 	enum CHAMFER_DISTANCE_TYPE {
@@ -76,7 +77,7 @@ namespace CCCoreLib
 	};
 	
 	//! Min number of points to compute local models (see CC_LOCAL_MODEL_TYPES)
-	constexpr unsigned CC_LOCAL_MODEL_MIN_SIZE[] {
+	constexpr uint32_t CC_LOCAL_MODEL_MIN_SIZE[] {
 		1,	//!< for single point model (i.e. no model ;)
 		3,	//!< for least Square best fitting plane
 		3,	//!< for Delaunay triangulation (2.5D)

@@ -18,7 +18,6 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/FastMarchingForPropagation.cpp
 		${CMAKE_CURRENT_LIST_DIR}/GeometricalAnalysisTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/GridAndMeshIntersection.cpp
-		${CMAKE_CURRENT_LIST_DIR}/KdTree.cpp
 		${CMAKE_CURRENT_LIST_DIR}/Kriging.cpp
 		${CMAKE_CURRENT_LIST_DIR}/LocalModel.cpp
 		${CMAKE_CURRENT_LIST_DIR}/ManualSegmentationTools.cpp
@@ -26,6 +25,7 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/Neighbourhood.cpp
 		${CMAKE_CURRENT_LIST_DIR}/NormalDistribution.cpp
 		${CMAKE_CURRENT_LIST_DIR}/NormalizedProgress.cpp
+		${CMAKE_CURRENT_LIST_DIR}/PointCloud.cpp
 		${CMAKE_CURRENT_LIST_DIR}/PointProjectionTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/Polyline.cpp
 		${CMAKE_CURRENT_LIST_DIR}/ReferenceCloud.cpp

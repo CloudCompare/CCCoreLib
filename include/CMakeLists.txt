@@ -38,7 +38,6 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/Grid3D.h
 		${CMAKE_CURRENT_LIST_DIR}/GridAndMeshIntersection.h
 		${CMAKE_CURRENT_LIST_DIR}/Jacobi.h
-		${CMAKE_CURRENT_LIST_DIR}/KdTree.h
 		${CMAKE_CURRENT_LIST_DIR}/Kriging.h
 		${CMAKE_CURRENT_LIST_DIR}/LocalModel.h
 		${CMAKE_CURRENT_LIST_DIR}/ManualSegmentationTools.h

@@ -179,7 +179,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+	cell.parentOctree->computeLocalCellCenter(nNSS.cellPos, cell.level, nNSS.localCellCenter);
 
 	unsigned n = cell.points->size(); //number of points in the current cell
 
@@ -198,7 +198,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 		DgmOctree::NeighboursSet::iterator it = nNSS.pointsInNeighbourhood.begin();
 		for (unsigned i = 0; i < n; ++i, ++it)
 		{
-			it->point = cell.points->getPointPersistentPtr(i);
+			it->localPoint = cell.points->getLocalPointPersistentPtr(i);
 			it->pointIndex = cell.points->getPointGlobalIndex(i);
 		}
 	}
@@ -207,7 +207,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 	//for each point in the cell
 	for (unsigned i = 0; i < n; ++i)
 	{
-		cell.points->getPoint(i, nNSS.queryPoint);
+		cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 
 		//look for neighbors in a sphere
 		//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (neighborCount)!
@@ -220,7 +220,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 			case Feature:
 				if (neighborCount > 3)
 				{
-					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+					DgmOctreeReferenceCloud neighboursCloud(nNSS.pointsInNeighbourhood, neighborCount);
 					Neighbourhood Z(&neighboursCloud);
 					value = static_cast<ScalarType>(Z.computeFeature(static_cast<Neighbourhood::GeomFeature>(subOption)));
 				}
@@ -229,9 +229,9 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 			case Curvature:
 				if (neighborCount > 5)
 				{
-					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+					DgmOctreeReferenceCloud neighboursCloud(nNSS.pointsInNeighbourhood, neighborCount);
 					Neighbourhood Z(&neighboursCloud);
-					value = Z.computeCurvature(nNSS.queryPoint, static_cast<Neighbourhood::CurvatureType>(subOption));
+					value = Z.computeCurvature(nNSS.localQueryPoint, static_cast<Neighbourhood::CurvatureType>(subOption));
 				}
 				break;
 
@@ -258,9 +258,9 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 						std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
 					}
 
-					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount - 1); //we don't take the query point into account!
+					DgmOctreeReferenceCloud neighboursCloud(nNSS.pointsInNeighbourhood, neighborCount - 1); //we don't take the query point into account!
 					Neighbourhood Z(&neighboursCloud);
-					value = Z.computeRoughness(nNSS.queryPoint, roughnessUpDir);
+					value = Z.computeRoughness(nNSS.localQueryPoint, roughnessUpDir);
 
 					//swap the points back to their original position (DGM: not necessary in this case)
 					//if (localIndex+1 < neighborCount)
@@ -272,9 +272,9 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree:
 
 			case MomentOrder1:
 			{
-				DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+				DgmOctreeReferenceCloud neighboursCloud(nNSS.pointsInNeighbourhood, neighborCount);
 				Neighbourhood Z(&neighboursCloud);
-				value = Z.computeMomentOrder1(nNSS.queryPoint);
+				value = Z.computeMomentOrder1(nNSS.localQueryPoint);
 			}
 				break;
 
@@ -323,7 +323,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoint
 	}
 	
 	//set all flags to 0 by default
-	cloud->forEach(ScalarFieldTools::SetScalarValueToZero);
+	cloud->forEachScalarValue(ScalarFieldTools::SetScalarValueToZero);
 
 	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(static_cast<PointCoordinateType>(minDistanceBetweenPoints));
 
@@ -366,7 +366,7 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctre
 	DgmOctree::NearestNeighboursSearchStruct nNSS;
 	nNSS.level = cell.level;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+	cell.parentOctree->computeLocalCellCenter(nNSS.cellPos, cell.level, nNSS.localCellCenter);
 
 	unsigned n = cell.points->size(); //number of points in the current cell
 
@@ -376,7 +376,7 @@ bool GeometricalAnalysisTools::FlagDuplicatePointsInACellAtLevel(	const DgmOctre
 		//don't process points already flagged as 'duplicate'
 		if (cell.points->getPointScalarValue(i) == 0)
 		{
-			cell.points->getPoint(i, nNSS.queryPoint);
+			cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 
 			//look for neighbors in a sphere
 			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (neighborCount)!
@@ -472,12 +472,12 @@ bool GeometricalAnalysisTools::ComputeApproxPointsDensityInACellAtLevel(const Dg
 	nNSS.alreadyVisitedNeighbourhoodSize	= 0;
 	nNSS.minNumberOfNeighbors				= 2;
 	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+	cell.parentOctree->computeLocalCellCenter(nNSS.cellPos, cell.level, nNSS.localCellCenter);
 
 	unsigned n = cell.points->size();
 	for (unsigned i = 0; i < n; ++i)
 	{
-		cell.points->getPoint(i, nNSS.queryPoint);
+		cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 
 		//the first point is always the point itself!
 		if (cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS) > 1)
@@ -530,7 +530,7 @@ bool GeometricalAnalysisTools::ComputeApproxPointsDensityInACellAtLevel(const Dg
 	return true;
 }
 
-CCVector3 GeometricalAnalysisTools::ComputeGravityCenter(GenericCloud* cloud)
+CCVector3 GeometricalAnalysisTools::ComputeLocalGravityCenter(GenericCloud* cloud)
 {
 	assert(cloud);
 
@@ -541,18 +541,18 @@ CCVector3 GeometricalAnalysisTools::ComputeGravityCenter(GenericCloud* cloud)
 	CCVector3d sum(0, 0, 0);
 
 	cloud->placeIteratorAtBeginning();
-	const CCVector3* P = cloud->getNextPoint();
+	const CCVector3* P = cloud->getNextLocalPoint();
 	while (P)
 	{
 		sum += *P;
-		P = cloud->getNextPoint();
+		P = cloud->getNextLocalPoint();
 	}
 
 	sum /= static_cast<double>(count);
 	return sum.toPC();
 }
 
-CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* cloud, ScalarField* weights)
+CCVector3 GeometricalAnalysisTools::ComputeWeightedLocalGravityCenter(GenericCloud* cloud, ScalarField* weights)
 {
 	assert(cloud && weights);
 
@@ -566,7 +566,7 @@ CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* c
 	double wSum = 0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getNextPoint();
+		const CCVector3* P = cloud->getNextLocalPoint();
 		ScalarType w = weights->getValue(i);
 		if (!ScalarField::ValidValue(w))
 			continue;
@@ -582,15 +582,17 @@ CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* c
 }
 
 
-SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const PointCoordinateType* _gravityCenter)
+SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const CCVector3* localGravityCenter)
 {
 	assert(cloud);
 	unsigned n = (cloud ? cloud->size() : 0);
 	if (n == 0)
-		return SquareMatrixd();
+	{
+		return {};
+	}
 
 	//gravity center
-	CCVector3 G = (_gravityCenter ?  CCVector3(_gravityCenter) : ComputeGravityCenter(cloud));
+	CCVector3 G = (localGravityCenter ?  *localGravityCenter : ComputeLocalGravityCenter(cloud));
 
 	//cross sums (we use doubles to avoid overflow)
 	double mXX = 0.0;
@@ -603,7 +605,7 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cl
 	cloud->placeIteratorAtBeginning();
 	for (unsigned i = 0; i < n; ++i)
 	{
-		const CCVector3* Q = cloud->getNextPoint();
+		const CCVector3* Q = cloud->getNextLocalPoint();
 
 		CCVector3 P = *Q - G;
 		mXX += static_cast<double>(P.x*P.x);
@@ -647,8 +649,8 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(GenericClou
 	unsigned count = P->size();
 	for (unsigned i = 0; i < count; i++)
 	{
-		CCVector3 Pt = *P->getNextPoint() - Gp;
-		CCVector3 Qt = *Q->getNextPoint() - Gq;
+		CCVector3 Pt = *P->getNextLocalPoint() - Gp;
+		CCVector3 Qt = *Q->getNextLocalPoint() - Gq;
 
 		l1[0] += static_cast<double>(Pt.x) * Qt.x;
 		l1[1] += static_cast<double>(Pt.x) * Qt.y;
@@ -691,8 +693,8 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(	Ge
 	double wSum = 0.0; //we will normalize by the sum
 	for (unsigned i = 0; i<count; i++)
 	{
-		const CCVector3* Pt = P->getNextPoint();
-		const CCVector3* Qt = Q->getNextPoint();
+		const CCVector3* Pt = P->getNextLocalPoint();
+		const CCVector3* Qt = Q->getNextLocalPoint();
 
 		//Weighting scheme for cross-covariance is inspired from
 		//https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_covariance
@@ -765,7 +767,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 	{
 		for (unsigned i = 0; i < count; ++i)
 		{
-			const CCVector3* P = cloud->getPoint(i);
+			const CCVector3* P = cloud->getLocalPoint(i);
 			G += *P;
 		}
 		G /= count;
@@ -780,7 +782,7 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 		unsigned realCount = 0;
 		for (unsigned i = 0; i < count; ++i)
 		{
-			const CCVector3* Pi = cloud->getPoint(i);
+			const CCVector3* Pi = cloud->getLocalPoint(i);
 			CCVector3d Di = Pi->toDouble() - c;
 			double norm = Di.norm();
 			if (LessThanEpsilon(norm))
@@ -917,10 +919,10 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		}
 
 		assert(p == 4);
-		const CCVector3* A = cloud->getPoint(indexes[0]);
-		const CCVector3* B = cloud->getPoint(indexes[1]);
-		const CCVector3* C = cloud->getPoint(indexes[2]);
-		const CCVector3* D = cloud->getPoint(indexes[3]);
+		const CCVector3* A = cloud->getLocalPoint(indexes[0]);
+		const CCVector3* B = cloud->getLocalPoint(indexes[1]);
+		const CCVector3* C = cloud->getLocalPoint(indexes[2]);
+		const CCVector3* D = cloud->getLocalPoint(indexes[3]);
 
 		++attempts;
 		CCVector3 thisCenter;
@@ -939,7 +941,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		//compute residuals
 		for (unsigned i = 0; i < n; ++i)
 		{
-			PointCoordinateType error = (*cloud->getPoint(i) - thisCenter).norm() - thisRadius;
+			PointCoordinateType error = (*cloud->getLocalPoint(i) - thisCenter).norm() - thisRadius;
 			values[i] = error*error;
 		}
 
@@ -988,7 +990,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 			//compute residuals and select the points
 			for (unsigned i = 0; i < n; ++i)
 			{
-				PointCoordinateType error = (*cloud->getPoint(i) - center).norm() - radius;
+				PointCoordinateType error = (*cloud->getLocalPoint(i) - center).norm() - radius;
 				if (error < maxResidual)
 					candidates.addPointIndex(i);
 			}
@@ -1014,7 +1016,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		double residuals = 0;
 		for (unsigned i = 0; i < n; ++i)
 		{
-			const CCVector3* P = cloud->getPoint(i);
+			const CCVector3* P = cloud->getLocalPoint(i);
 			double e = (*P - center).norm() - radius;
 			residuals += e*e;
 		}
@@ -1128,7 +1130,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircle(	Gene
 	}
 
 	// compute the cloud (gravity) center
-	const CCVector3* G = Yk.getGravityCenter();
+	const CCVector3* G = Yk.getLocalGravityCenter();
 	assert(G);
 
 #ifdef DEBUG_TRACE
@@ -1155,7 +1157,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircle(	Gene
 		//step 3: project the point cloud onto a 2D plane
 		for (unsigned i = 0; i < n; ++i)
 		{
-			CCVector3 Plocal = *cloud->getPoint(i) - *G;
+			CCVector3 Plocal = *cloud->getLocalPoint(i) - *G;
 			pointsOnPlane[i] = { Plocal.dot(x), Plocal.dot(y) };
 		}
 

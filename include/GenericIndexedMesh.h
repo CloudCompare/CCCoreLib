@@ -50,13 +50,21 @@ namespace CCCoreLib
 		//! Default destructor
 		~GenericIndexedMesh() override = default;
 
-		//! Returns the ith triangle
+		//! Returns a given (local) triangle
 		/**	Virtual method to request a triangle with a specific index.
 			The returned object can be temporary.
 			\param triangleIndex of the requested triangle (between 0 and the mesh size-1)
 			\return the requested triangle, or 0 if index value is not valid
 		**/
-		virtual GenericTriangle* _getTriangle(unsigned triangleIndex) = 0;
+		virtual GenericLocalTriangle* _getLocalTriangle(unsigned triangleIndex) = 0;
+
+		//! Returns a given (global) triangle
+		/**	Virtual method to request a triangle with a specific index.
+			The returned object can be temporary.
+			\param triangleIndex of the requested triangle (between 0 and the mesh size-1)
+			\return the requested triangle, or 0 if index value is not valid
+		**/
+		virtual GenericGlobalTriangle* _getGlobalTriangle(unsigned triangleIndex) = 0;
 
 		//! Returns the indexes of the vertices of a given triangle
 		/**	\param triangleIndex index of the triangle (between 0 and size(mesh)-1)
@@ -64,13 +72,21 @@ namespace CCCoreLib
 		**/
 		virtual VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) = 0;
 
-		//! Returns the vertices of a given triangle
+		//! Returns the vertices of a given triangle (local  coordinate system)
 		/**	\param[in] triangleIndex index of the triangle (between 0 and the size(mesh)-1)
 			\param[out] A first vertex
 			\param[out] B second vertex
 			\param[out] C third vertex
 		**/
-		virtual void getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const = 0;
+		virtual void getLocalTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const = 0;
+
+		//! Returns the vertices of a given triangle (global  coordinate system)
+		/**	\param[in] triangleIndex index of the triangle (between 0 and the size(mesh)-1)
+			\param[out] A first vertex
+			\param[out] B second vertex
+			\param[out] C third vertex
+		**/
+		virtual void getGlobalTriangleVertices(unsigned triangleIndex, CCVector3d& A, CCVector3d& B, CCVector3d& C) const = 0;
 
 		//! Returns the indexes of the vertices of the next triangle (relatively to the global iterator position)
 		/**	\return the triangle indexes (or 0 if the global iterator is out of bounds)
@@ -80,14 +96,23 @@ namespace CCCoreLib
 		//! Returns whether normals are available
 		virtual bool normalsAvailable() const { return false; }
 
-		//! Interpolates normal(s) inside a given triangle
+		//! Interpolates normal(s) inside a given triangle (local coordinate system)
 		/** This method should be ideally overriden by the child class if normals are supported
 			\param[in]  triIndex	triangle index
-			\param[in]  P			point where to interpolate (should be inside the triangle!)
+			\param[in]  localP		local point where to interpolate (should be inside the triangle!)
 			\param[out] N			interpolated normal
 			\return success
 		**/
-		virtual bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) { (void)triIndex; (void)P; (void)N; return false; }
+		virtual bool interpolateNormalsLocal(unsigned triIndex, const CCVector3& localP, CCVector3& N) { (void)triIndex; (void)localP; (void)N; return false; }
+
+		//! Interpolates normal(s) inside a given triangle
+		/** This method should be ideally overriden by the child class if normals are supported
+			\param[in]  triIndex	triangle index
+			\param[in]  globalP		global point where to interpolate (should be inside the triangle!)
+			\param[out] N			interpolated normal
+			\return success
+		**/
+		virtual bool interpolateNormalsGlobal(unsigned triIndex, const CCVector3d& globalP, CCVector3& N) { (void)triIndex; (void)globalP; (void)N; return false; }
 	};
 }
 

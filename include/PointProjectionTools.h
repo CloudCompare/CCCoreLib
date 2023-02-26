@@ -51,11 +51,19 @@ namespace CCCoreLib
 			//! Applies the transformation to a point
 			inline CCVector3 apply(const CCVector3& P) const { return (s * (R * P) + T).toPC(); }
 
-			//! Applies the transformation to a cloud
+			//! Applies the transformation to a cloud (global coordinate system)
 			/** \warning THIS METHOD IS NOT COMPATIBLE WITH PARALLEL STRATEGIES
 				\warning The caller should invalidate the bounding-box manually afterwards
 			**/
-			CC_CORE_LIB_API void apply(GenericIndexedCloudPersist& cloud) const;
+			CC_CORE_LIB_API void applyToLocal(GenericIndexedCloudPersist& cloud) const;
+
+			//! Applies the transformation to a cloud (local coordinate system)
+			/** \warning THIS METHOD IS NOT COMPATIBLE WITH PARALLEL STRATEGIES
+				\warning The caller should invalidate the bounding-box manually afterwards
+				\warning The 'Global to Local' transformation is not modified.
+						 Accuracy loss might occur if the transformation changes the coordinates too much.
+			**/
+			CC_CORE_LIB_API void applyToGlobal(GenericIndexedCloudPersist& cloud) const;
 		};
 
 		//! Develops a cylinder-shaped point cloud around its main axis
@@ -64,14 +72,14 @@ namespace CCCoreLib
 			\param cloud the point cloud to be developed
 			\param radius the cylinder radius
 			\param dim the dimension along which the cylinder axis is aligned (X=0, Y=1, Z=2)
-			\param center a 3D point (as a 3 values array) belonging to the cylinder axis
-			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param globalCenter (optional) a 3D point belonging to the cylinder axis (global coordinate system)
+			\param progressCb (optional) the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the "developed" cloud
 		**/
 		static PointCloud* developCloudOnCylinder(	GenericCloud* cloud,
 													PointCoordinateType radius,
 													unsigned char dim = 2,
-													CCVector3* center = nullptr,
+													const CCVector3d* globalCenter = nullptr,
 													GenericProgressCallback* progressCb = nullptr);
 
 		//! Develops a cone-shaped point cloud around its main axis
@@ -80,16 +88,16 @@ namespace CCCoreLib
 			\param cloud the point cloud to be developed
 			\param dim the dimension along which the cone axis is aligned (X=0, Y=1, Z=2)
 			\param baseRadius the radius of the base of the cone
-			\param alpha the angle of the cone "opening"
-			\param center the 3D point corresponding to the intersection between the cone axis and its base
+			\param alpha_deg the angle of the cone "opening" (in degrees)
+			\param globalCenter the 3D point corresponding to the intersection between the cone axis and its base (in the global coordinate system)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the "developed" cloud
 		**/
 		static PointCloud* developCloudOnCone(	GenericCloud* cloud,
 												unsigned char dim,
 												PointCoordinateType baseRadius,
-												float alpha,
-												const CCVector3& center,
+												double alpha_deg,
+												const CCVector3d& globalCenter,
 												GenericProgressCallback* progressCb = nullptr);
 
 		//! Applies a geometrical transformation to a point cloud

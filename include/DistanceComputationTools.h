@@ -7,13 +7,13 @@
 #include "CCConst.h"
 #include "CCToolbox.h"
 #include "DgmOctree.h"
+#include "GenericTriangle.h"
 #include "Grid3D.h"
 #include "GridAndMeshIntersection.h"
 #include "SquareMatrix.h"
 
 namespace CCCoreLib
 {
-	class GenericTriangle;
 	class GenericIndexedMesh;
 	class GenericCloud;
 	class GenericIndexedCloudPersist;
@@ -236,13 +236,13 @@ namespace CCCoreLib
 			\warning No multi-thread support.
 			\warning No Closest Point Set support.
 
-			\param P				the point
+			\param localP			the point in the mesh local coordinate system
 			\param distance			the output distance
 			\param intersection		a specific structure corresponding the intersection of the mesh with the grid
 			\param params			parameters
 			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
 		**/
-		static int computePoint2MeshDistancesWithOctree(const CCVector3& P,
+		static int computePoint2MeshDistancesWithOctree(const CCVector3& localP,
 														ScalarType& distance,
 														const GridAndMeshIntersection& intersection,
 														Cloud2MeshDistancesComputationParams& params);
@@ -274,46 +274,61 @@ namespace CCCoreLib
 
 	public: //distance to simple entities (triangles, planes, etc.)
 
-		//! Computes the distance between a point and a triangle
+		//! Computes the distance between a (local) point and a (local) triangle
 		/** \warning if not signed, the returned distance is SQUARED!
 
-			\param[in]  P				a 3D point
-			\param[in]  theTriangle		a 3D triangle
-			\param[in]  signedDistance	whether to compute the signed or positive (SQUARED) distance
-			\param[out] nearestP		optional: returns the nearest point on the triangle
-			\param[out] nearestPInside	optional: whether the nearest point (= projection) falls inside the triangle
-			\param[out] dotProd			optional: if signedDistance is true, the dot product between the point and the triangle normal
+			\param P				a 3D point
+			\param triangle			a 3D triangle
+			\param signedDistances	whether to compute the signed or positive (SQUARED) distance
+			\param nearestP			optional: returns the nearest point on the triangle
 			
 			\return the distance between the point and the triangle
 		**/
-		static ScalarType computePoint2TriangleDistance(const CCVector3* P,
-														const GenericTriangle* theTriangle,
-														bool signedDistance,
+		static ScalarType computePoint2TriangleDistance(const CCVector3& P,
+														const GenericLocalTriangle& triangle,
+														bool signedDistances,
 														CCVector3* nearestP = nullptr,
 														bool* nearestPInside = nullptr,
 														double* dotProd = nullptr);
 
+		//! Computes the distance between a (global) point and a (global) triangle
+		/** \warning if not signed, the returned distance is SQUARED!
+
+			\param P				3D point
+			\param triangle			3D triangle
+			\param signedDistances	whether to compute the signed or positive (SQUARED) distance
+			\param nearestP			optional: returns the nearest point on the triangle
+			
+			\return the distance between the point and the triangle
+		**/
+		static ScalarType computePoint2TriangleDistance(const CCVector3d& P,
+														const GenericGlobalTriangle& triangle,
+														bool signedDistances,
+														CCVector3d* nearestP = nullptr,
+														bool* nearestPInside = nullptr,
+														double* dotProd = nullptr);
+
 		//! Computes the (signed) distance between a point and a plane
-		/** \param P				a 3D point
+		/** \param P				3D point
 			\param planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
 
 			\return the signed distance between the point and the plane
 		**/
-		static ScalarType computePoint2PlaneDistance(const CCVector3* P, const PointCoordinateType* planeEquation);
+		static ScalarType computePoint2PlaneDistance(const CCVector3& P, const PointCoordinateType planeEquation[4]);
 
 		//! Computes the squared distance between a point and a line segment
-		/** \param point	a 3D point
-			\param start	the start of line segment
-			\param end		the end of line segment
+		/** \param P			3D point
+			\param lineStart	the start of line segment
+			\param lineEnd		the end of line segment
 
 			\return the squared distance between the point and the line segment
 		**/
-		static ScalarType computePoint2LineSegmentDistSquared(const CCVector3* point, const CCVector3* start, const CCVector3* end);
+		static ScalarType computePoint2LineSegmentDistSquared(const CCVector3& P, const CCVector3& lineStart, const CCVector3& lineEnd);
 
 		//! Computes the distance between each point in a cloud and a cone
-		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  coneP1			center point associated with the larger radii
-			\param[in]  coneP2			center point associated with the smaller radii
+		/** \param[in]  cloud			point cloud
+			\param[in]  localConeP1		center point associated with the larger radii (in the cloud local coordinate system)
+			\param[in]  localConeP2		center point associated with the smaller radii (in the cloud local coordinate system)
 			\param[in]  coneR1			cone radius at coneP1 (larger)
 			\param[in]  coneR2			cone radius at coneP2 (smaller)
 			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
@@ -323,8 +338,8 @@ namespace CCCoreLib
 			\return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2ConeEquation(	GenericIndexedCloudPersist* cloud,
-												const CCVector3& coneP1,
-												const CCVector3& coneP2,
+												const CCVector3& localConeP1,
+												const CCVector3& localConeP2,
 												const PointCoordinateType coneR1,
 												const PointCoordinateType coneR2,
 												bool signedDistances = true,
@@ -333,8 +348,8 @@ namespace CCCoreLib
 
 		//! Computes the distance between each point in a cloud and a cylinder
 		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  cylinderP1		center bottom point
-			\param[in]  cylinderP2		center top point
+			\param[in]  localCylinderP1	center bottom point (in the cloud local coordinate system)
+			\param[in]  localCylinderP2	center top point (in the cloud local coordinate system)
 			\param[in]  cylinderRadius	cylinder radius
 			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
 			\param[in]  solutionType	if true the scalar field will be set to which solution was selected 1-4 (optional)
@@ -343,38 +358,38 @@ namespace CCCoreLib
 			\return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2CylinderEquation(	GenericIndexedCloudPersist* cloud,
-													const CCVector3& cylinderP1,
-													const CCVector3& cylinderP2,
+													const CCVector3& localCylinderP1,
+													const CCVector3& localCylinderP2,
 													const PointCoordinateType cylinderRadius,
 													bool signedDistances = true,
 													bool solutionType = false,
 													double* rms = nullptr);
 
 		//! Computes the distance between each point in a cloud and a sphere
-		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  sphereCenter	sphere 3d center point
-			\param[in]  sphereRadius	sphere radius
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
-			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a sphere (optional)
+		/** \param[in]  cloud				a 3D point cloud
+			\param[in]  localSphereCenter	sphere 3d center point (in the cloud local coordinate system)
+			\param[in]  sphereRadius		sphere radius
+			\param[in]  signedDistances		whether to compute the signed or positive (absolute) distance (optional)
+			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a sphere (optional)
 
 			\return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2SphereEquation(	GenericIndexedCloudPersist *cloud,
-												const CCVector3& sphereCenter,
+												const CCVector3& localSphereCenter,
 												const PointCoordinateType sphereRadius,
 												bool signedDistances = true,
 												double* rms = nullptr);
 
 		//! Computes the distance between each point in a cloud and a plane
 		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
+			\param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1 (in the cloud local coordinate system)
 			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
 			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 
 			\return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2PlaneEquation(	GenericIndexedCloudPersist* cloud,
-												const PointCoordinateType* planeEquation,
+												const PointCoordinateType* localPlaneEquation,
 												bool signedDistances = true,
 												double * rms = nullptr);
 
@@ -383,17 +398,17 @@ namespace CCCoreLib
 			\param[in]  widthX				rectangle width
 			\param[in]  widthY				rectangle height
 			\param[in]  rotationTransform	(plane) rectangle position in space
-			\param[in]  center				(plane) rectangle center point
+			\param[in]  center				(plane) rectangle center point (in the cloud local coordinate system)
 			\param[in]  signedDistances		whether to compute the signed or positive (absolute) distance (optional)
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a rectangle (optional)
 
 			\return negative error code or a positive value in case of success
 		**/
-		static int computeCloud2RectangleEquation(	GenericIndexedCloudPersist *cloud,
+		static int computeCloud2RectangleEquation(	GenericIndexedCloudPersist* cloud,
 													PointCoordinateType widthX,
 													PointCoordinateType widthY,
 													const SquareMatrix& rotationTransform,
-													const CCVector3& center,
+													const CCVector3& localCenter,
 													bool signedDistances = true,
 													double* rms = nullptr);
 
@@ -401,7 +416,7 @@ namespace CCCoreLib
 		/** \param[in]  cloud				a 3D point cloud
 			\param[in]  boxDimensions		box 3D dimensions
 			\param[in]  rotationTransform	box position in space
-			\param[in]  boxCenter			box center point
+			\param[in]  localBoxCenter		box center point (in the cloud local coordinate system)
 			\param[in]  signedDistances		whether to compute the signed or positive (absolute) distance (optional)
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a box (optional)
 
@@ -410,7 +425,7 @@ namespace CCCoreLib
 		static int computeCloud2BoxEquation(GenericIndexedCloudPersist* cloud,
 											const CCVector3& boxDimensions,
 											const SquareMatrix& rotationTransform,
-											const CCVector3& boxCenter,
+											const CCVector3& localBoxCenter,
 											bool signedDistances = true,
 											double* rms = nullptr);
 
@@ -486,42 +501,42 @@ namespace CCCoreLib
 
 		//! Computes the "distance" (see ERROR_MEASURES) between a point cloud and a plane
 		/** \param cloud a point cloud
-			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
+			\param localPlaneEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' (in the cloud local coordinate system)
 			\param measureType measure type
 		**/
 		static ScalarType ComputeCloud2PlaneDistance(	GenericCloud* cloud,
-														const PointCoordinateType* planeEquation,
+														const PointCoordinateType* localPlaneEquation,
 														ERROR_MEASURES measureType);
 
 		//! Computes the maximum distance between a point cloud and a plane
 		/** \warning this method uses the cloud global iterator
 			\param cloud a point cloud
-			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
+			\param localPlaneEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' (in the cloud local coordinate system)
 			\param percent percentage of lowest values ignored
 			\return the max distance @ 'percent' % between the point and the plane
 		**/
 		static ScalarType ComputeCloud2PlaneRobustMax(	GenericCloud* cloud,
-														const PointCoordinateType* planeEquation,
+														const PointCoordinateType* localPlaneEquation,
 														float percent);
 
 		//! Computes the maximum distance between a point cloud and a plane
 		/** \warning this method uses the cloud global iterator
 			\param cloud a point cloud
-			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
+			\param localPlaneEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' (in the cloud local coordinate system)
 			\return the max distance between the point and the plane
 		**/
 		static ScalarType ComputeCloud2PlaneMaxDistance(GenericCloud* cloud,
-														const PointCoordinateType* planeEquation);
+														const PointCoordinateType* localPlaneEquation);
 
 		//! Computes the Root Mean Square (RMS) distance between a cloud and a plane
 		/** Sums the squared distances between each point of the cloud and the plane, then computes the mean value.
 			\warning this method uses the cloud global iterator
 			\param cloud a point cloud
-			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
+			\param localPlaneEquation plane equation: [a,b,c,d] as 'ax+by+cz=d' (in the cloud local coordinate system)
 			\return the RMS of distances (or NaN if an error occurred)
 		**/
 		static ScalarType computeCloud2PlaneDistanceRMS(	GenericCloud* cloud,
-															const PointCoordinateType* planeEquation);
+															const PointCoordinateType* localPlaneEquation);
 
 		//! Returns the (squared) distance from a point to a segment
 		/** \param P 3D point
@@ -588,7 +603,7 @@ namespace CCCoreLib
 												GenericIndexedCloudPersist* referenceCloud,
 												DgmOctree* &comparedOctree,
 												DgmOctree* &referenceOctree,
-												PointCoordinateType maxSearchDist = 0,
+												double maxSearchDist = 0,
 												GenericProgressCallback* progressCb = nullptr);
 
 		//! Returns whether multi-threading (parallel) computation is supported or not

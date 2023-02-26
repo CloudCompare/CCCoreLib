@@ -30,20 +30,22 @@ void ReferenceCloud::clear(bool releaseMemory/*=false*/)
 	m_mutex.unlock();
 }
 
-void ReferenceCloud::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
+void ReferenceCloud::getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
 {
 	m_mutex.lock();
+
 	if (!m_bbox.isValid())
 	{
 		m_bbox.clear();
 		for (unsigned index : m_theIndexes)
 		{
-			m_bbox.add(*m_theAssociatedCloud->getPoint(index));
+			m_bbox.add(*m_theAssociatedCloud->getLocalPoint(index));
 		}
 	}
 
 	bbMin = m_bbox.minCorner();
 	bbMax = m_bbox.maxCorner();
+
 	m_mutex.unlock();
 }
 
@@ -85,7 +87,7 @@ const CCVector3* ReferenceCloud::getCurrentPointCoordinates() const
 {
 	assert(m_theAssociatedCloud && m_globalIterator < size());
 	assert(m_theIndexes[m_globalIterator] < m_theAssociatedCloud->size());
-	return m_theAssociatedCloud->getPointPersistentPtr(m_theIndexes[m_globalIterator]);
+	return m_theAssociatedCloud->getLocalPointPersistentPtr(m_theIndexes[m_globalIterator]);
 }
 
 bool ReferenceCloud::addPointIndex(unsigned globalIndex)
@@ -149,7 +151,7 @@ void ReferenceCloud::setPointIndex(unsigned localIndex, unsigned globalIndex)
 	invalidateBoundingBox();
 }
 
-void ReferenceCloud::forEach(genericPointAction action)
+void ReferenceCloud::forEachScalarValue(GenericScalarValueAction action)
 {
 	assert(m_theAssociatedCloud);
 
@@ -158,8 +160,16 @@ void ReferenceCloud::forEach(genericPointAction action)
 	{
 		unsigned index = m_theIndexes[i];
 		ScalarType d = m_theAssociatedCloud->getPointScalarValue(index);
-		action(*m_theAssociatedCloud->getPointPersistentPtr(index), d);
-		m_theAssociatedCloud->setPointScalarValue(index, d);
+		ScalarType d2 = d;
+		action(d2);
+
+		// Since a call to setPointScalarValue can take quite some time
+		// (we don't know its implementation), we check first if the value has
+		// actually changed before calling it.
+		if (d != d2)
+		{
+			m_theAssociatedCloud->setPointScalarValue(index, d2);
+		}
 	}
 }
 
@@ -196,7 +206,9 @@ bool ReferenceCloud::add(const ReferenceCloud& cloud)
 
 	std::size_t newCount = cloud.m_theIndexes.size();
 	if (newCount == 0)
+	{
 		return true;
+	}
 
 	m_mutex.lock();
 

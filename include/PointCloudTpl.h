@@ -22,16 +22,18 @@ namespace CCCoreLib
 
 	public:
 		//! Default constructor
-		PointCloudTpl()
+		PointCloudTpl(const CCVector3d& fromLocalToGlobal = {})
 			: BaseClass()
+			, m_fromLocalToGlobal(fromLocalToGlobal)
 			, m_currentPointIndex(0)
 			, m_currentInScalarFieldIndex(-1)
 			, m_currentOutScalarFieldIndex(-1)
 		{}
 
 		//! Alternate constructor with a name and ID
-		PointCloudTpl(StringType name, unsigned ID)
+		PointCloudTpl(StringType name, unsigned ID, const CCVector3d& fromLocalToGlobal = {})
 			: BaseClass(name, ID)
+			, m_fromLocalToGlobal(fromLocalToGlobal)
 			, m_currentPointIndex(0)
 			, m_currentInScalarFieldIndex(-1)
 			, m_currentOutScalarFieldIndex(-1)
@@ -41,6 +43,7 @@ namespace CCCoreLib
 		PointCloudTpl(const PointCloudTpl &rhs)
 			: BaseClass()
 			, m_points(rhs.m_points)
+			, m_fromLocalToGlobal(rhs.m_fromLocalToGlobal)
 			, m_bbox(rhs.m_bbox)
 			, m_currentPointIndex(rhs.m_currentPointIndex)
 			, m_scalarFields(rhs.m_scalarFields)
@@ -48,7 +51,7 @@ namespace CCCoreLib
 			, m_currentOutScalarFieldIndex(rhs.m_currentOutScalarFieldIndex)
 		{
 			// Link all the existing scalar fields so they don't get deleted when rhs goes out of scope
-			for (ScalarField *sf : m_scalarFields)
+			for (ScalarField* sf : m_scalarFields)
 			{
 				sf->link();
 			}
@@ -61,9 +64,10 @@ namespace CCCoreLib
 		}
 
 		//! Copy Assignment
-		PointCloudTpl &operator=(const PointCloudTpl &rhs)
+		PointCloudTpl& operator=(const PointCloudTpl& rhs)
 		{
 			m_points = rhs.m_points;
+			m_fromLocalToGlobal = rhs.m_fromLocalToGlobal;
 			m_bbox = rhs.m_bbox;
 			m_currentPointIndex = rhs.m_currentPointIndex;
 			m_scalarFields = rhs.m_scalarFields;
@@ -71,7 +75,7 @@ namespace CCCoreLib
 			m_currentOutScalarFieldIndex = rhs.m_currentOutScalarFieldIndex;
 
 			// Link all the existing scalar fields so they don't get deleted when rhs goes out of scope
-			for (ScalarField *sf : m_scalarFields)
+			for (ScalarField* sf : m_scalarFields)
 			{
 				sf->link();
 			}
@@ -79,44 +83,22 @@ namespace CCCoreLib
 			return *this;
 		}
 
-		inline unsigned size() const override { return static_cast<unsigned>(m_points.size()); }
-
-		void forEach(GenericCloud::genericPointAction action) override
+		// Inherited from GenericCloud
+		inline unsigned size() const override
 		{
-			//there's no point of calling forEach if there's no activated scalar field!
-			ScalarField* currentOutScalarFieldArray = getCurrentOutScalarField();
-			if (!currentOutScalarFieldArray)
-			{
-				assert(false);
-				return;
-			}
-
-			unsigned n = size();
-
-			if (0 != n)
-			{
-				double previousOffset = currentOutScalarFieldArray->getOffset();
-				if (n == currentOutScalarFieldArray->size())
-				{
-					// if we are going to change ALL the values, we can also apply the functor on the offset
-					double firstValue = currentOutScalarFieldArray->getValue(0);
-					action(m_points.front(), firstValue);
-					if (ScalarField::ValidValue(firstValue))
-					{
-						currentOutScalarFieldArray->setOffset(firstValue);
-					}
-				}
-
-				for (unsigned i = 0; i < n; ++i)
-				{
-					ScalarType value = previousOffset + currentOutScalarFieldArray->getLocalValue(i); // warning, the offset has been changed, we can't use getValue anymore
-					action(m_points[i], value);
-					currentOutScalarFieldArray->setValue(i, value);
-				}
-			}
+			return static_cast<unsigned>(m_points.size());
 		}
 
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override
+		//! Returns cloud capacity (i.e. the reserved size)
+		/** \note Might be larger than the cloud size
+		**/
+		inline unsigned capacity() const
+		{
+			return static_cast<unsigned>(m_points.capacity());
+		}
+
+		// Inherited from GenericCloud
+		void getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override
 		{
 			if (!m_bbox.isValid())
 			{
@@ -131,10 +113,49 @@ namespace CCCoreLib
 			bbMax = m_bbox.maxCorner();
 		}
 
-		void placeIteratorAtBeginning() override { m_currentPointIndex = 0; }
+		// Inherited from GenericCloud
+		void placeIteratorAtBeginning() override
+		{
+			m_currentPointIndex = 0;
+		}
 
-		const CCVector3* getNextPoint() override { return (m_currentPointIndex < m_points.size() ? point(m_currentPointIndex++) : 0); }
+		// Inherited from GenericCloud
+		CCVector3d toGlobal(const CCVector3& localPoint) const override { return m_fromLocalToGlobal + CCVector3d::fromArray(localPoint.u); }
 
+		// Inherited from GenericCloud
+		CCVector3 toLocal(const CCVector3d& globalPoint) const override { return CCVector3::fromArray((globalPoint - m_fromLocalToGlobal).u); }
+
+		// Inherited from GenericCloud
+		const CCVector3* getNextLocalPoint() override
+		{
+			return (m_currentPointIndex < m_points.size() ? localPoint(m_currentPointIndex++) : nullptr);
+		}
+
+		// Inherited from GenericCloud
+		const CCVector3d getNextGlobalPoint() override
+		{
+			return (m_currentPointIndex < m_points.size() ? globalPoint(m_currentPointIndex++) : CCVector3d{});
+		}
+
+		// Inherited from GenericIndexedCloud
+		inline const CCVector3* getLocalPoint(unsigned index) const override
+		{
+			return localPoint(index);
+		}
+
+		// Inherited from GenericIndexedCloud
+		inline void getLocalPoint(unsigned index, CCVector3& P) const override
+		{
+			P = *localPoint(index);
+		}
+
+		// Inherited from GenericIndexedCloudPersist
+		inline const CCVector3* getLocalPointPersistentPtr(unsigned index) const override
+		{
+			return localPoint(index);
+		}
+
+		// Inherited from GenericCloud
 		bool enableScalarField() override
 		{
 			if (m_points.empty() && m_points.capacity() == 0)
@@ -185,6 +206,7 @@ namespace CCCoreLib
 			}
 		}
 
+		// Inherited from GenericCloud
 		bool isScalarFieldEnabled() const override
 		{
 			ScalarField* currentInScalarFieldArray = getCurrentInScalarField();
@@ -197,6 +219,7 @@ namespace CCCoreLib
 			return (sfValuesCount != 0 && sfValuesCount >= m_points.size());
 		}
 
+		// Inherited from GenericCloud
 		void setPointScalarValue(unsigned pointIndex, ScalarType value) override
 		{
 			assert(m_currentInScalarFieldIndex >= 0 && m_currentInScalarFieldIndex < static_cast<int>(m_scalarFields.size()));
@@ -209,6 +232,7 @@ namespace CCCoreLib
 			m_scalarFields[m_currentInScalarFieldIndex]->setValue(pointIndex, value);
 		}
 
+		// Inherited from GenericCloud
 		ScalarType getPointScalarValue(unsigned pointIndex) const override
 		{
 			assert(m_currentOutScalarFieldIndex >= 0 && m_currentOutScalarFieldIndex < static_cast<int>(m_scalarFields.size()));
@@ -216,10 +240,30 @@ namespace CCCoreLib
 			return m_scalarFields[m_currentOutScalarFieldIndex]->getValue(pointIndex);
 		}
 
-		inline const CCVector3* getPoint(unsigned index) const override { return point(index); }
-		inline void getPoint(unsigned index, CCVector3& P) const override { P = *point(index); }
+		// Inherited from GenericCloud
+		void forEachScalarValue(GenericCloud::GenericScalarValueAction action) override
+		{
+			//there's no point in calling forEachScalarValue if there's no activated scalar field!
+			ScalarField* currentOutScalarFieldArray = getCurrentOutScalarField();
+			if (!currentOutScalarFieldArray)
+			{
+				assert(false);
+				return;
+			}
 
-		inline const CCVector3* getPointPersistentPtr(unsigned index) const override { return point(index); }
+			unsigned count = size();
+			for (unsigned i = 0; i < count; ++i)
+			{
+				ScalarType sfValue = currentOutScalarFieldArray->getValue(i);
+				ScalarType updatedSFValue = sfValue;
+				action(updatedSFValue);
+
+				if (updatedSFValue != sfValue)
+				{
+					currentOutScalarFieldArray->setValue(i, updatedSFValue);
+				}
+			}
+		}
 
 		//! Adds a scalar values to the active 'in' scalar field
 		/** \param value a scalar value
@@ -232,19 +276,18 @@ namespace CCCoreLib
 			m_scalarFields[m_currentInScalarFieldIndex]->addElement(value);
 		}
 
-		//! Resizes the point database
-		/** The cloud database is resized with the specified size. If the new size
-			is smaller, the overflooding points will be deleted. If its greater,
-			the database is filled with blank points (warning, the
-			PointCloud::addPoint method will insert points after those ones).
+		//! Resizes the set of points as well as the scalar fields
+		/** If the new size is smaller, the exceeding points will be deleted.
+			If it's greater, the vector is filled with blank points
+			(warning, the PointCloudTpl::addPoint method will insert points after those ones).
 			\param newNumberOfPoints the new number of points
-			\return true if the method succeeds, false otherwise
+			\return true if the method succeeds, false otherwise (not enough memory)
 		**/
 		virtual bool resize(unsigned newNumberOfPoints)
 		{
 			std::size_t oldCount = m_points.size();
 
-			//we try to enlarge the 3D points array
+			//try to enlarge the vector of points (size)
 			try
 			{
 				m_points.resize(newNumberOfPoints);
@@ -254,12 +297,12 @@ namespace CCCoreLib
 				return false;
 			}
 
-			//then the scalar fields
+			//now try to enlarge the scalar fields
 			for (std::size_t i = 0; i < m_scalarFields.size(); ++i)
 			{
 				if (!m_scalarFields[i]->resizeSafe(newNumberOfPoints))
 				{
-					//if something fails, we restore the previous size for already processed SFs!
+					//if something fails, we restore the (probably smaller) previous size for already resized SFs!
 					for (std::size_t j = 0; j < i; ++j)
 					{
 						m_scalarFields[j]->resizeSafe(oldCount);
@@ -275,17 +318,17 @@ namespace CCCoreLib
 			return true;
 		}
 
-		//! Reserves memory for the point database
+		//! Reserves memory for the points and scalar fields
 		/** This method tries to reserve some memory to store points
-			that will be inserted later (with PointCloud::addPoint).
+			that will be inserted later (with PointCloudTpl::addPoint).
 			If the new number of points is smaller than the actual one,
 			nothing happens.
 			\param newCapacity the new capacity
-			\return true if the method succeeds, false otherwise
+			\return true if the method succeeds, false otherwise (not enough memory)
 		**/
 		virtual bool reserve(unsigned newCapacity)
 		{
-			//we try to enlarge the 3D points array
+			//try to enlarge the vector of points (capacity)
 			try
 			{
 				m_points.reserve(newCapacity);
@@ -295,43 +338,56 @@ namespace CCCoreLib
 				return false;
 			}
 
-			//then the scalar fields
+			//now try to enlarge the scalar fields
 			for (std::size_t i = 0; i < m_scalarFields.size(); ++i)
 			{
 				if (!m_scalarFields[i]->reserveSafe(newCapacity))
+				{
 					return false;
+				}
 			}
 
 			//double check
 			return (m_points.capacity() >= newCapacity);
 		}
 
-		//! Clears the cloud database
+		//! Clears the cloud
 		/** Equivalent to resize(0).
 		**/
 		void reset()
 		{
-			m_points.resize(0);
 			deleteAllScalarFields();
 			placeIteratorAtBeginning();
+			m_points.resize(0);
 			invalidateBoundingBox();
 		}
 
-		//! Adds a 3D point to the database
-		/** To ensure the best efficiency, the database memory must have already
-			been reserved (with PointCloud::reserve). Otherwise nothing happens.
+		//! Sets the translation from local to global coordinates
+		void setLocalToGlobalTranslation(const CCVector3d& fromLocalToGlobal)
+		{
+			m_fromLocalToGlobal = fromLocalToGlobal;
+		}
+
+		//! Returns the translation from local to global coordinates
+		CCVector3d getLocalToGlobalTranslation() const override
+		{
+			return m_fromLocalToGlobal;
+		}
+
+		//! Adds a 3D local point
+		/** To ensure the best efficiency, the memory must have already
+			been reserved (with PointCloudTpl::reserve).
 			\param P a 3D point
 		**/
-		void addPoint(const CCVector3 &P)
+		void addLocalPoint(const CCVector3& P)
 		{
 			//NaN coordinates check
-			if (	P.x != P.x
-				||	P.y != P.y
-				||	P.z != P.z)
+			if (	std::isnan(P.x)
+				||	std::isnan(P.y)
+				||	std::isnan(P.z))
 			{
 				//replace NaN point by (0, 0, 0)
-				CCVector3 fakeP(0, 0, 0);
-				m_points.push_back(fakeP);
+				m_points.push_back({ 0, 0, 0 });
 			}
 			else
 			{
@@ -341,12 +397,25 @@ namespace CCCoreLib
 			m_bbox.setValidity(false);
 		}
 
-		//! Invalidates bounding box
-		/** Bounding box will be recomputed next time a request is made to 'getBoundingBox'.
+		//! Adds a 3D local point
+		/** To ensure the best efficiency, the memory must have already
+			been reserved (with PointCloudTpl::reserve).
+			\param P a 3D point
 		**/
-		virtual void invalidateBoundingBox() { m_bbox.setValidity(false); }
+		inline void addGlobalPoint(const CCVector3d& P)
+		{
+			addLocalPoint(toLocal(P));
+		}
 
-		/*** scalar fields management ***/
+		//! Invalidates the bounding-box
+		/** Forces the bounding-box to be recomputed next time 'getBoundingBox' is called.
+		**/
+		virtual void invalidateBoundingBox()
+		{
+			m_bbox.setValidity(false);
+		}
+
+	public: //Scalar fields management
 
 		//! Returns the number of associated (and active) scalar fields
 		/** \return the number of active scalar fields
@@ -537,17 +606,20 @@ namespace CCCoreLib
 			}
 		}
 
-		//! Returns cloud capacity (i.e. reserved size)
-		inline unsigned capacity() const { return static_cast<unsigned>(m_points.capacity()); }
-
 	protected:
-		//! Swaps two points (and their associated scalar values!)
+		//! Swaps two points (and their associated scalar values)
 		virtual void swapPoints(unsigned firstIndex, unsigned secondIndex)
 		{
-			if (	firstIndex == secondIndex
-				||	firstIndex >= m_points.size()
-				||	secondIndex >= m_points.size())
+			if (firstIndex == secondIndex)
 			{
+				// nothing to do
+				return;
+			}
+
+			if (firstIndex >= m_points.size() ||	secondIndex >= m_points.size())
+			{
+				// invalid indexes
+				assert(false);
 				return;
 			}
 
@@ -559,36 +631,48 @@ namespace CCCoreLib
 			}
 		}
 
-		//! Returns non const access to a given point
+		//! Non-const access to a given (local) point
 		/** WARNING: index must be valid
 			\param index point index
-			\return pointer on point stored data
+			\return pointer to point data
 		**/
-		inline CCVector3* point(unsigned index) { assert(index < size()); return &(m_points[index]); }
+		inline CCVector3* localPoint(unsigned index) { assert(index < size()); return &(m_points[index]); }
 
-		//! Returns const access to a given point
+		//! Const access to a given (local) point
 		/** WARNING: index must be valid
 			\param index point index
-			\return pointer on point stored data
+			\return pointer to point data
 		**/
-		inline const CCVector3* point(unsigned index) const { assert(index < size()); return &(m_points[index]); }
+		inline const CCVector3* localPoint(unsigned index) const { assert(index < size()); return &(m_points[index]); }
 
-		//! 3D Points database
+		//! Const access to a given (global) point
+		/** WARNING: index must be valid
+			\param index point index
+			\return the global point
+		**/
+		inline CCVector3d globalPoint(unsigned index) const { assert(index < size()); return toGlobal(m_points[index]); }
+
+	public: // member variables
+
+		//! 3D (local) points
 		std::vector<CCVector3> m_points;
+
+		//! Translation from local to global coordinates
+		CCVector3d m_fromLocalToGlobal;
 
 		//! Bounding-box
 		BoundingBox m_bbox;
 
-		//! 'Iterator' on the points db
+		//! 'Iterator' on the point set
 		unsigned m_currentPointIndex;
 
 		//! Associated scalar fields
 		std::vector<ScalarField*> m_scalarFields;
 
-		//! Index of current scalar field used for input
+		//! Index of the current scalar field used for input
 		int m_currentInScalarFieldIndex;
 
-		//! Index of current scalar field used for output
+		//! Index of the current scalar field used for output
 		int m_currentOutScalarFieldIndex;
 	};
 }

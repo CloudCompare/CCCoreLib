@@ -17,8 +17,8 @@ class LSLocalModel : public LocalModel
 public:
 
 	//! Constructor
-	LSLocalModel(const PointCoordinateType eq[4], const CCVector3 &center, PointCoordinateType squaredRadius)
-		: LocalModel(center, squaredRadius)
+	LSLocalModel(const PointCoordinateType eq[4], const CCVector3& localCenter, PointCoordinateType squaredRadius)
+		: LocalModel(localCenter, squaredRadius)
 	{
 		memcpy(m_eq, eq, sizeof(PointCoordinateType) * 4);
 	}
@@ -27,13 +27,13 @@ public:
 	LOCAL_MODEL_TYPES getType() const override { return LS; }
 
 	//inherited from LocalModel
-	ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const override
+	ScalarType computeDistanceFromLocalPointToModel(const CCVector3& Plocal, CCVector3* nearestPoint = nullptr) const override
 	{
-		ScalarType dist = DistanceComputationTools::computePoint2PlaneDistance(P, m_eq);
+		ScalarType dist = DistanceComputationTools::computePoint2PlaneDistance(Plocal, m_eq);
 
 		if (nearestPoint)
 		{
-			*nearestPoint = *P - static_cast<PointCoordinateType>(dist) * CCVector3(m_eq);
+			*nearestPoint = Plocal - static_cast<PointCoordinateType>(dist) * CCVector3(m_eq);
 		}
 
 		return std::abs(dist);
@@ -51,21 +51,25 @@ class DelaunayLocalModel : public LocalModel
 public:
 
 	//! Constructor
-	DelaunayLocalModel(GenericMesh* tri, const CCVector3 &center, PointCoordinateType squaredRadius)
-		: LocalModel(center, squaredRadius)
+	DelaunayLocalModel(GenericMesh* tri, const CCVector3& localCenter, PointCoordinateType squaredRadius)
+		: LocalModel(localCenter, squaredRadius)
 		, m_tri(tri)
 	{
 		assert(tri);
 	}
 
 	//! Destructor
-	~DelaunayLocalModel() override {  delete m_tri; }
+	~DelaunayLocalModel() override
+	{
+		delete m_tri;
+		m_tri = nullptr;
+	}
 
 	//inherited from LocalModel
 	LOCAL_MODEL_TYPES getType() const override { return TRI; }
 
 	//inherited from LocalModel
-	ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const override
+	ScalarType computeDistanceFromLocalPointToModel(const CCVector3& Plocal, CCVector3* nearestPoint = nullptr) const override
 	{
 		ScalarType minDist2 = NAN_VALUE;
 		if (m_tri)
@@ -75,14 +79,16 @@ public:
 			CCVector3 triNearestPoint;
 			for (unsigned i = 0; i < numberOfTriangles; ++i)
 			{
-				GenericTriangle* tri = m_tri->_getNextTriangle();
-				ScalarType dist2 = DistanceComputationTools::computePoint2TriangleDistance(P, tri, false, nearestPoint ? &triNearestPoint : nullptr);
+				GenericLocalTriangle* tri = m_tri->_getNextLocalTriangle();
+				ScalarType dist2 = DistanceComputationTools::computePoint2TriangleDistance(Plocal, *tri, false, nearestPoint ? &triNearestPoint : nullptr);
 				if (dist2 < minDist2 || i == 0)
 				{
 					//keep track of the smallest distance
 					minDist2 = dist2;
 					if (nearestPoint)
+					{
 						*nearestPoint = triNearestPoint;
+					}
 				}
 			}
 		}
@@ -109,12 +115,12 @@ public:
 	//! Constructor
 	QuadricLocalModel(	const PointCoordinateType eq[6],
 						const SquareMatrix& localOrientation,
-						const CCVector3& gravityCenter,
-						const CCVector3 &center,
+						const CCVector3& localGravityCenter,
+						const CCVector3& localCenter,
 						PointCoordinateType squaredRadius )
-		: LocalModel(center, squaredRadius)
+		: LocalModel(localCenter, squaredRadius)
 		, m_localOrientation(localOrientation)
-		, m_gravityCenter(gravityCenter)
+		, m_localGravityCenter(localGravityCenter)
 	{
 		m_localOrientationInv = m_localOrientation.inv();
 		memcpy(m_eq, eq, sizeof(PointCoordinateType) * 6);
@@ -124,23 +130,23 @@ public:
 	LOCAL_MODEL_TYPES getType() const override { return QUADRIC; }
 
 	//inherited from LocalModel
-	ScalarType computeDistanceFromModelToPoint(const CCVector3* _P, CCVector3* nearestPoint = nullptr) const override
+	ScalarType computeDistanceFromLocalPointToModel(const CCVector3& Plocal, CCVector3* nearestPoint = nullptr) const override
 	{
-		CCVector3 Plocal = m_localOrientation * (*_P - m_gravityCenter);
+		CCVector3 P = m_localOrientation * (Plocal - m_localGravityCenter);
 
 		PointCoordinateType z =   m_eq[0]
-								+ m_eq[1] * Plocal.x
-								+ m_eq[2] * Plocal.y
-								+ m_eq[3] * Plocal.x * Plocal.x
-								+ m_eq[4] * Plocal.x * Plocal.y
-								+ m_eq[5] * Plocal.y * Plocal.y;
+								+ m_eq[1] * P.x
+								+ m_eq[2] * P.y
+								+ m_eq[3] * P.x * P.x
+								+ m_eq[4] * P.x * P.y
+								+ m_eq[5] * P.y * P.y;
 
 		if (nearestPoint)
 		{
-			*nearestPoint = m_localOrientationInv * CCVector3(Plocal.x, Plocal.y, z);
+			*nearestPoint = m_localOrientationInv * CCVector3(P.x, P.y, z);
 		}
 
-		return static_cast<ScalarType>(std::abs(Plocal.z - z));
+		return static_cast<ScalarType>(std::abs(P.z - z));
 	}
 
 protected:
@@ -151,19 +157,19 @@ protected:
 	SquareMatrix m_localOrientation;
 	//! Quadric local 'orientation' system (inverse)
 	SquareMatrix m_localOrientationInv;
-	//! Model gravity center
-	CCVector3 m_gravityCenter;
+	//! Model (local) gravity center
+	CCVector3 m_localGravityCenter;
 
 };
 
-LocalModel::LocalModel(const CCVector3 &center, PointCoordinateType squaredRadius)
-	: m_modelCenter(center)
+LocalModel::LocalModel(const CCVector3& localCenter, PointCoordinateType squaredRadius)
+	: m_modelLocalCenter(localCenter)
 	, m_squaredRadius(squaredRadius)
 {}
 
 LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 							Neighbourhood& subset,
-							const CCVector3 &center,
+							const CCVector3& localCenter,
 							PointCoordinateType squaredRadius)
 {
 	switch (type)
@@ -177,7 +183,7 @@ LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 			const PointCoordinateType* lsPlane = subset.getLSPlane();
 			if (lsPlane)
 			{
-				return new LSLocalModel(lsPlane, center, squaredRadius);
+				return new LSLocalModel(lsPlane, localCenter, squaredRadius);
 			}
 		}
 			break;
@@ -191,7 +197,7 @@ LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 														  errorStr ); //'subset' is potentially associated to a volatile ReferenceCloud, so we must duplicate vertices!
 			if (tri)
 			{
-				return new DelaunayLocalModel(tri, center, squaredRadius);
+				return new DelaunayLocalModel(tri, localCenter, squaredRadius);
 			}
 		}
 			break;
@@ -199,13 +205,13 @@ LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 		case QUADRIC:
 		{
 			SquareMatrix toLocalCS;
-			const PointCoordinateType* eq = subset.getQuadric(&toLocalCS);
+			const PointCoordinateType* eq = subset.getLocalQuadric(&toLocalCS);
 			if (eq)
 			{
 				return new QuadricLocalModel(	eq,
 												toLocalCS,
-												*subset.getGravityCenter(), //should be ok as the quadric computation succeeded!
-												center,
+												*subset.getLocalGravityCenter(), //should be ok as the quadric computation succeeded!
+												localCenter,
 												squaredRadius );
 			}
 		}

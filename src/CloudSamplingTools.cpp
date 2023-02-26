@@ -373,7 +373,7 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 		if (markers[i] != 0)
 		{
 			//init neighbor search structure
-			const CCVector3* P = inputCloud->getPoint(i);
+			const CCVector3* P = inputCloud->getLocalPoint(i);
 
 			//parameters modulation
 			if (modParamsEnabled)
@@ -663,16 +663,16 @@ bool CloudSamplingTools::resampleCellAtLevel(	const DgmOctree::octreeCell& cell,
 
 	if (resamplingMethod == CELL_GRAVITY_CENTER)
 	{
-		const CCVector3* P = Neighbourhood(cell.points).getGravityCenter();
+		const CCVector3* P = Neighbourhood(cell.points).getLocalGravityCenter();
 		if (!P)
 			return false;
-		cloud->addPoint(*P);
+		cloud->addLocalPoint(*P);
 	}
 	else //if (resamplingMethod == CELL_CENTER)
 	{
 		CCVector3 center;
-		cell.parentOctree->computeCellCenter(cell.truncatedCode,cell.level,center,true);
-		cloud->addPoint(center);
+		cell.parentOctree->computeLocalCellCenter(cell.truncatedCode, cell.level, center, true);
+		cloud->addLocalPoint(center);
 	}
 
 	if (nProgress && !nProgress->steps(cell.points->size()))
@@ -705,13 +705,13 @@ bool CloudSamplingTools::subsampleCellAtLevel(	const DgmOctree::octreeCell& cell
 	else // if (subsamplingMethod == NEAREST_POINT_TO_CELL_CENTER)
 	{
 		CCVector3 center;
-		cell.parentOctree->computeCellCenter(cell.truncatedCode, cell.level, center, true);
+		cell.parentOctree->computeLocalCellCenter(cell.truncatedCode, cell.level, center, true);
 
-		PointCoordinateType minSquareDist = (*cell.points->getPoint(0) - center).norm2();
+		PointCoordinateType minSquareDist = (*cell.points->getLocalPoint(0) - center).norm2();
 
 		for (unsigned i = 1; i < pointsCount; ++i)
 		{
-			PointCoordinateType squareDist = (*cell.points->getPoint(i) - center).norm2();
+			PointCoordinateType squareDist = (*cell.points->getLocalPoint(i) - center).norm2();
 			if (squareDist < minSquareDist)
 			{
 				selectedPointIndex = i;
@@ -751,14 +751,14 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 			nNSS.minNumberOfNeighbors = knn;
 		}
 		cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-		cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+		cell.parentOctree->computeLocalCellCenter(nNSS.cellPos, cell.level, nNSS.localCellCenter);
 
 		unsigned n = cell.points->size(); //number of points in the current cell
 
 		//for each point in the cell
 		for (unsigned i = 0; i < n; ++i)
 		{
-			cell.points->getPoint(i, nNSS.queryPoint);
+			cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 
 			//look for neighbors (either inside a sphere or the k nearest ones)
 			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (neighborCount)!
@@ -784,7 +784,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 				}
 
 				unsigned realNeighborCount = neighborCount - 1;
-				DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, realNeighborCount); //we don't take the query point into account!
+				DgmOctreeReferenceCloud neighboursCloud(nNSS.pointsInNeighbourhood, realNeighborCount); //we don't take the query point into account!
 				Neighbourhood Z(&neighboursCloud);
 
 				const PointCoordinateType* lsPlane = Z.getLSPlane();
@@ -798,8 +798,8 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 						double sum_d2 = 0;
 						for (unsigned j = 0; j < realNeighborCount; ++j)
 						{
-							const CCVector3* P = neighboursCloud.getPoint(j);
-							double d = DistanceComputationTools::computePoint2PlaneDistance(P, lsPlane);
+							const CCVector3* P = neighboursCloud.getLocalPoint(j);
+							double d = DistanceComputationTools::computePoint2PlaneDistance(*P, lsPlane);
 							sum_d += d;
 							sum_d2 += d*d;
 						}
@@ -809,7 +809,7 @@ bool CloudSamplingTools::applyNoiseFilterAtLevel(	const DgmOctree::octreeCell& c
 					}
 
 					//distance from the query point to the plane
-					double d = std::abs(DistanceComputationTools::computePoint2PlaneDistance(&nNSS.queryPoint, lsPlane));
+					double d = std::abs(DistanceComputationTools::computePoint2PlaneDistance(nNSS.localQueryPoint, lsPlane));
 
 					if (d <= maxD)
 					{
@@ -861,14 +861,14 @@ bool CloudSamplingTools::applySORFilterAtLevel(	const DgmOctree::octreeCell& cel
 		nNSS.level = cell.level;
 		nNSS.minNumberOfNeighbors = knn; //DGM: I woud have put knn+1 (as the point itself will be ignored) but in this case we won't get the same result as PCL!
 		cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
-		cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+		cell.parentOctree->computeLocalCellCenter(nNSS.cellPos, cell.level, nNSS.localCellCenter);
 
 		unsigned n = cell.points->size(); //number of points in the current cell
 
 		//for each point in the cell
 		for (unsigned i = 0; i < n; ++i)
 		{
-			cell.points->getPoint(i, nNSS.queryPoint);
+			cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 			const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
 
 			//look for the k nearest neighbors
