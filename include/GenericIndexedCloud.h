@@ -21,27 +21,41 @@ namespace CCCoreLib
 		//! Default destructor
 		~GenericIndexedCloud() override = default;
 
-		//! Returns the ith point
-		/**	Virtual method to request a point with a specific index.
+		//! Returns a given local point (pointer to)
+		/**	Virtual method to request a local point with a specific index.
 			WARNINGS:
 			- the returned object may not be persistent!
 			- THIS METHOD MAY NOT BE COMPATIBLE WITH PARALLEL STRATEGIES
 			(see the DgmOctree::executeFunctionForAllCellsAtLevel_MT and
 			DgmOctree::executeFunctionForAllCellsAtStartingLevel_MT methods).
-			Consider the other version of getPoint instead or the
+			Consider the other version of getLocalPoint instead or the
 			GenericIndexedCloudPersist class.
 			\param index of the requested point (between 0 and the cloud size minus 1)
 			\return the requested point (undefined behavior if index is invalid)
 		**/
-		virtual const CCVector3* getPoint(unsigned index) const = 0;
+		virtual const CCVector3* getLocalPoint(unsigned index) const = 0;
 
-		//! Returns the ith point
-		/**	Virtual method to request a point with a specific index.
+		//! Returns a given local point (copy)
+		/**	Virtual method to request a local point with a specific index.
 			Index must be valid (undefined behavior if index is invalid)
 			\param index of the requested point (between 0 and the cloud size minus 1)
 			\param P output point
 		**/
-		virtual void getPoint(unsigned index, CCVector3& P) const = 0;
+		virtual void getLocalPoint(unsigned index, CCVector3& P) const
+		{
+			P = *getLocalPoint(index);
+		}
+
+		//! Returns a given global point (copy)
+		/**	Virtual method to request a global point with a specific index.
+			Index must be valid (undefined behavior if index is invalid)
+			\param index of the requested point (between 0 and the cloud size minus 1)
+			\param P output point
+		**/
+		virtual void getGlobalPoint(unsigned index, CCVector3d& P) const
+		{
+			P = toGlobal(*getLocalPoint(index));
+		}
 
 		//! Returns whether normals are available
 		virtual bool normalsAvailable() const { return false; }

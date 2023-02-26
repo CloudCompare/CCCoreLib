@@ -81,11 +81,11 @@ void GridAndMeshIntersection::clear()
 	}
 }
 
-unsigned GridAndMeshIntersection::distanceTransformValue(const Tuple3i& cellPos, bool isLocalCellPos) const
+unsigned GridAndMeshIntersection::distanceTransformValue(const Tuple3i& cellPos, bool isCellPosRelativeToGridCorner) const
 {
 	if (m_distanceTransform)
 	{
-		Tuple3i localCellPos = isLocalCellPos ? cellPos : toLocal(cellPos);
+		Tuple3i localCellPos = isCellPosRelativeToGridCorner ? cellPos : toLocal(cellPos);
 		return m_distanceTransform->getValue(localCellPos);
 	}
 	else
@@ -95,14 +95,14 @@ unsigned GridAndMeshIntersection::distanceTransformValue(const Tuple3i& cellPos,
 	}
 }
 
-const CCCoreLib::TriangleList* GridAndMeshIntersection::trianglesInCell(const Tuple3i& cellPos, bool isLocalCellPos) const
+const CCCoreLib::TriangleList* GridAndMeshIntersection::trianglesInCell(const Tuple3i& cellPos, bool isCellPosRelativeToGridCorner) const
 {
 	if (false == m_initialized)
 	{
 		return nullptr;
 	}
 
-	Tuple3i localCellPos = isLocalCellPos ?  cellPos : toLocal(cellPos);
+	Tuple3i localCellPos = isCellPosRelativeToGridCorner ?  cellPos : toLocal(cellPos);
 
 	return m_perCellTriangleList.getValue(localCellPos);
 }
@@ -115,8 +115,7 @@ void GridAndMeshIntersection::computeSignedDistToBoundaries(const Tuple3i& cellP
 }
 
 bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
-														const CCVector3& minGridBB,
-														const CCVector3& maxGridBB,
+														const CCVector3& localMinGridBB,
 														PointCoordinateType cellSize,
 														GenericProgressCallback* progressCb/*=nullptr*/)
 {
@@ -133,32 +132,31 @@ bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 	// we can now update the member variables
 	m_mesh = mesh;
 	m_cellSize = cellSize;
-	m_minGridBB = minGridBB;
-	m_maxGridBB = maxGridBB;
+	m_localMinGridBB = localMinGridBB;
 
 	//we compute the grid occupancy ... and we deduce the m_perCellTriangleList grid dimensions
 	Tuple3ui gridSize;
 	{
 		CCVector3 meshMinBB;
 		CCVector3 meshMaxBB;
-		mesh->getBoundingBox(meshMinBB, meshMaxBB);
+		mesh->getLocalBoundingBox(meshMinBB, meshMaxBB);
 
 		for (unsigned char k = 0; k < 3; ++k)
 		{
-			m_minFillIndexes.u[k] = static_cast<int>(floor((meshMinBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
-			m_maxFillIndexes.u[k] = static_cast<int>(floor((meshMaxBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
+			m_minFillIndexes.u[k] = static_cast<int>(floor((meshMinBB.u[k] - m_localMinGridBB.u[k]) / m_cellSize));
+			m_maxFillIndexes.u[k] = static_cast<int>(floor((meshMaxBB.u[k] - m_localMinGridBB.u[k]) / m_cellSize));
 			gridSize.u[k] = static_cast<unsigned>(m_maxFillIndexes.u[k] - m_minFillIndexes.u[k] + 1);
 			if (gridSize.u[k] == 1)
 			{
 				// to avoid corner cases (with flat triangles on a border of the unique cell)
 				// we prefer to increase the intersection grid by one cell on each side
-				m_minGridBB.u[k] -= m_cellSize;
+				m_localMinGridBB.u[k] -= m_cellSize;
 				m_maxFillIndexes.u[k] += 2;
 				gridSize.u[k] = 3;
 			}
 		}
 	}
-	CCVector3 realMinGridBB = m_minGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
+	CCVector3 realLocalMinGridBB = m_localMinGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
 
 	//we need to build the list of triangles intersecting each cell of the 3D grid
 	if (!m_perCellTriangleList.init(gridSize.x, gridSize.y, gridSize.z, 0, nullptr))
@@ -182,7 +180,7 @@ bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 
 	if (!m_perCellTriangleList.intersectWith(	mesh,
 												m_cellSize,
-												realMinGridBB,
+												realLocalMinGridBB,
 												setIntersectTriangle,
 												progressCb)
 		)
@@ -196,8 +194,7 @@ bool GridAndMeshIntersection::computeMeshIntersection(	GenericIndexedMesh* mesh,
 }
 
 bool GridAndMeshIntersection::initDistanceTransformWithMesh(GenericIndexedMesh* mesh,
-															const CCVector3& minGridBB,
-															const CCVector3& maxGridBB,
+															const CCVector3& localMinGridBB,
 															const CCVector3& minFilledBB,
 															const CCVector3& maxFilledBB,
 															PointCoordinateType cellSize,
@@ -216,28 +213,27 @@ bool GridAndMeshIntersection::initDistanceTransformWithMesh(GenericIndexedMesh* 
 	// we can now update the member variables
 	m_mesh = mesh;
 	m_cellSize = cellSize;
-	m_minGridBB = minGridBB;
-	m_maxGridBB = maxGridBB;
+	m_localMinGridBB = localMinGridBB;
 
 	// we compute distance map dimensions
 	Tuple3ui gridSize;
 	{
 		for (unsigned char k = 0; k < 3; ++k)
 		{
-			m_minFillIndexes.u[k] = static_cast<int>(floor((minFilledBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
-			m_maxFillIndexes.u[k] = static_cast<int>(floor((maxFilledBB.u[k] - m_minGridBB.u[k]) / m_cellSize));
+			m_minFillIndexes.u[k] = static_cast<int>(floor((minFilledBB.u[k] - m_localMinGridBB.u[k]) / m_cellSize));
+			m_maxFillIndexes.u[k] = static_cast<int>(floor((maxFilledBB.u[k] - m_localMinGridBB.u[k]) / m_cellSize));
 			gridSize.u[k] = static_cast<unsigned>(m_maxFillIndexes.u[k] - m_minFillIndexes.u[k] + 1);
 			if (gridSize.u[k] == 1)
 			{
 				// to avoid corner cases (with flat triangles on a border of the unique cell)
 				// we prefer to increase the intersection grid by one cell on each side
-				m_minGridBB.u[k] -= m_cellSize;
+				m_localMinGridBB.u[k] -= m_cellSize;
 				m_maxFillIndexes.u[k] += 2;
 				gridSize.u[k] = 3;
 			}
 		}
 	}
-	CCVector3 realMinGridBB = m_minGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
+	CCVector3 realLocalMinGridBB = m_localMinGridBB + CCVector3(m_minFillIndexes.x * m_cellSize, m_minFillIndexes.y * m_cellSize, m_minFillIndexes.z * m_cellSize);
 
 	// acceleration by approximating the distance
 	m_distanceTransform = new SaitoSquaredDistanceTransform;
@@ -255,7 +251,7 @@ bool GridAndMeshIntersection::initDistanceTransformWithMesh(GenericIndexedMesh* 
 
 	if (!m_distanceTransform->intersectWith(mesh,
 											m_cellSize,
-											realMinGridBB,
+											realLocalMinGridBB,
 											initDistanceTransform,
 											progressCb)
 		)

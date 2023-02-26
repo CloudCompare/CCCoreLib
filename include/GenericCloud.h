@@ -23,46 +23,55 @@ namespace CCCoreLib
 		//! Default destructor
 		virtual ~GenericCloud() = default;
 
-		//! Generic function applied to a point (used by foreach)
-		using genericPointAction = std::function<void (const CCVector3 &, ScalarType &)>;
-
 		//! Returns the number of points
 		/**	Virtual method to request the cloud size
 			\return the cloud size
 		**/
 		virtual unsigned size() const = 0;
 
-		//! Fast iteration mechanism
-		/**	Virtual method to apply a function to the whole cloud
-			\param action the function to apply (see GenericCloud::genericPointAction)
-		**/
-		virtual void forEach(genericPointAction action) = 0;
+		//! Converts a local point to a global point
+		virtual CCVector3d toGlobal(const CCVector3& localPoint) const { return CCVector3d::fromArray((getLocalToGlobalTranslation() + localPoint).u); }
 
-		//! Returns the cloud bounding box
-		/**	Virtual method to request the cloud bounding box limits
-			\param bbMin lower bounding-box limits (Xmin,Ymin,Zmin)
-			\param bbMax higher bounding-box limits (Xmax,Ymax,Zmax)
-		**/
-		virtual void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) = 0;
+		//! Converts a global point to a local point
+		virtual CCVector3 toLocal(const CCVector3d& globalPoint) const { return CCVector3::fromArray((globalPoint - getLocalToGlobalTranslation()).u); }
 
-		//! Returns a given point visibility state (relatively to a sensor for instance)
-		/**	Generic method to request a point visibility (should be overloaded if this functionality is required).
+		//! Returns the cloud local bounding box
+		/**	Virtual method to request the cloud local bounding box limits
+			\param localBBMin lower bounding-box limits (Xmin,Ymin,Zmin)
+			\param localBBMax higher bounding-box limits (Xmax,Ymax,Zmax)
+		**/
+		virtual void getLocalBoundingBox(CCVector3& localBBMin, CCVector3& localBBMax) = 0;
+
+		//! Returns the cloud global bounding box
+		/**	Default implementation. Can be overridden.
+			\param globalBBMn lower bounding-box limits (Xmin,Ymin,Zmin)
+			\param globalBBMax higher bounding-box limits (Xmax,Ymax,Zmax)
+		**/
+		virtual void getGlobalBoundingBox(CCVector3d& globalBBMn, CCVector3d& globalBBMax)
+		{
+			CCVector3 localBBMin, localBBMax;
+			getLocalBoundingBox(localBBMin, localBBMax);
+
+			globalBBMn = toGlobal(localBBMin);
+			globalBBMax = toGlobal(localBBMax);
+		}
+
+		//! Returns a given (global) point visibility state (relative to a sensor for instance)
+		/**	Generic method to request a point visibility (should be overridden if this functionality is required).
 			The point visibility is such as defined in Daniel Girardeau-Montaut's PhD manuscript (see Chapter 2,
 			section 2-3-3). In this case, a ground based laser sensor model should be used to determine it.
-			This method is called before performing any point-to-cloud comparison. If the result is not
-			POINT_VISIBLE, then the comparison won't be performed and the scalar field value associated
-			to this point will be this visibility value.
-			\param P the 3D point to test
-			\return visibility (default: POINT_VISIBLE)
+			This method is called before performing any point-to-cloud comparison for instance.
+			\param localPoint the 3D point to test (in the local coordinate system)
+			\return the point visibility (default: POINT_VISIBLE)
 		**/
-		virtual inline unsigned char testVisibility(const CCVector3& P) const { (void)P; return POINT_VISIBLE; }
+		virtual inline uint8_t testVisibility(const CCVector3& localPoint) const { (void)localPoint; return POINT_VISIBLE; }
 
 		//! Sets the cloud iterator at the beginning
 		/**	Virtual method to handle the cloud global iterator
 		**/
 		virtual void placeIteratorAtBeginning() = 0;
 
-		//! Returns the next point (relatively to the global iterator position)
+		//! Returns the next local point (relatively to the global iterator position)
 		/**	Virtual method to handle the cloud global iterator.
 			Global iterator position should be increased by one each time
 			this method is called.
@@ -71,9 +80,29 @@ namespace CCCoreLib
 			- THIS METHOD MAY NOT BE COMPATIBLE WITH PARALLEL STRATEGIES
 			(see the DgmOctree::executeFunctionForAllCellsAtLevel_MT and
 			DgmOctree::executeFunctionForAllCellsAtStartingLevel_MT methods).
-			\return pointer on next point (or 0 if no more)
+			\return pointer to the next point (or nullptr if no more)
 		**/
-		virtual const CCVector3* getNextPoint() = 0;
+		virtual const CCVector3* getNextLocalPoint() = 0;
+
+		//! Returns the next global point (relatively to the global iterator position)
+		/**	Virtual method to handle the cloud global iterator.
+			Global iterator position should be increased by one each time
+			this method is called.
+			Warning:
+			- THIS METHOD MAY NOT BE COMPATIBLE WITH PARALLEL STRATEGIES
+			(see the DgmOctree::executeFunctionForAllCellsAtLevel_MT and
+			DgmOctree::executeFunctionForAllCellsAtStartingLevel_MT methods).
+			\return next point
+		**/
+		virtual inline const CCVector3d getNextGlobalPoint()
+		{
+			return toGlobal(*getNextLocalPoint());
+		}
+
+		//! Returns the translation from local to global coordinates
+		virtual CCVector3d getLocalToGlobalTranslation() const = 0;
+
+	public: // Scalar values
 
 		//!	Enables the scalar field associated to the cloud
 		/** If the scalar field structure is not yet initialized/allocated,
@@ -93,6 +122,16 @@ namespace CCCoreLib
 
 		//! Returns the ith point associated scalar value
 		virtual ScalarType getPointScalarValue(unsigned pointIndex) const = 0;
+
+		//! Generic function to be applied to a scalar value (used by foreach)
+		using GenericScalarValueAction = std::function<void(ScalarType&)>;
+
+		//! Fast iteration mechanism on scalar values
+		/**	Virtual method to apply a function to the whole scalar field
+			\param action the function to apply (see GenericCloud::GenericScalarValueAction)
+		**/
+		virtual void forEachScalarValue(GenericScalarValueAction action) = 0;
+
 	};
 
 }

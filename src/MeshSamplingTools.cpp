@@ -28,9 +28,9 @@ double MeshSamplingTools::computeMeshArea(GenericMesh* mesh)
 	double Stotal = 0.0;
 
 	mesh->placeIteratorAtBeginning();
-	for (unsigned n=0; n<mesh->size(); ++n)
+	for (unsigned n = 0; n < mesh->size(); ++n)
 	{
-		GenericTriangle* tri = mesh->_getNextTriangle();
+		GenericLocalTriangle* tri = mesh->_getNextLocalTriangle();
 
 		//vertices
 		const CCVector3* O = tri->_getA();
@@ -59,12 +59,12 @@ double MeshSamplingTools::computeMeshVolume(GenericMesh* mesh)
 
 	CCVector3 origin;
 	CCVector3 upperCorner;
-	mesh->getBoundingBox(origin,upperCorner);
+	mesh->getLocalBoundingBox(origin,upperCorner);
 
 	mesh->placeIteratorAtBeginning();
-	for (unsigned n=0; n<mesh->size(); ++n)
+	for (unsigned n = 0; n < mesh->size(); ++n)
 	{
-		GenericTriangle* tri = mesh->_getNextTriangle();
+		GenericLocalTriangle* tri = mesh->_getNextLocalTriangle();
 
 		//vertices (expressed in the local mesh ref. so as to avoid numerical inaccuracies)
 		const CCVector3 A = *tri->_getA() - origin;
@@ -105,23 +105,25 @@ bool MeshSamplingTools::buildMeshEdgeUsageMap(GenericIndexedMesh* mesh, EdgeUsag
 	edgeMap.clear();
 
 	if (!mesh)
+	{
 		return false;
+	}
 
 	try
 	{
 		mesh->placeIteratorAtBeginning();
 		//for all triangles
-		for (unsigned n=0; n<mesh->size(); ++n)
+		for (unsigned n = 0; n < mesh->size(); ++n)
 		{
 			VerticesIndexes* tri = mesh->getNextTriangleVertIndexes();
 
 			//for all edges
-			for (unsigned j=0; j<3; ++j)
+			for (unsigned j = 0; j < 3; ++j)
 			{
 				unsigned i1 = tri->i[j];
-				unsigned i2 = tri->i[(j+1) % 3];
+				unsigned i2 = tri->i[(j + 1) % 3];
 				//build unique index
-				unsigned long long edgeKey = ComputeEdgeKey(i1,i2);
+				unsigned long long edgeKey = ComputeEdgeKey(i1, i2);
 				++edgeMap[edgeKey];
 			}
 		}
@@ -144,7 +146,7 @@ bool MeshSamplingTools::computeMeshEdgesConnectivity(GenericIndexedMesh* mesh, E
 
 	//count the number of triangles using each edge
 	EdgeUsageMap edgeCounters;
-	if (!buildMeshEdgeUsageMap(mesh,edgeCounters))
+	if (!buildMeshEdgeUsageMap(mesh, edgeCounters))
 		return false;
 
 	//for all edges
@@ -184,8 +186,7 @@ bool MeshSamplingTools::flagMeshVerticesByType(GenericIndexedMesh* mesh, ScalarF
 		//for all edges
 		for (std::map<unsigned long long, unsigned>::const_iterator edgeIt = edgeCounters.begin(); edgeIt != edgeCounters.end(); ++edgeIt)
 		{
-			unsigned i1;
-			unsigned i2;
+			unsigned i1, i2;
 			DecodeEdgeKey(edgeIt->first, i1, i2);
 
 			ScalarType flag = NAN_VALUE;
@@ -317,12 +318,12 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 	mesh->placeIteratorAtBeginning();
 	for (unsigned n = 0; n < triCount; ++n)
 	{
-		const GenericTriangle* tri = mesh->_getNextTriangle();
+		const GenericLocalTriangle* tri = mesh->_getNextLocalTriangle();
 
 		//vertices (OAB)
-		const CCVector3 *O = tri->_getA();
-		const CCVector3 *A = tri->_getB();
-		const CCVector3 *B = tri->_getC();
+		const CCVector3* O = tri->_getA();
+		const CCVector3* A = tri->_getB();
+		const CCVector3* B = tri->_getC();
 
 		//edges (OA and OB)
 		CCVector3 u = *A - *O;
@@ -397,7 +398,7 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 
 				CCVector3 P = (*O) + static_cast<PointCoordinateType>(x) * u + static_cast<PointCoordinateType>(y) * v;
 
-				sampledCloud->addPoint(P);
+				sampledCloud->addLocalPoint(P);
 				if (triIndices)
 					triIndices->push_back(n);
 				++addedPoints;
@@ -413,6 +414,7 @@ PointCloud* MeshSamplingTools::samplePointsOnMesh(	GenericMesh* mesh,
 		if (addedPoints)
 		{
 			sampledCloud->resize(addedPoints); //should always be ok as addedPoints < theoreticNumberOfPoints
+			sampledCloud->setLocalToGlobalTranslation(mesh->getLocalToGlobalTranslation());
 			if (triIndices)
 				triIndices->resize(addedPoints);
 		}

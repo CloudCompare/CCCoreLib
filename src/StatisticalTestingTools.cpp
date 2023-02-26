@@ -403,7 +403,7 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 	nNSS.level												= cell.level;
 	nNSS.minNumberOfNeighbors								= numberOfNeighbours;
 	cell.parentOctree->getCellPos(cell.truncatedCode,cell.level,nNSS.cellPos,true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos,cell.level,nNSS.cellCenter);
+	cell.parentOctree->computeLocalCellCenter(nNSS.cellPos,cell.level,nNSS.localCellCenter);
 
 	//we already know the points of the first cell (this is the one we are currently processing!)
 	{
@@ -419,7 +419,7 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 		DgmOctree::NeighboursSet::iterator it = nNSS.pointsInNeighbourhood.begin();
 		for (unsigned j=0;j<n;++j,++it)
 		{
-			it->point = cell.points->getPointPersistentPtr(j);
+			it->localPoint = cell.points->getLocalPointPersistentPtr(j);
 			it->pointIndex = cell.points->getPointGlobalIndex(j);
 		}
 		nNSS.alreadyVisitedNeighbourhoodSize = 1;
@@ -434,7 +434,7 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 
 	for (unsigned i = 0; i < n; ++i)
 	{
-		cell.points->getPoint(i, nNSS.queryPoint);
+		cell.points->getLocalPoint(i, nNSS.localQueryPoint);
 		ScalarType D = cell.points->getPointScalarValue(i);
 
 		if (ScalarField::ValidValue(D))

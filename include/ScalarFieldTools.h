@@ -4,9 +4,9 @@
 #pragma once
 
 //Local
+#include "CCConst.h"
 #include "CCToolbox.h"
 #include "DgmOctree.h"
-
 
 namespace CCCoreLib
 {
@@ -143,19 +143,31 @@ namespace CCCoreLib
 
 		//! Sets the distance value associated to a point
 		/** Generic function that can be used with the GenericCloud::foreach() method.
-			\param P a 3D point
 			\param scalarValue its associated scalar value
 		**/
-		static void SetScalarValueToNaN(const CCVector3& P, ScalarType& scalarValue);
+		static void SetScalarValueToNaN(ScalarType& scalarValue)
+		{
+			scalarValue = NAN_VALUE;
+		}
 
 		//! Sets the distance value associated to a point to zero
 		/** Generic function that can be used with the GenericCloud::foreach() method.
-			\param P a 3D point
 			\param scalarValue its associated scalar value
 		**/
-		static void SetScalarValueToZero(const CCVector3 &P, ScalarType& scalarValue);
+		static void SetScalarValueToZero(ScalarType& scalarValue)
+		{
+			scalarValue = 0;
+		}
 
-		static void SetScalarValueInverted(const CCVector3 &P, ScalarType& scalarValue);
+		//! Inverts the input scalar value
+		/** Generic function that can be used with the GenericCloud::foreach() method.
+			\param scalarValue its associated scalar value
+		**/
+		static void InvertScalarValue(ScalarType& scalarValue)
+		{
+			scalarValue = -scalarValue;
+		}
+
 	protected:
 
 		//! "Cellular" function to compute the gradient norms of points inside an octree cell

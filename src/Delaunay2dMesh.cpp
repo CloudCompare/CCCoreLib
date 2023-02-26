@@ -265,9 +265,9 @@ bool Delaunay2dMesh::removeTrianglesWithEdgesLongerThan(PointCoordinateType maxE
 	const int* _triIndexes = m_triIndexes;
 	for (unsigned i = 0; i < m_numberOfTriangles; ++i, _triIndexes += 3)
 	{
-		const CCVector3* A = m_associatedCloud->getPoint(_triIndexes[0]);
-		const CCVector3* B = m_associatedCloud->getPoint(_triIndexes[1]);
-		const CCVector3* C = m_associatedCloud->getPoint(_triIndexes[2]);
+		const CCVector3* A = m_associatedCloud->getLocalPoint(_triIndexes[0]);
+		const CCVector3* B = m_associatedCloud->getLocalPoint(_triIndexes[1]);
+		const CCVector3* C = m_associatedCloud->getLocalPoint(_triIndexes[2]);
 
 		if ((*B - *A).norm2() <= squareMaxEdgeLength &&
 				(*C - *A).norm2() <= squareMaxEdgeLength &&
@@ -299,39 +299,35 @@ bool Delaunay2dMesh::removeTrianglesWithEdgesLongerThan(PointCoordinateType maxE
 	return true;
 }
 
-void Delaunay2dMesh::forEach(genericTriangleAction action)
-{
-	if (!m_associatedCloud)
-		return;
-
-	SimpleTriangle tri;
-
-	const int* _triIndexes = m_triIndexes;
-	for (unsigned i = 0; i < m_numberOfTriangles; ++i, _triIndexes += 3)
-	{
-		tri.A = *m_associatedCloud->getPoint(_triIndexes[0]);
-		tri.B = *m_associatedCloud->getPoint(_triIndexes[1]);
-		tri.C = *m_associatedCloud->getPoint(_triIndexes[2]);
-		action(tri);
-	}
-}
-
 void Delaunay2dMesh::placeIteratorAtBeginning()
 {
 	m_globalIterator = m_triIndexes;
 }
 
-GenericTriangle* Delaunay2dMesh::_getNextTriangle()
+GenericLocalTriangle* Delaunay2dMesh::_getNextLocalTriangle()
 {
 	assert(m_associatedCloud);
 	if (m_globalIterator >= m_globalIteratorEnd)
 		return nullptr;
 
-	m_associatedCloud->getPoint(*m_globalIterator++, m_dumpTriangle.A);
-	m_associatedCloud->getPoint(*m_globalIterator++, m_dumpTriangle.B);
-	m_associatedCloud->getPoint(*m_globalIterator++, m_dumpTriangle.C);
+	m_associatedCloud->getLocalPoint(*m_globalIterator++, m_tempLocalTriangle.A);
+	m_associatedCloud->getLocalPoint(*m_globalIterator++, m_tempLocalTriangle.B);
+	m_associatedCloud->getLocalPoint(*m_globalIterator++, m_tempLocalTriangle.C);
 
-	return &m_dumpTriangle; //temporary!
+	return &m_tempLocalTriangle; //temporary!
+}
+
+GenericGlobalTriangle* Delaunay2dMesh::_getNextGlobalTriangle()
+{
+	assert(m_associatedCloud);
+	if (m_globalIterator >= m_globalIteratorEnd)
+		return nullptr;
+
+	m_associatedCloud->getGlobalPoint(*m_globalIterator++, m_tempGlobalTriangle.A);
+	m_associatedCloud->getGlobalPoint(*m_globalIterator++, m_tempGlobalTriangle.B);
+	m_associatedCloud->getGlobalPoint(*m_globalIterator++, m_tempGlobalTriangle.C);
+
+	return &m_tempGlobalTriangle; //temporary!
 }
 
 VerticesIndexes* Delaunay2dMesh::getNextTriangleVertIndexes()
@@ -348,26 +344,55 @@ VerticesIndexes* Delaunay2dMesh::getNextTriangleVertIndexes()
 	return &m_dumpTriangleIndexes;
 }
 
-GenericTriangle* Delaunay2dMesh::_getTriangle(unsigned triangleIndex)
+GenericLocalTriangle* Delaunay2dMesh::_getLocalTriangle(unsigned triangleIndex) //temporary
 {
 	assert(m_associatedCloud && triangleIndex < m_numberOfTriangles);
 
 	const int* tri = m_triIndexes + 3 * triangleIndex;
-	m_associatedCloud->getPoint(*tri++, m_dumpTriangle.A);
-	m_associatedCloud->getPoint(*tri++, m_dumpTriangle.B);
-	m_associatedCloud->getPoint(*tri++, m_dumpTriangle.C);
+	m_associatedCloud->getLocalPoint(*tri++, m_tempLocalTriangle.A);
+	m_associatedCloud->getLocalPoint(*tri++, m_tempLocalTriangle.B);
+	m_associatedCloud->getLocalPoint(*tri++, m_tempLocalTriangle.C);
 
-	return static_cast<GenericTriangle*>(&m_dumpTriangle);
+	return &m_tempLocalTriangle;
 }
 
-void Delaunay2dMesh::getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const
+GenericGlobalTriangle* Delaunay2dMesh::_getGlobalTriangle(unsigned triangleIndex) //temporary
 {
 	assert(m_associatedCloud && triangleIndex < m_numberOfTriangles);
 
 	const int* tri = m_triIndexes + 3 * triangleIndex;
-	m_associatedCloud->getPoint(*tri++, A);
-	m_associatedCloud->getPoint(*tri++, B);
-	m_associatedCloud->getPoint(*tri++, C);
+	m_associatedCloud->getGlobalPoint(*tri++, m_tempGlobalTriangle.A);
+	m_associatedCloud->getGlobalPoint(*tri++, m_tempGlobalTriangle.B);
+	m_associatedCloud->getGlobalPoint(*tri++, m_tempGlobalTriangle.C);
+
+	return &m_tempGlobalTriangle;
+}
+
+void Delaunay2dMesh::getLocalTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const
+{
+	assert(m_associatedCloud && triangleIndex < m_numberOfTriangles);
+
+	const int* tri = m_triIndexes + 3 * triangleIndex;
+	m_associatedCloud->getLocalPoint(*tri++, A);
+	m_associatedCloud->getLocalPoint(*tri++, B);
+	m_associatedCloud->getLocalPoint(*tri++, C);
+}
+
+void Delaunay2dMesh::getGlobalTriangleVertices(unsigned triangleIndex, CCVector3d& A, CCVector3d& B, CCVector3d& C) const
+{
+	assert(m_associatedCloud && triangleIndex < m_numberOfTriangles);
+
+	const int* tri = m_triIndexes + 3 * triangleIndex;
+	m_associatedCloud->getGlobalPoint(*tri++, A);
+	m_associatedCloud->getGlobalPoint(*tri++, B);
+	m_associatedCloud->getGlobalPoint(*tri++, C);
+}
+
+CCVector3d Delaunay2dMesh::getLocalToGlobalTranslation() const
+{
+	assert(m_associatedCloud);
+
+	return m_associatedCloud->getLocalToGlobalTranslation();
 }
 
 VerticesIndexes* Delaunay2dMesh::getTriangleVertIndexes(unsigned triangleIndex)
@@ -377,15 +402,29 @@ VerticesIndexes* Delaunay2dMesh::getTriangleVertIndexes(unsigned triangleIndex)
 	return reinterpret_cast<VerticesIndexes*>(m_triIndexes + 3*triangleIndex);
 }
 
-void Delaunay2dMesh::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
+void Delaunay2dMesh::getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
 {
 	if (m_associatedCloud)
 	{
-		m_associatedCloud->getBoundingBox(bbMin, bbMax);
+		m_associatedCloud->getLocalBoundingBox(bbMin, bbMax);
 	}
 	else
 	{
+		assert(false);
 		bbMin = bbMax = CCVector3(0, 0, 0);
+	}
+}
+
+void Delaunay2dMesh::getGlobalBoundingBox(CCVector3d& bbMin, CCVector3d& bbMax)
+{
+	if (m_associatedCloud)
+	{
+		m_associatedCloud->getGlobalBoundingBox(bbMin, bbMax);
+	}
+	else
+	{
+		assert(false);
+		bbMin = bbMax = CCVector3d(0, 0, 0);
 	}
 }
 
@@ -455,15 +494,15 @@ Delaunay2dMesh* Delaunay2dMesh::TesselateContour(GenericIndexedCloudPersist* con
 		const unsigned char Y = (X == 2 ? 0 : X + 1);
 		for (unsigned i = 0; i < contourPoints->size(); ++i)
 		{
-			const CCVector3* P = contourPoints->getPoint(i);
-			contourPoints2D.push_back(CCVector2(P->u[X], P->u[Y]));
+			const CCVector3* P = contourPoints->getLocalPoint(i);
+			contourPoints2D.push_back({ P->u[X], P->u[Y] });
 		}
 	}
 	else
 	{
 		assert(flatDimension < 0);
 		Neighbourhood Yk(contourPoints);
-		if (!Yk.projectPointsOn2DPlane<CCVector2>(contourPoints2D))
+		if (!Yk.projectLocalPointsOn2DPlane<CCVector2>(contourPoints2D))
 		{
 			//something bad happened
 			return nullptr;
@@ -471,5 +510,6 @@ Delaunay2dMesh* Delaunay2dMesh::TesselateContour(GenericIndexedCloudPersist* con
 	}
 
 	Delaunay2dMesh* dMesh = Delaunay2dMesh::TesselateContour(contourPoints2D);
+
 	return dMesh;
 }

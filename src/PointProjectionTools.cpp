@@ -21,30 +21,38 @@ using namespace CCCoreLib;
 PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 															PointCoordinateType radius,
 															unsigned char dim,
-															CCVector3* center,
+															const CCVector3d* globalCenter,
 															GenericProgressCallback* progressCb)
 {
 	if (!cloud)
+	{
+		assert(false);
 		return nullptr;
+	}
 
-	unsigned char dim1 = (dim > 0 ? dim-1 : 2);
-	unsigned char dim2 = (dim < 2 ? dim+1 : 0);
+	unsigned char dim1 = (dim > 0 ? dim - 1 : 2);
+	unsigned char dim2 = (dim < 2 ? dim + 1 : 0);
 
 	unsigned count = cloud->size();
 
 	PointCloud* newCloud = new PointCloud();
-	if (!newCloud->reserve(count)) //not enough memory
+	if (!newCloud->reserve(count))
+	{
+		//not enough memory
 		return nullptr;
+	}
 
 	//we compute cloud bounding box center if no center is specified
-	CCVector3 C;
-	if (!center)
+	CCVector3d globalC;
+	if (!globalCenter)
 	{
-		CCVector3 bbMin;
-		CCVector3 bbMax;
-		cloud->getBoundingBox(bbMin,bbMax);
-		C = (bbMin+bbMax)/2;
-		center = &C;
+		CCVector3d bbMin, bbMax;
+		cloud->getGlobalBoundingBox(bbMin, bbMax);
+		globalC = (bbMin + bbMax) / 2;
+	}
+	else
+	{
+		globalC = *globalCenter;
 	}
 
 	NormalizedProgress nprogress(progressCb, count);
@@ -62,21 +70,28 @@ PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 	}
 
 	cloud->placeIteratorAtBeginning();
-	const CCVector3* Q = cloud->getNextPoint();
-	while (Q)
+	for (unsigned i = 0; i < count; ++i)
 	{
-		CCVector3 P = *Q - *center;
-		PointCoordinateType u = sqrt(P.u[dim1] * P.u[dim1] + P.u[dim2] * P.u[dim2]);
-		PointCoordinateType lon = atan2(P.u[dim1], P.u[dim2]);
+		const CCVector3d Q = cloud->getNextGlobalPoint();
+		CCVector3d P = Q - globalC;
+		double u = sqrt(P.u[dim1] * P.u[dim1] + P.u[dim2] * P.u[dim2]);
+		double lon = atan2(P.u[dim1], P.u[dim2]);
 
-		newCloud->addPoint(CCVector3(lon*radius, P.u[dim], u - radius));
+		CCVector3d Pproj(lon*radius, P.u[dim], u - radius);
+		if (i != 0)
+		{
+			newCloud->addGlobalPoint(Pproj);
+		}
+		else
+		{
+			newCloud->setLocalToGlobalTranslation(Pproj);
+			newCloud->addLocalPoint(CCVector3(0, 0, 0));
+		}
 
 		if (progressCb && !nprogress.oneStep())
 		{
 			break;
 		}
-		
-		Q = cloud->getNextPoint();
 	}
 
 	if (progressCb)
@@ -88,24 +103,35 @@ PointCloud* PointProjectionTools::developCloudOnCylinder(	GenericCloud* cloud,
 }
 
 //deroule la liste sur un cone dont le centre est "center" et d'angle alpha en degres
-PointCloud* PointProjectionTools::developCloudOnCone(GenericCloud* cloud, unsigned char dim, PointCoordinateType baseRadius, float alpha, const CCVector3& center, GenericProgressCallback* progressCb)
+PointCloud* PointProjectionTools::developCloudOnCone(	GenericCloud* cloud,
+														unsigned char dim,
+														PointCoordinateType baseRadius,
+														double alpha_deg,
+														const CCVector3d& globalCenter,
+														GenericProgressCallback* progressCb)
 {
 	if (!cloud)
+	{
+		assert(false);
 		return nullptr;
+	}
 
 	unsigned count = cloud->size();
 
-	PointCloud* outCloud = new PointCloud();
-	if (!outCloud->reserve(count)) //not enough memory
+	PointCloud* newCloud = new PointCloud();
+	if (!newCloud->reserve(count))
+	{
+		//not enough memory
 		return nullptr;
+	}
 
-	unsigned char dim1 = (dim>0 ? dim-1 : 2);
-	unsigned char dim2 = (dim<2 ? dim+1 : 0);
+	unsigned char dim1 = (dim > 0 ? dim - 1 : 2);
+	unsigned char dim2 = (dim < 2 ? dim + 1 : 0);
 
-	const float tan_alpha = tanf( DegreesToRadians( alpha ) );
-	//float cos_alpha = cos(CCCoreLib::DegreesToRadians(alpha));
-	//float sin_alpha = sin(CCCoreLib::DegreesToRadians(alpha));
-	float q = 1.0f/(1.0f+tan_alpha*tan_alpha);
+	const double tan_alpha = tan(DegreesToRadians(alpha_deg));
+	//double cos_alpha = cos(CCCoreLib::DegreesToRadians(alpha));
+	//double sin_alpha = sin(CCCoreLib::DegreesToRadians(alpha));
+	double q = 1.0 / (1.0 + tan_alpha * tan_alpha);
 
 	cloud->placeIteratorAtBeginning();
 
@@ -125,33 +151,43 @@ PointCloud* PointProjectionTools::developCloudOnCone(GenericCloud* cloud, unsign
 
 	for (unsigned i = 0; i < count; i++)
 	{
-		const CCVector3 *Q = cloud->getNextPoint();
-		CCVector3 P = *Q-center;
+		const CCVector3d Q = cloud->getNextGlobalPoint();
+		CCVector3d P = Q - globalCenter;
 
-		PointCoordinateType u = sqrt(P.u[dim1]*P.u[dim1] + P.u[dim2]*P.u[dim2]);
-		PointCoordinateType lon = atan2(P.u[dim1],P.u[dim2]);
+		double u = sqrt(P.u[dim1] * P.u[dim1] + P.u[dim2] * P.u[dim2]);
+		double lon = atan2(P.u[dim1], P.u[dim2]);
 
-		//projection sur le cone
-		PointCoordinateType z2 = (P.u[dim]+u*tan_alpha)*q;
-		PointCoordinateType x2 = z2*tan_alpha;
-		//ordonnee
-		//#define ORTHO_CONIC_PROJECTION
+		//projection on the cone
+		double z2 = (P.u[dim] + u * tan_alpha)*q;
+		double x2 = z2 * tan_alpha;
+//#define ORTHO_CONIC_PROJECTION
 #ifdef ORTHO_CONIC_PROJECTION
-		PointCoordinateType lat = sqrt(x2*x2+z2*z2)*cos_alpha;
+		double lat = sqrt(x2*x2 + z2 * z2)*cos_alpha;
 		if (lat*z2 < 0.0)
-			lat=-lat;
+			lat = -lat;
 #else
-		PointCoordinateType lat = P.u[dim];
+		double lat = P.u[dim];
 #endif
 		//altitude
-		PointCoordinateType dX = u-x2;
-		PointCoordinateType dZ = P.u[dim]-z2;
-		PointCoordinateType alt = sqrt(dX*dX+dZ*dZ);
-		//on regarde de quel cote de la surface du cone le resultat tombe par p.v.
-		if (x2*P.u[dim] - z2*u < 0)
-			alt=-alt;
+		double dX = u - x2;
+		double dZ = P.u[dim] - z2;
+		double alt = sqrt(dX*dX + dZ * dZ);
+		//we check on which side of the cone surface the projection falls
+		if (x2*P.u[dim] - z2 * u < 0)
+		{
+			alt = -alt;
+		}
 
-		outCloud->addPoint(CCVector3(lon*baseRadius,lat+center[dim],alt));
+		CCVector3d Pproj(lon*baseRadius, lat + globalCenter[dim], alt);
+		if (i != 0)
+		{
+			newCloud->addGlobalPoint(Pproj);
+		}
+		else
+		{
+			newCloud->setLocalToGlobalTranslation(Pproj);
+			newCloud->addLocalPoint(CCVector3(0, 0, 0));
+		}
 
 		if (progressCb && !nprogress.oneStep())
 		{
@@ -164,7 +200,7 @@ PointCloud* PointProjectionTools::developCloudOnCone(GenericCloud* cloud, unsign
 		progressCb->stop();
 	}
 
-	return outCloud;
+	return newCloud;
 }
 
 PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Transformation& trans, GenericProgressCallback* progressCb)
@@ -175,7 +211,10 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 
 	PointCloud* transformedCloud = new PointCloud();
 	if (!transformedCloud->reserve(count))
-		return nullptr; //not enough memory
+	{
+		//not enough memory
+		return nullptr;
+	}
 
 	NormalizedProgress nprogress(progressCb, count);
 	if (progressCb)
@@ -192,20 +231,27 @@ PointCloud* PointProjectionTools::applyTransformation(GenericCloud* cloud, Trans
 	}
 
 	cloud->placeIteratorAtBeginning();
-	const CCVector3* P = cloud->getNextPoint();
-	while (P)
+	for (unsigned i = 0; i < count; ++i)
 	{
-		//P' = s*R.P+T
-		CCVector3 newP = trans.apply(*P);
+		CCVector3d P = cloud->getNextGlobalPoint();
 
-		transformedCloud->addPoint(newP);
+		//P' = s*R.P+T
+		CCVector3d newP = trans.apply(P);
+
+		if (i != 0)
+		{
+			transformedCloud->addGlobalPoint(newP);
+		}
+		else
+		{
+			transformedCloud->setLocalToGlobalTranslation(newP);
+			transformedCloud->addLocalPoint(CCVector3(0, 0, 0));
+		}
 
 		if (progressCb && !nprogress.oneStep())
 		{
 			break;
 		}
-
-		P = cloud->getNextPoint();
 	}
 
 	if (progressCb)
@@ -259,11 +305,21 @@ PointCloud* PointProjectionTools::applyTransformation(GenericIndexedCloud* cloud
 
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		CCVector3d P;
+		cloud->getGlobalPoint(i, P);
 
 		//P' = s*R.P+T
-		CCVector3 newP = trans.apply(*P);
-		transformedCloud->addPoint(newP);
+		CCVector3d newP = trans.apply(P);
+
+		if (i != 0)
+		{
+			transformedCloud->addGlobalPoint(newP);
+		}
+		else
+		{
+			transformedCloud->setLocalToGlobalTranslation(newP);
+			transformedCloud->addLocalPoint(CCVector3(0, 0, 0));
+		}
 
 		if (withNormals)
 		{
@@ -328,7 +384,7 @@ GenericIndexedMesh* PointProjectionTools::computeTriangulation(	GenericIndexedCl
 			cloud->placeIteratorAtBeginning();
 			for (unsigned i = 0; i < count; ++i)
 			{
-				const CCVector3* P = cloud->getPoint(i);
+				const CCVector3* P = cloud->getLocalPoint(i);
 				the2DPoints[i].x = P->u[X];
 				the2DPoints[i].y = P->u[Y];
 			}
@@ -898,12 +954,34 @@ bool PointProjectionTools::extractConcaveHull2D(std::vector<IndexedCCVector2>& p
 	return true;
 }
 
-void PointProjectionTools::Transformation::apply(GenericIndexedCloudPersist& cloud) const
+void PointProjectionTools::Transformation::applyToLocal(GenericIndexedCloudPersist& cloud) const
 {
 	for (unsigned i = 0; i < cloud.size(); ++i)
 	{
-		CCVector3* P = const_cast<CCVector3*>(cloud.getPoint(i));
+		CCVector3* P = const_cast<CCVector3*>(cloud.getLocalPoint(i));
 		*P = apply(*P);
+	}
+
+	if (cloud.normalsAvailable())
+	{
+		for (unsigned i = 0; i < cloud.size(); ++i)
+		{
+			CCVector3* N = const_cast<CCVector3*>(cloud.getNormal(i));
+			*N = (R * (*N)).toPC();
+		}
+	}
+}
+
+void PointProjectionTools::Transformation::applyToGlobal(GenericIndexedCloudPersist& cloud) const
+{
+	for (unsigned i = 0; i < cloud.size(); ++i)
+	{
+		CCVector3* Pl = const_cast<CCVector3*>(cloud.getLocalPoint(i));
+		CCVector3d Pg = cloud.toGlobal(*Pl);
+
+		Pg = apply(Pg);
+
+		*Pl = cloud.toLocal(Pg);
 	}
 
 	if (cloud.normalsAvailable())

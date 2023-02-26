@@ -78,18 +78,18 @@ namespace CCCoreLib
 
 		//! Computes the gravity center of a point cloud
 		/** \warning this method uses the cloud global iterator
-			\param theCloud cloud
+			\param cloud cloud
 			\return gravity center
 		**/
-		static CCVector3 ComputeGravityCenter(GenericCloud* theCloud);
+		static CCVector3 ComputeLocalGravityCenter(GenericCloud* cloud);
 
 		//! Computes the weighted gravity center of a point cloud
 		/** \warning this method uses the cloud global iterator
-			\param theCloud cloud
+			\param cloud cloud
 			\param weights per point weights (only absolute values are considered)
 			\return gravity center
 		**/
-		static CCVector3 ComputeWeightedGravityCenter(GenericCloud* theCloud, ScalarField* weights);
+		static CCVector3 ComputeWeightedLocalGravityCenter(GenericCloud* cloud, ScalarField* weights);
 
 		//! Computes the cross covariance matrix between two clouds (same size)
 		/** Used in the ICP algorithm between the cloud to register and the "Closest Points Set"
@@ -97,14 +97,14 @@ namespace CCCoreLib
 			\warning this method uses the clouds global iterators
 			\param P the cloud to register
 			\param Q the "Closest Point Set"
-			\param pGravityCenter the gravity center of P
-			\param qGravityCenter the gravity center of Q
+			\param pLocalGravityCenter the gravity center of P (in the cloud local coordinate system)
+			\param qLocalGravityCenter the gravity center of Q (in the cloud local coordinate system)
 			\return cross covariance matrix
 		**/
 		static SquareMatrixd ComputeCrossCovarianceMatrix(	GenericCloud* P,
 															GenericCloud* Q,
-															const CCVector3& pGravityCenter,
-															const CCVector3& qGravityCenter);
+															const CCVector3& pLocalGravityCenter,
+															const CCVector3& qLocalGravityCenter);
 
 		//! Computes the cross covariance matrix between two clouds (same size) - weighted version
 		/** Used in the ICP algorithm between the cloud to register and the "Closest Points Set"
@@ -112,36 +112,36 @@ namespace CCCoreLib
 			\warning this method uses the clouds global iterators
 			\param P the cloud to register
 			\param Q the "Closest Point Set"
-			\param pGravityCenter the gravity center of P
-			\param qGravityCenter the gravity center of Q
+			\param pLocalGravityCenter the gravity center of P (in the cloud local coordinate system)
+			\param qLocalGravityCenter the gravity center of Q (in the cloud local coordinate system)
 			\param coupleWeights weights for each (Pi,Qi) couple (optional)
 			\return weighted cross covariance matrix
 		**/
 		static SquareMatrixd ComputeWeightedCrossCovarianceMatrix(	GenericCloud* P,
 																	GenericCloud* Q,
-																	const CCVector3& pGravityCenter,
-																	const CCVector3& qGravityCenter,
+																	const CCVector3& pLocalGravityCenter,
+																	const CCVector3& qLocalGravityCenter,
 																	ScalarField* coupleWeights = nullptr);
 
 		//! Computes the covariance matrix of a clouds
 		/** \warning this method uses the cloud global iterator
-			\param theCloud point cloud
-			\param _gravityCenter if available, its gravity center
+			\param cloud point cloud
+			\param localGravityCenter if available, its (local) gravity center
 			\return covariance matrix
 		**/
-		static SquareMatrixd ComputeCovarianceMatrix(GenericCloud* theCloud,
-													 const PointCoordinateType* _gravityCenter = nullptr);
+		static SquareMatrixd ComputeCovarianceMatrix(GenericCloud* cloud,
+													 const CCVector3* localGravityCenter = nullptr);
 
 		//! Flag duplicate points
 		/** This method only requires an output scalar field. Duplicate points will be
 			associated to scalar value 1 (and 0 for the others).
-			\param theCloud processed cloud
+			\param cloud processed cloud
 			\param minDistanceBetweenPoints min distance between (output) points
 			\param progressCb client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success (0) or error code (<0)
 		**/
-		static ErrorCode FlagDuplicatePoints(	GenericIndexedCloudPersist* theCloud,
+		static ErrorCode FlagDuplicatePoints(	GenericIndexedCloudPersist* cloud,
 												double minDistanceBetweenPoints = std::numeric_limits<double>::epsilon(),
 												GenericProgressCallback* progressCb = nullptr,
 												DgmOctree* inputOctree = nullptr);
@@ -152,7 +152,7 @@ namespace CCCoreLib
 			More specifically the section 9.5 about Least Median of Squares.
 			\param[in]  cloud input cloud
 			\param[in]  outliersRatio proportion of outliers (between 0 and 1)
-			\param[out] center center of the detected sphere
+			\param[out] localCenter center of the detected sphere (in the cloud local coordinate system)
 			\param[out] radius radius of the detected sphere
 			\param[out] rms residuals RMS for the detected sphere
 			\param[in] progressCb for progress notification (optional)
@@ -162,7 +162,7 @@ namespace CCCoreLib
 		**/
 		static ErrorCode DetectSphereRobust(	GenericIndexedCloudPersist* cloud,
 												double outliersRatio,
-												CCVector3& center,
+												CCVector3& localCenter,
 												PointCoordinateType& radius,
 												double& rms,
 												GenericProgressCallback* progressCb = nullptr,

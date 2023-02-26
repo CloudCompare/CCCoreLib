@@ -102,7 +102,7 @@ namespace CCCoreLib
 		struct PointDescriptor
 		{
 			//! Point
-			const CCVector3* point;
+			const CCVector3* localPoint;
 			//! Point index
 			unsigned pointIndex;
 			//! Point associated distance value
@@ -110,7 +110,7 @@ namespace CCCoreLib
 
 			//! Default constructor
 			PointDescriptor()
-				: point(nullptr)
+				: localPoint(nullptr)
 				, pointIndex(0)
 				, squareDistd(-1.0)
 			{
@@ -118,24 +118,24 @@ namespace CCCoreLib
 
 			//! Constructor with point and its index
 			PointDescriptor(const CCVector3* P, unsigned index)
-				: point(P)
+				: localPoint(P)
 				, pointIndex(index)
 				, squareDistd(-1.0)
 			{
 			}
 
-			//! Constructor with point, its index and square distance
+			//! Constructor with a point, its index and its associated squared distance
 			PointDescriptor(const CCVector3* P, unsigned index, double d2)
-				: point(P)
+				: localPoint(P)
 				, pointIndex(index)
 				, squareDistd(d2)
 			{
 			}
 
 			//! Comparison operator
-			/** \param a point A
-				\param b point B
-				\return whether the square distance associated to A is smaller than the square distance associated to B
+			/** \param a point A descriptor
+				\param b point B descriptor
+				\return whether the squared distance associated to A is smaller than the squared distance associated to B
 			**/
 			static bool distComp(const PointDescriptor& a, const PointDescriptor& b)
 			{
@@ -150,7 +150,7 @@ namespace CCCoreLib
 		struct CellDescriptor
 		{
 			//! Cell center
-			CCVector3 center;
+			CCVector3 localCenter;
 			//! First point index in associated NeighboursSet
 			unsigned index;
 
@@ -159,7 +159,7 @@ namespace CCCoreLib
 
 			//! Constructor from a point and an index
 			CellDescriptor(const CCVector3& C, unsigned i)
-				: center(C)
+				: localCenter(C)
 				, index(i)
 			{}
 		};
@@ -179,10 +179,10 @@ namespace CCCoreLib
 		{
 			/*** Information to set before search ***/
 
-			//! Query point
+			//! Query point (in the octree/cloud local coordinate system)
 			/** Should be updated each time.
 			**/
-			CCVector3 queryPoint;
+			CCVector3 localQueryPoint;
 			//! Level of subdivision of the octree at which to start the search
 			/** Should be set once and for all.
 			**/
@@ -202,7 +202,7 @@ namespace CCCoreLib
 			/** Use DgmOctree::computeCellCenter to determine these coordinates.
 				This information should only be updated if the cell changes.
 			**/
-			CCVector3 cellCenter;
+			CCVector3 localCellCenter;
 
 			//! Maximum neihgbours distance
 			/** The NN search process will stop if it reaches this radius even if it
@@ -246,11 +246,11 @@ namespace CCCoreLib
 
 			//! Default constructor
 			NearestNeighboursSearchStruct()
-				: queryPoint(0,0,0)
+				: localQueryPoint(0, 0, 0)
 				, level(1)
 				, minNumberOfNeighbors(1)
-				, cellPos(0,0,0)
-				, cellCenter(0,0,0)
+				, cellPos(0, 0, 0)
+				, localCellCenter(0, 0, 0)
 				, maxSearchSquareDistd(0)
 				, alreadyVisitedNeighbourhoodSize(0)
 				, theNearestPointIndex(0)
@@ -390,18 +390,18 @@ namespace CCCoreLib
 		int build(GenericProgressCallback* progressCb = nullptr);
 
 		//! Builds the structure with constraints
-		/** Octree spatial limits must be specified. Also, if specified, points falling outside
-			the "pointsFilter" limits won't be projected into the octree structure. Otherwise, all
-			points will be taken into account. Octree 3D limits in space should be cubical.
-			\param octreeMin the lower limits for the octree cells along X, Y and Z
-			\param octreeMax the upper limits for the octree cells along X, Y and Z
+		/** Octree spatial limits must be specified in the local coordinate system. Also, if specified, points falling outside
+			the "pointsFilter" limits won't be projected into the octree structure. Otherwise, all points will be taken into
+			account. Octree 3D limits in space should be cubical.
+			\param octreeMin the lower limits for the octree cells along X, Y and Z (in the local cloud coordinate system)
+			\param octreeMax the upper limits for the octree cells along X, Y and Z (in the local cloud coordinate system)
 			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified)
 			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build(	const CCVector3& octreeMin,
-					const CCVector3& octreeMax,
+		int build(	const CCVector3& localOctreeMin,
+					const CCVector3& localOctreeMax,
 					const CCVector3* pointsMinFilter = nullptr,
 					const CCVector3* pointsMaxFilter = nullptr,
 					GenericProgressCallback* progressCb = nullptr);
@@ -413,22 +413,22 @@ namespace CCCoreLib
 		**/
 		inline unsigned getNumberOfProjectedPoints() const { return m_numberOfProjectedPoints; }
 
-		//! Returns the lower boundaries of the octree
+		//! Returns the lower boundaries of the octree (local coordinate system)
 		/** \return the lower coordinates along X,Y and Z
 		**/
-		inline const CCVector3& getOctreeMins() const { return m_dimMin; }
+		inline const CCVector3& getLocalOctreeMins() const { return m_dimMin; }
 
-		//! Returns the higher boundaries of the octree
+		//! Returns the higher boundaries of the octree (local coordinate system)
 		/** \return the higher coordinates along X,Y and Z
 		**/
-		inline const CCVector3& getOctreeMaxs() const { return m_dimMax; }
+		inline const CCVector3& getLocalOctreeMaxs() const { return m_dimMax; }
 
-		//! Returns the octree bounding box
+		//! Returns the octree bounding box (local coordinate system)
 		/**	Method to request the octree bounding box limits
 			\param bbMin lower bounding-box limits (Xmin,Ymin,Zmin)
 			\param bbMax higher bounding-box limits (Xmax,Ymax,Zmax)
 		**/
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) const;
+		void getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) const;
 
 		//! Returns the lowest cell positions in the octree along all dimensions and for a given level of subdivision
 		/** For example, at a level	n, the octree length is 2^n cells along each
@@ -536,7 +536,7 @@ namespace CCCoreLib
 			distances between each neighbour and the query aren't stored in this
 			version of the algorithm.
 			\warning If the output maxSquareDist value is NaN, this means that the process has failed due to insufficient memory.
-			\param _queryPoint the query point
+			\param _queryPoint the query point (in the octree/cloud local coordinate system)
 			\param Yk the nearest neighbours
 			\param maxNumberOfNeighbors the maximal number of points to find
 			\param level the subdivision level of the octree at which to perform the search
@@ -545,7 +545,7 @@ namespace CCCoreLib
 			\param[out] finalNeighbourhoodSize the final neighborhood (half)size (optional)
 			\return the number of neighbours found
 		**/
-		unsigned findPointNeighbourhood(const CCVector3* _queryPoint,
+		unsigned findPointNeighbourhood(const CCVector3& localQueryPoint,
 										ReferenceCloud* Yk,
 										unsigned maxNumberOfNeighbors,
 										unsigned char level,
@@ -562,7 +562,7 @@ namespace CCCoreLib
 				-1 if none was found - i.e. maxSearchDist was reached
 				- NaN if not enough memory)
 		**/
-		double findTheNearestNeighborStartingFromCell(NearestNeighboursSearchStruct &nNSS) const;
+		double findTheNearestNeighborStartingFromCell(NearestNeighboursSearchStruct& nNSS) const;
 
 		//! Advanced form of the nearest neighbours search algorithm (multiple neighbours)
 		/** This version is optimized for a multiple nearest neighbours search
@@ -573,7 +573,7 @@ namespace CCCoreLib
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 			\return the number of neighbours found
 		**/
-		unsigned findNearestNeighborsStartingFromCell(NearestNeighboursSearchStruct &nNSS,
+		unsigned findNearestNeighborsStartingFromCell(NearestNeighboursSearchStruct& nNSS,
 													  bool getOnlyPointsWithValidScalar = false) const;
 
 		//! Advanced form of the nearest neighbours search algorithm (in a sphere)
@@ -601,13 +601,13 @@ namespace CCCoreLib
 		//! Returns the points falling inside a sphere
 		/** Use findBestLevelForAGivenNeighbourhoodSizeExtraction to get the right
 			value for 'level' (only once as it only depends on the radius value ;).
-			\param sphereCenter center
+			\param localSphereCenter local center
 			\param radius radius
 			\param[out] neighbours points falling inside the sphere
 			\param level subdivision level at which to apply the extraction process
 			\return the number of extracted points
 		**/
-		int getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
+		int getPointsInSphericalNeighbourhood(	const CCVector3& localSphereCenter,
 												PointCoordinateType radius,
 												NeighboursSet& neighbours,
 												unsigned char level) const;
@@ -615,8 +615,8 @@ namespace CCCoreLib
 		//! Input/output parameters structure for getPointsInCylindricalNeighbourhood
 		struct CylindricalNeighbourhood
 		{
-			//! Cylinder center
-			CCVector3 center;
+			//! Cylinder center (local coordinate system)
+			CCVector3 localCenter;
 			//! Cylinder axis (direction)
 			CCVector3 dir;
 			//! Cylinder radius
@@ -632,7 +632,7 @@ namespace CCCoreLib
 
 			//! Default constructor
 			CylindricalNeighbourhood()
-				: center(0,0,0)
+				: localCenter(0,0,0)
 				, dir(0,0,1)
 				, radius(0)
 				, maxHalfLength(0)
@@ -670,8 +670,8 @@ namespace CCCoreLib
 			ProgressiveCylindricalNeighbourhood()
 				: CylindricalNeighbourhood()
 				, currentHalfLength(0)
-				, prevMinCornerPos(-1,-1,-1)
-				, prevMaxCornerPos(0,0,0)
+				, prevMinCornerPos(-1, -1, -1)
+				, prevMaxCornerPos(0, 0, 0)
 			{}
 
 		};
@@ -688,8 +688,8 @@ namespace CCCoreLib
 		//! Input/output parameters structure for getPointsInBoxNeighbourhood
 		struct BoxNeighbourhood
 		{
-			//! Box center
-			CCVector3 center;
+			//! Box center (local coordinate system)
+			CCVector3 localCenter;
 			//! Box axes (optional)
 			CCVector3* axes;
 			//! Box dimensions
@@ -701,9 +701,9 @@ namespace CCCoreLib
 
 			//! Default constructor
 			BoxNeighbourhood()
-				: center(0,0,0)
+				: localCenter(0, 0, 0)
 				, axes(nullptr)
-				, dimensions(0,0,0)
+				, dimensions(0, 0, 0)
 				, level(0)
 			{}
 		};
@@ -738,29 +738,29 @@ namespace CCCoreLib
 		//! Returns the position FOR THE DEEPEST LEVEL OF SUBDIVISION of the cell that includes a given point
 		/** The cell coordinates can be negative or greater than 2^MAX_OCTREE_LEVEL-1
 			as the point can lie outside the octree bounding-box.
-			\param thePoint the query point
+			\param localPoint the query point (local coordinate system)
 			\param cellPos the computed position
 		**/
-		inline void getTheCellPosWhichIncludesThePoint(const CCVector3* thePoint, Tuple3i& cellPos) const
+		inline void getTheCellPosWhichIncludesThePoint(const CCVector3& localPoint, Tuple3i& cellPos) const
 		{
 			const PointCoordinateType& cs = getCellSize(MAX_OCTREE_LEVEL);
 			//DGM: if we admit that cs >= 0, then the 'floor' operator is useless (int cast = truncation)
-			cellPos.x = static_cast<int>(/*floor*/(thePoint->x - m_dimMin.x) / cs);
-			cellPos.y = static_cast<int>(/*floor*/(thePoint->y - m_dimMin.y) / cs);
-			cellPos.z = static_cast<int>(/*floor*/(thePoint->z - m_dimMin.z) / cs);
+			cellPos.x = static_cast<int>(/*floor*/(localPoint.x - m_dimMin.x) / cs);
+			cellPos.y = static_cast<int>(/*floor*/(localPoint.y - m_dimMin.y) / cs);
+			cellPos.z = static_cast<int>(/*floor*/(localPoint.z - m_dimMin.z) / cs);
 		}
 
 		//! Returns the position for a given level of subdivision of the cell that includes a given point
 		/** The cell coordinates can be negative or greater than 2^N-1  (where N
 			is the level of subdivision) as the point can lie outside the octree
 			bounding-box.
-			\param thePoint the query point
+			\param localPoint the query point (local coordinate system)
 			\param cellPos the computed position
 			\param level the level of subdivision
 		**/
-		inline void getTheCellPosWhichIncludesThePoint(const CCVector3* thePoint, Tuple3i& cellPos, unsigned char level) const
+		inline void getTheCellPosWhichIncludesThePoint(const CCVector3& localPoint, Tuple3i& cellPos, unsigned char level) const
 		{
-			getTheCellPosWhichIncludesThePoint(thePoint, cellPos);
+			getTheCellPosWhichIncludesThePoint(localPoint, cellPos);
 
 			assert(level <= MAX_OCTREE_LEVEL);
 			const unsigned char shift = MAX_OCTREE_LEVEL - level;
@@ -774,16 +774,16 @@ namespace CCCoreLib
 			is the level of subdivision) as the point can lie outside the octree
 			bounding-box. In this version, method indicates if the query point
 			is inside ("inbounds") or outside the octree bounding-box.
-			\param thePoint the query point
+			\param localPoint the query point (local coordinate system)
 			\param cellPos the computed position
 			\param level the level of subdivision
 			\param inBounds indicates if the query point is inside or outside the octree bounding-box
 		**/
-		inline void getTheCellPosWhichIncludesThePoint(const CCVector3* thePoint, Tuple3i& cellPos, unsigned char level, bool& inBounds) const
+		inline void getTheCellPosWhichIncludesThePoint(const CCVector3& localPoint, Tuple3i& cellPos, unsigned char level, bool& inBounds) const
 		{
 			assert(level <= MAX_OCTREE_LEVEL);
 
-			getTheCellPosWhichIncludesThePoint(thePoint, cellPos);
+			getTheCellPosWhichIncludesThePoint(localPoint, cellPos);
 
 			inBounds =	(	cellPos.x >= 0 && cellPos.x < MAX_OCTREE_LENGTH
 						&&	cellPos.y >= 0 && cellPos.y < MAX_OCTREE_LENGTH
@@ -809,35 +809,35 @@ namespace CCCoreLib
 			\param center the computed center
 			\param isCodeTruncated indicates if the given code is truncated or not
 		**/
-		inline void computeCellCenter(CellCode code, unsigned char level, CCVector3& center, bool isCodeTruncated = false) const
+		inline void computeLocalCellCenter(CellCode code, unsigned char level, CCVector3& localCenter, bool isCodeTruncated = false) const
 		{
 			Tuple3i cellPos;
-			getCellPos(code,level,cellPos,isCodeTruncated);
+			getCellPos(code, level, cellPos, isCodeTruncated);
 
-			return computeCellCenter(cellPos, level, center);
+			return computeLocalCellCenter(cellPos, level, localCenter);
 		}
 
 		//! Returns the cell center for a given level of subdivision of a cell designated by its position
 		/** \param cellPos the cell position
 			\param level the level of subdivision
-			\param center the computed center
+			\param localCenter the computed center (local coordinate system)
 		**/
-		inline void computeCellCenter(const Tuple3i& cellPos, unsigned char level, CCVector3& center) const
+		inline void computeLocalCellCenter(const Tuple3i& cellPos, unsigned char level, CCVector3& localCenter) const
 		{
 			const PointCoordinateType& cs = getCellSize(level);
-			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
-			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
-			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
+			localCenter.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
+			localCenter.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
+			localCenter.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
 		}
 
 #ifndef OCTREE_CODES_64_BITS
 		//! Short version of computeCellCenter
-		inline void computeCellCenter(const Tuple3s& cellPos, unsigned char level, CCVector3& center) const
+		inline void computeCellCenter(const Tuple3s& cellPos, unsigned char level, CCVector3& localCenter) const
 		{
 			const PointCoordinateType& cs = getCellSize(level);
-			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
-			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
-			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
+			localCenter.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
+			localCenter.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
+			localCenter.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
 		}
 #endif
 
@@ -960,19 +960,19 @@ namespace CCCoreLib
 		double computeMeanOctreeDensity(unsigned char level) const;
 
 		//! Computes the minimal distance between a point and the borders (faces) of the cell (cube) in which it is included
-		/** \param queryPoint the point
+		/** \param localQueryPoint the point in the local coordinate system
 			\param cs the cell size (as cells are cubical, it's the same along every dimension)
-			\param cellCenter the cell center
+			\param localCellCenter the cell center
 			\return the minimal distance
 		**/
-		static inline PointCoordinateType ComputeMinDistanceToCellBorder(const CCVector3& queryPoint, PointCoordinateType cs, const CCVector3& cellCenter)
+		static inline PointCoordinateType ComputeMinDistanceToCellBorder(const CCVector3& localQueryPoint, PointCoordinateType cs, const CCVector3& localCellCenter)
 		{
-			PointCoordinateType d1 = std::abs(cellCenter.x - queryPoint.x);
-			PointCoordinateType d2 = std::abs(cellCenter.y - queryPoint.y);
+			PointCoordinateType d1 = std::abs(localCellCenter.x - localQueryPoint.x);
+			PointCoordinateType d2 = std::abs(localCellCenter.y - localQueryPoint.y);
 			if (d2 > d1)
 				d1 = d2;
 
-			d2 = std::abs(cellCenter.z - queryPoint.z);
+			d2 = std::abs(localCellCenter.z - localQueryPoint.z);
 			return cs/2 - (d2 > d1 ? d2 : d1);
 		}
 
@@ -1135,28 +1135,28 @@ namespace CCCoreLib
 		//! Nearest power of 2 smaller than the number of points (used for binary search)
 		unsigned m_nearestPow2;
 
-		//! Min coordinates of the octree bounding-box
+		//! Min coordinates of the octree bounding-box (local coordinate system)
 		CCVector3 m_dimMin;
-		//! Max coordinates of the octree bounding-box
+		//! Max coordinates of the octree bounding-box (local coordinate system)
 		CCVector3 m_dimMax;
 
-		//! Min coordinates of the bounding-box of the set of points projected in the octree
+		//! Min coordinates of the bounding-box of the set of points projected in the octree (local coordinate system)
 		CCVector3 m_pointsMin;
-		//! Max coordinates of the bounding-box of the set of points projected in the octree
+		//! Max coordinates of the bounding-box of the set of points projected in the octree (local coordinate system)
 		CCVector3 m_pointsMax;
 
 		//! Cell dimensions for all subdivision levels
-		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL+2];
+		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL + 2];
 		//! Min and max occupied cells indexes, for all dimensions and every subdivision level
-		int m_fillIndexes[(MAX_OCTREE_LEVEL+1)*6];
+		int m_fillIndexes[(MAX_OCTREE_LEVEL + 1) * 6];
 		//! Number of cells per level of subdivision
-		unsigned m_cellCount[MAX_OCTREE_LEVEL+1];
+		unsigned m_cellCount[MAX_OCTREE_LEVEL + 1];
 		//! Max cell population per level of subdivision
-		unsigned m_maxCellPopulation[MAX_OCTREE_LEVEL+1];
+		unsigned m_maxCellPopulation[MAX_OCTREE_LEVEL + 1];
 		//! Average cell population per level of subdivision
-		double m_averageCellPopulation[MAX_OCTREE_LEVEL+1];
+		double m_averageCellPopulation[MAX_OCTREE_LEVEL + 1];
 		//! Std. dev. of cell population per level of subdivision
-		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL+1];
+		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL + 1];
 
 		/******************************/
 		/**         METHODS          **/

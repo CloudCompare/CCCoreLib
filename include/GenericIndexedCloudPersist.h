@@ -28,13 +28,13 @@ namespace CCCoreLib
 		//! Default destructor
 		~GenericIndexedCloudPersist() override = default;
 
-		//! Returns the ith point as a persistent pointer
+		//! Returns a given local point (persistent pointer)
 		/**	Virtual method to request a point with a specific index.
 			WARNING: the returned object MUST be persistent in order
 			to be compatible with parallel strategies!
 			\param index of the requested point (between 0 and the cloud size minus 1)
 			\return the requested point (or 0 if index is invalid)
 		**/
-		virtual const CCVector3* getPointPersistentPtr(unsigned index) const = 0;
+		virtual const CCVector3* getLocalPointPersistentPtr(unsigned index) const = 0;
 	};
 }

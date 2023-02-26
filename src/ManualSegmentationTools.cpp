@@ -15,7 +15,7 @@
 
 using namespace CCCoreLib;
 
-ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCloud, const Polyline* poly, bool keepInside, const float* viewMat)
+ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCloud, const Polyline* poly, bool keepInside, const double* viewMat)
 {
 	assert(poly && aCloud);
 
@@ -27,8 +27,8 @@ ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCl
 	unsigned count = aCloud->size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		CCVector3 P;
-		aCloud->getPoint(i, P);
+		CCVector3d P;
+		aCloud->getGlobalPoint(i, P);
 
 		//we project the point in screen space first if necessary
 		if (trans)
@@ -36,7 +36,7 @@ ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCl
 			P = (*trans) * P;
 		}
 
-		bool pointInside = isPointInsidePoly(CCVector2(P.x, P.y), poly);
+		bool pointInside = isPointInsidePoly(CCVector2d(P.x, P.y), poly);
 		if ((keepInside && pointInside) || (!keepInside && !pointInside))
 		{
 			if (!Y->addPointIndex(i))
@@ -54,7 +54,7 @@ ReferenceCloud* ManualSegmentationTools::segment(GenericIndexedCloudPersist* aCl
 	return Y;
 }
 
-bool ManualSegmentationTools::isPointInsidePoly(const CCVector2& P, const GenericIndexedCloud* polyVertices)
+bool ManualSegmentationTools::isPointInsidePoly(const CCVector2d& P, const GenericIndexedCloud* polyVertices)
 {
 	//number of vertices
 	unsigned vertCount = (polyVertices ? polyVertices->size() : 0);
@@ -63,18 +63,18 @@ bool ManualSegmentationTools::isPointInsidePoly(const CCVector2& P, const Generi
 
 	bool inside = false;
 
-	CCVector3 A;
-	polyVertices->getPoint(0, A);
+	CCVector3d A;
+	polyVertices->getGlobalPoint(0, A);
 	for (unsigned i = 1; i <= vertCount; ++i)
 	{
-		CCVector3 B;
-		polyVertices->getPoint(i % vertCount, B);
+		CCVector3d B;
+		polyVertices->getGlobalPoint(i % vertCount, B);
 
 		//Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
 		//The polyline is considered as a 2D polyline here!
 		if ((B.y <= P.y && P.y < A.y) || (A.y <= P.y && P.y < B.y))
 		{
-			PointCoordinateType t = (P.x - B.x)*(A.y - B.y) - (A.x - B.x)*(P.y - B.y);
+			double t = (P.x - B.x)*(A.y - B.y) - (A.x - B.x)*(P.y - B.y);
 			if (A.y < B.y)
 				t = -t;
 			if (t < 0)
@@ -332,7 +332,7 @@ bool AddVertex(CCVector3d& P, PointCloud* vertices, unsigned& index)
 		//not enough memory!
 		return false;
 	}
-	vertices->addPoint(P.toPC());
+	vertices->addLocalPoint(P.toPC());
 	index = vertCount;
 	return true;
 }
@@ -476,6 +476,8 @@ bool MergeOldTriangles(	GenericIndexedMesh* origMesh,
 			//not enough memory
 			return false;
 		}
+		newVertices->setLocalToGlobalTranslation(origVertices->getLocalToGlobalTranslation());
+
 		//then copy them
 		{
 			//update the destination indexes by the way
@@ -484,7 +486,7 @@ bool MergeOldTriangles(	GenericIndexedMesh* origMesh,
 			{
 				if (newIndexMap[i])
 				{
-					newVertices->addPoint(*origVertices->getPoint(i));
+					newVertices->addLocalPoint(*origVertices->getLocalPoint(i));
 					newIndexMap[i] = lastVertIndex++;
 				}
 			}
@@ -588,6 +590,8 @@ bool ImportSourceVertices(GenericIndexedCloudPersist* srcVertices,
 			//not enough memory
 			return false;
 		}
+		newVertices->setLocalToGlobalTranslation(srcVertices->getLocalToGlobalTranslation());
+
 		//then copy them
 		{
 			//update the destination indexes by the way
@@ -596,7 +600,7 @@ bool ImportSourceVertices(GenericIndexedCloudPersist* srcVertices,
 			{
 				if (newIndexMap[i])
 				{
-					newVertices->addPoint(*srcVertices->getPoint(i));
+					newVertices->addLocalPoint(*srcVertices->getLocalPoint(i));
 					newIndexMap[i] = lastVertIndex++;
 				}
 			}
@@ -677,14 +681,17 @@ bool ManualSegmentationTools::segmentMeshWithAAPlane(GenericIndexedMesh* mesh,
 		{
 			//original vertices indexes
 			const VerticesIndexes* tsi = mesh->getTriangleVertIndexes(i);
-			CCVector3d V[3] = { *vertices->getPoint(tsi->i1),
-								*vertices->getPoint(tsi->i2),
-								*vertices->getPoint(tsi->i3) };
+			CCVector3d V[3];
+			vertices->getGlobalPoint(tsi->i1, V[0]);
+			vertices->getGlobalPoint(tsi->i2, V[1]);
+			vertices->getGlobalPoint(tsi->i3, V[2]);
 
-			const unsigned origVertIndexes[3] = {
+			const unsigned origVertIndexes[3]
+			{
 				tsi->i1 | c_origIndexFlag,
 				tsi->i2 | c_origIndexFlag,
-				tsi->i3 | c_origIndexFlag };
+				tsi->i3 | c_origIndexFlag
+			};
 
 			//test each vertex
 			//char relativePos[3] = { 1, 1, 1 };
@@ -1050,9 +1057,10 @@ bool ManualSegmentationTools::segmentMeshWithAABox(GenericIndexedMesh* origMesh,
 				}
 
 				//get the vertices (from the right source!)
-				CCVector3d V[3] = { *( (vertIndexes[0] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[0] & c_realIndexMask),
-									*( (vertIndexes[1] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[1] & c_realIndexMask),
-									*( (vertIndexes[2] & c_origIndexFlag) ? origVertices : sourceVertices)->getPoint(vertIndexes[2] & c_realIndexMask) };
+				CCVector3d V[3];
+				((vertIndexes[0] & c_origIndexFlag) ? origVertices : sourceVertices)->getGlobalPoint(vertIndexes[0] & c_realIndexMask, V[0]);
+				((vertIndexes[1] & c_origIndexFlag) ? origVertices : sourceVertices)->getGlobalPoint(vertIndexes[1] & c_realIndexMask, V[1]);
+				((vertIndexes[2] & c_origIndexFlag) ? origVertices : sourceVertices)->getGlobalPoint(vertIndexes[2] & c_realIndexMask, V[2]);
 
 				if (d == 0)
 				{

@@ -211,7 +211,7 @@ int DgmOctree::build(GenericProgressCallback* progressCb)
 		clear();
 	}
 
-	m_theAssociatedCloud->getBoundingBox(m_pointsMin, m_pointsMax);
+	m_theAssociatedCloud->getLocalBoundingBox(m_pointsMin, m_pointsMax);
 
 	m_dimMin = m_pointsMin;
 	m_dimMax = m_pointsMax;
@@ -222,8 +222,8 @@ int DgmOctree::build(GenericProgressCallback* progressCb)
 	return genericBuild(progressCb);
 }
 
-int DgmOctree::build(	const CCVector3& octreeMin,
-						const CCVector3& octreeMax,
+int DgmOctree::build(	const CCVector3& localOctreeMin,
+						const CCVector3& localOctreeMax,
 						const CCVector3* pointsMinFilter/*=nullptr*/,
 						const CCVector3* pointsMaxFilter/*=nullptr*/,
 						GenericProgressCallback* progressCb/*=nullptr*/)
@@ -231,8 +231,8 @@ int DgmOctree::build(	const CCVector3& octreeMin,
 	if (!m_thePointsAndTheirCellCodes.empty())
 		clear();
 
-	m_dimMin = octreeMin;
-	m_dimMax = octreeMax;
+	m_dimMin = localOctreeMin;
+	m_dimMax = localOctreeMax;
 
 	//the user can specify boundaries for points different than the octree box!
 	m_pointsMin = (pointsMinFilter ? *pointsMinFilter : m_dimMin);
@@ -288,7 +288,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	cellsContainer::iterator it = m_thePointsAndTheirCellCodes.begin();
 	for (unsigned i = 0; i < pointCount; i++)
 	{
-		const CCVector3* P = m_theAssociatedCloud->getPoint(i);
+		const CCVector3* P = m_theAssociatedCloud->getLocalPoint(i);
 
 		//does the point falls in the 'accepted points' box?
 		//(potentially different from the octree box - see DgmOctree::build)
@@ -298,7 +298,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 		{
 			//compute the position of the cell that includes this point
 			Tuple3i cellPos;
-			getTheCellPosWhichIncludesThePoint(P, cellPos);
+			getTheCellPosWhichIncludesThePoint(*P, cellPos);
 
 			//clipping X
 			if (cellPos.x < 0)
@@ -509,7 +509,7 @@ void DgmOctree::computeCellsStatistics(unsigned char level)
 	m_stdDevCellPopulation[level] = sqrt(sum2 / counter - m_averageCellPopulation[level]*m_averageCellPopulation[level]);
 }
 
-void DgmOctree::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) const
+void DgmOctree::getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) const
 {
 	bbMin = m_dimMin;
 	bbMax = m_dimMax;
@@ -736,7 +736,7 @@ unsigned DgmOctree::getCellIndex(CellCode truncatedCellCode, unsigned char bitSh
 }
 #endif
 
-unsigned DgmOctree::findPointNeighbourhood( const CCVector3* queryPoint,
+unsigned DgmOctree::findPointNeighbourhood( const CCVector3& localQueryPoint,
 											ReferenceCloud* Yk,
 											unsigned maxNumberOfNeighbors,
 											unsigned char level,
@@ -744,16 +744,15 @@ unsigned DgmOctree::findPointNeighbourhood( const CCVector3* queryPoint,
 											double maxSearchDist/*=0*/,
 											int* finalNeighbourhoodSize/*=nullptr*/) const
 {
-	assert(queryPoint);
 	NearestNeighboursSearchStruct nNSS;
-	nNSS.queryPoint = *queryPoint;
+	nNSS.localQueryPoint = localQueryPoint;
 	nNSS.level = level;
 	nNSS.minNumberOfNeighbors = maxNumberOfNeighbors;
 	bool inbounds = false;
-	getTheCellPosWhichIncludesThePoint(&nNSS.queryPoint, nNSS.cellPos, nNSS.level, inbounds);
+	getTheCellPosWhichIncludesThePoint(nNSS.localQueryPoint, nNSS.cellPos, nNSS.level, inbounds);
 	nNSS.alreadyVisitedNeighbourhoodSize = inbounds ? 0 : 1;
 
-	computeCellCenter(nNSS.cellPos, level, nNSS.cellCenter);
+	computeLocalCellCenter(nNSS.cellPos, level, nNSS.localCellCenter);
 	nNSS.maxSearchSquareDistd = (maxSearchDist > 0 ? maxSearchDist * maxSearchDist : 0);
 
 	//special case: N=1
@@ -995,7 +994,7 @@ void DgmOctree::getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &n
 						{
 							if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 							{
-								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getPointPersistentPtr(p->theIndex), p->theIndex);
+								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getLocalPointPersistentPtr(p->theIndex), p->theIndex);
 							}
 						}
 					}
@@ -1025,7 +1024,7 @@ void DgmOctree::getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &n
 						{
 							if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 							{
-								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getPointPersistentPtr(p->theIndex), p->theIndex);
+								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getLocalPointPersistentPtr(p->theIndex), p->theIndex);
 							}
 						}
 					}
@@ -1052,7 +1051,7 @@ void DgmOctree::getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &n
 						{
 							if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 							{
-								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getPointPersistentPtr(p->theIndex), p->theIndex);
+								nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getLocalPointPersistentPtr(p->theIndex), p->theIndex);
 							}
 						}
 					}
@@ -1148,7 +1147,7 @@ double DgmOctree::findTheNearestNeighborStartingFromCell(NearestNeighboursSearch
 		//for each dimension, we look for the min distance between the query point and the cell border.
 		//This distance (minDistToBorder) corresponds to the maximal radius of a sphere centered on the
 		//query point and totally included inside the cell
-		PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.queryPoint, cs, nNSS.cellCenter);
+		PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.localQueryPoint, cs, nNSS.localCellCenter);
 
 		//cells for which we have already computed the distances from their points to the query point
 		unsigned alreadyProcessedCells = 0;
@@ -1186,7 +1185,7 @@ double DgmOctree::findTheNearestNeighborStartingFromCell(NearestNeighboursSearch
 				while (m < m_numberOfProjectedPoints && (p->theCode >> bitShift) == code)
 				{
 					//square distance to query point
-					double dist2 = (*m_theAssociatedCloud->getPointPersistentPtr(p->theIndex) - nNSS.queryPoint).norm2d();
+					double dist2 = (*m_theAssociatedCloud->getLocalPointPersistentPtr(p->theIndex) - nNSS.localQueryPoint).norm2d();
 					//we keep track of the closest one
 					if (dist2 < minSquareDist || minSquareDist < 0)
 					{
@@ -1275,7 +1274,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 			{
 				if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 				{
-					nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getPointPersistentPtr(p->theIndex), p->theIndex);
+					nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getLocalPointPersistentPtr(p->theIndex), p->theIndex);
 					++p;
 				}
 			}
@@ -1330,7 +1329,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 	//for each dimension, we look for the min distance between the query point and the cell border.
 	//This distance (minDistToBorder) corresponds to the maximal radius of a sphere centered on the
 	//query point and totally included inside the cell
-	PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.queryPoint,cs,nNSS.cellCenter);
+	PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.localQueryPoint, cs, nNSS.localCellCenter);
 
 	//eligible points found
 	unsigned eligiblePoints = 0;
@@ -1360,9 +1359,10 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 		}
 
 		//we compute distances for the new points
-		NeighboursSet::iterator q;
-		for (q = nNSS.pointsInNeighbourhood.begin()+alreadyProcessedPoints; q != nNSS.pointsInNeighbourhood.end(); ++q)
-			q->squareDistd = (*q->point - nNSS.queryPoint).norm2d();
+		for (NeighboursSet::iterator q = nNSS.pointsInNeighbourhood.begin() + alreadyProcessedPoints; q != nNSS.pointsInNeighbourhood.end(); ++q)
+		{
+			q->squareDistd = (*q->localPoint - nNSS.localQueryPoint).norm2d();
+		}
 		alreadyProcessedPoints = static_cast<unsigned>(nNSS.pointsInNeighbourhood.size());
 
 		//equivalent spherical neighbourhood radius (as we are actually looking to 'square' neighbourhoods,
@@ -1373,7 +1373,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 
 		//let's test all the previous 'not yet eligible' points and the new ones
 		unsigned j = eligiblePoints;
-		for (q = nNSS.pointsInNeighbourhood.begin()+eligiblePoints; q != nNSS.pointsInNeighbourhood.end(); ++q,++j)
+		for (NeighboursSet::iterator q = nNSS.pointsInNeighbourhood.begin()+eligiblePoints; q != nNSS.pointsInNeighbourhood.end(); ++q,++j)
 		{
 			//if the point is eligible
 			if (q->squareDistd <= squareEligibleDist)
@@ -1407,7 +1407,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 	return eligiblePoints;
 }
 
-int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
+int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& localSphereCenter,
 													PointCoordinateType radius,
 													NeighboursSet& neighbours,
 													unsigned char level/*=0*/) const
@@ -1422,9 +1422,9 @@ int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
 	double maxDiagFactor = squareRadius + (0.75*cs + SQRT_3 * radius)*cs;
 
 	//we are going to test all the cells that may intersect the sphere
-	CCVector3 corner = sphereCenter - CCVector3(radius, radius, radius);
+	CCVector3 corner = localSphereCenter - CCVector3(radius, radius, radius);
 	Tuple3i cornerPos;
-	getTheCellPosWhichIncludesThePoint(&corner, cornerPos, level);
+	getTheCellPosWhichIncludesThePoint(corner, cornerPos, level);
 
 	//no need to look outside the octree limits!
 	cornerPos.x = std::max<int>(cornerPos.x, 0);
@@ -1443,24 +1443,24 @@ int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
 
 	CCVector3 cellMin = boxMin;
 	Tuple3i cellPos(cornerPos.x, 0, 0);
-	while (cellMin.x < sphereCenter.x + radius && cellPos.x < maxCellCount)
+	while (cellMin.x < localSphereCenter.x + radius && cellPos.x < maxCellCount)
 	{
-		CCVector3 cellCenter(cellMin.x + halfCellSize, 0, 0);
+		CCVector3 localCellCenter(cellMin.x + halfCellSize, 0, 0);
 
 		cellMin.y = boxMin.y;
 		cellPos.y = cornerPos.y;
-		while (cellMin.y < sphereCenter.y + radius && cellPos.y < maxCellCount)
+		while (cellMin.y < localSphereCenter.y + radius && cellPos.y < maxCellCount)
 		{
-			cellCenter.y = cellMin.y + halfCellSize;
+			localCellCenter.y = cellMin.y + halfCellSize;
 
 			cellMin.z = boxMin.z;
 			cellPos.z = cornerPos.z;
-			while (cellMin.z < sphereCenter.z + radius && cellPos.z < maxCellCount)
+			while (cellMin.z < localSphereCenter.z + radius && cellPos.z < maxCellCount)
 			{
-				cellCenter.z = cellMin.z + halfCellSize;
+				localCellCenter.z = cellMin.z + halfCellSize;
 				//test this cell
 				//1st test: is it close enough to the sphere center?
-				if ((cellCenter - sphereCenter).norm2d() <= maxDiagFactor) //otherwise cell is totally outside
+				if ((localCellCenter - localSphereCenter).norm2d() <= maxDiagFactor) //otherwise cell is totally outside
 				{
 					//2nd test: does this cell exists?
 					CellCode truncatedCellCode = GenerateTruncatedCellCode(cellPos, level);
@@ -1476,8 +1476,8 @@ int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
 						//while the (partial) cell code matches this cell
 						for ( ; (p != m_thePointsAndTheirCellCodes.end()) && ((p->theCode >> bitShift) == searchCode); ++p)
 						{
-							const CCVector3* P = m_theAssociatedCloud->getPoint(p->theIndex);
-							double d2 = (*P - sphereCenter).norm2d();
+							const CCVector3* P = m_theAssociatedCloud->getLocalPoint(p->theIndex);
+							double d2 = (*P - localSphereCenter).norm2d();
 							//we keep the points falling inside the sphere
 							if (d2 <= squareRadius)
 							{
@@ -1565,19 +1565,19 @@ std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) con
 		}
 
 		//up to now min and max corners where centered on (0, 0, 0)
-		minCorner = params.center + minCorner;
-		maxCorner = params.center + maxCorner;
+		minCorner = params.localCenter + minCorner;
+		maxCorner = params.localCenter + maxCorner;
 	}
 	else
 	{
-		minCorner = params.center - params.dimensions / 2;
-		maxCorner = params.center + params.dimensions / 2;
+		minCorner = params.localCenter - params.dimensions / 2;
+		maxCorner = params.localCenter + params.dimensions / 2;
 	}
 
 	Tuple3i minCornerPos;
-	getTheCellPosWhichIncludesThePoint(&minCorner, minCornerPos, params.level);
+	getTheCellPosWhichIncludesThePoint(minCorner, minCornerPos, params.level);
 	Tuple3i maxCornerPos;
-	getTheCellPosWhichIncludesThePoint(&maxCorner, maxCornerPos, params.level);
+	getTheCellPosWhichIncludesThePoint(maxCorner, maxCornerPos, params.level);
 
 	const int* minFillIndexes = getMinFillIndexes(params.level);
 	const int* maxFillIndexes = getMaxFillIndexes(params.level);
@@ -1612,12 +1612,12 @@ std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) con
 				//additional inclusion test
 				if (params.axes)
 				{
-					CCVector3 cellCenter = m_dimMin + CCVector3(static_cast<PointCoordinateType>(i + 0.5),
-																static_cast<PointCoordinateType>(j + 0.5),
-																static_cast<PointCoordinateType>(k + 0.5)) * cs;
+					CCVector3 localCellCenter = m_dimMin + CCVector3(	static_cast<PointCoordinateType>(i + 0.5),
+																		static_cast<PointCoordinateType>(j + 0.5),
+																		static_cast<PointCoordinateType>(k + 0.5) ) * cs;
 
 					//project the cell center in the box C.S.
-					CCVector3 Q = cellCenter - params.center;
+					CCVector3 Q = localCellCenter - params.localCenter;
 					Q = CCVector3(	params.axes[0].dot(Q),
 							params.axes[1].dot(Q),
 							params.axes[2].dot(Q) );
@@ -1647,8 +1647,8 @@ std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) con
 					//while the (partial) cell code matches this cell
 					for ( ; (p != m_thePointsAndTheirCellCodes.end()) && ((p->theCode >> bitShift) == searchCode); ++p)
 					{
-						const CCVector3* P = m_theAssociatedCloud->getPoint(p->theIndex);
-						CCVector3 Q = *P - params.center;
+						const CCVector3* P = m_theAssociatedCloud->getLocalPoint(p->theIndex);
+						CCVector3 Q = *P - params.localCenter;
 
 						if (params.axes)
 						{
@@ -1694,8 +1694,8 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourh
 	CCVector3 minCorner;
 	CCVector3 maxCorner;
 	{
-		CCVector3 C1 = params.center + params.dir * params.maxHalfLength;
-		CCVector3 C2 = params.center + params.dir * minHalfLength;
+		CCVector3 C1 = params.localCenter + params.dir * params.maxHalfLength;
+		CCVector3 C2 = params.localCenter + params.dir * minHalfLength;
 		CCVector3 corner1 = C1 - CCVector3(params.radius, params.radius, params.radius);
 		CCVector3 corner2 = C1 + CCVector3(params.radius, params.radius, params.radius);
 		CCVector3 corner3 = C2 - CCVector3(params.radius, params.radius, params.radius);
@@ -1711,7 +1711,7 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourh
 	}
 
 	Tuple3i cornerPos;
-	getTheCellPosWhichIncludesThePoint(&minCorner, cornerPos, params.level);
+	getTheCellPosWhichIncludesThePoint(minCorner, cornerPos, params.level);
 
 	const int* minFillIndexes = getMinFillIndexes(params.level);
 	const int* maxFillIndexes = getMaxFillIndexes(params.level);
@@ -1733,22 +1733,22 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourh
 	Tuple3i cellPos( cornerPos.x, 0, 0 );
 	while (cellMin.x < maxCorner.x && cellPos.x <= maxFillIndexes[0])
 	{
-		CCVector3 cellCenter(cellMin.x + halfCellSize, 0, 0);
+		CCVector3 localCellCenter(cellMin.x + halfCellSize, 0, 0);
 
 		cellMin.y = boxMin.y;
 		cellPos.y = cornerPos.y;
 		while (cellMin.y < maxCorner.y && cellPos.y <= maxFillIndexes[1])
 		{
-			cellCenter.y = cellMin.y + halfCellSize;
+			localCellCenter.y = cellMin.y + halfCellSize;
 
 			cellMin.z = boxMin.z;
 			cellPos.z = cornerPos.z;
 			while (cellMin.z < maxCorner.z && cellPos.z <= maxFillIndexes[2])
 			{
-				cellCenter.z = cellMin.z + halfCellSize;
+				localCellCenter.z = cellMin.z + halfCellSize;
 				//test this cell
 				//1st test: is it close enough to the cylinder axis?
-				CCVector3 OC = (cellCenter - params.center);
+				CCVector3 OC = (localCellCenter - params.localCenter);
 				PointCoordinateType dot = OC.dot(params.dir);
 				double d2 = (OC - params.dir * dot).norm2d();
 				if (d2 <= maxDiagFactor && dot <= maxLengthFactor && dot >= minLengthFactor) //otherwise cell is totally outside
@@ -1767,10 +1767,10 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourh
 						//while the (partial) cell code matches this cell
 						for ( ; (p != m_thePointsAndTheirCellCodes.end()) && ((p->theCode >> bitShift) == searchCode); ++p)
 						{
-							const CCVector3* P = m_theAssociatedCloud->getPoint(p->theIndex);
+							const CCVector3* P = m_theAssociatedCloud->getLocalPoint(p->theIndex);
 
 							//we keep the points falling inside the sphere
-							CCVector3 OP = (*P - params.center);
+							CCVector3 OP = (*P - params.localCenter);
 							dot = OP.dot(params.dir);
 							d2 = (OP - params.dir * dot).norm2d();
 							if (d2 <= squareRadius && dot >= minHalfLength && dot <= params.maxHalfLength)
@@ -1846,8 +1846,8 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 	CCVector3 minCorner;
 	CCVector3 maxCorner;
 	{
-		CCVector3 C1 = params.center + params.dir * params.currentHalfLength;
-		CCVector3 C2 = params.center + params.dir * currentHalfLengthMinus;
+		CCVector3 C1 = params.localCenter + params.dir * params.currentHalfLength;
+		CCVector3 C2 = params.localCenter + params.dir * currentHalfLengthMinus;
 		CCVector3 corner1 = C1 - CCVector3(params.radius, params.radius, params.radius);
 		CCVector3 corner2 = C1 + CCVector3(params.radius, params.radius, params.radius);
 		CCVector3 corner3 = C2 - CCVector3(params.radius, params.radius, params.radius);
@@ -1863,7 +1863,7 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 	}
 
 	Tuple3i cornerPos;
-	getTheCellPosWhichIncludesThePoint(&minCorner, cornerPos, params.level);
+	getTheCellPosWhichIncludesThePoint(minCorner, cornerPos, params.level);
 
 	const int* minFillIndexes = getMinFillIndexes(params.level);
 	const int* maxFillIndexes = getMaxFillIndexes(params.level);
@@ -1885,19 +1885,19 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 	CCVector3 cellMin = boxMin;
 	while (cellMin.x < maxCorner.x && cellPos.x <= maxFillIndexes[0])
 	{
-		CCVector3 cellCenter(cellMin.x + halfCellSize, 0, 0);
+		CCVector3 localCellCenter(cellMin.x + halfCellSize, 0, 0);
 
 		cellMin.y = boxMin.y;
 		cellPos.y = cornerPos.y;
 		while (cellMin.y < maxCorner.y && cellPos.y <= maxFillIndexes[1])
 		{
-			cellCenter.y = cellMin.y + halfCellSize;
+			localCellCenter.y = cellMin.y + halfCellSize;
 
 			cellMin.z = boxMin.z;
 			cellPos.z = cornerPos.z;
 			while (cellMin.z < maxCorner.z && cellPos.z <= maxFillIndexes[2])
 			{
-				cellCenter.z = cellMin.z + halfCellSize;
+				localCellCenter.z = cellMin.z + halfCellSize;
 
 				//don't test already tested cells!
 				if (	cellPos.x < params.prevMinCornerPos.x || cellPos.x >= params.prevMaxCornerPos.x
@@ -1906,7 +1906,7 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 				{
 					//test this cell
 					//1st test: is it close enough to the cylinder axis?
-					CCVector3 OC = (cellCenter - params.center);
+					CCVector3 OC = (localCellCenter - params.localCenter);
 					PointCoordinateType dot = OC.dot(params.dir);
 					double d2 = (OC - params.dir * dot).norm2d();
 					if (d2 <= maxDiagFactor && dot <= maxLengthFactor && dot >= minLengthFactor) //otherwise cell is totally outside
@@ -1925,10 +1925,10 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 							//while the (partial) cell code matches this cell
 							for ( ; (p != m_thePointsAndTheirCellCodes.end()) && ((p->theCode >> bitShift) == searchCode); ++p)
 							{
-								const CCVector3* P = m_theAssociatedCloud->getPoint(p->theIndex);
+								const CCVector3* P = m_theAssociatedCloud->getLocalPoint(p->theIndex);
 
 								//we keep the points falling inside the sphere
-								CCVector3 OP = (*P - params.center);
+								CCVector3 OP = (*P - params.localCenter);
 								dot = OP.dot(params.dir);
 								d2 = (OP - params.dir * dot).norm2d();
 								if (d2 <= squareRadius)
@@ -1983,7 +1983,7 @@ int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSearchStr
 	const PointCoordinateType& cs = getCellSize(nNSS.level);
 
 	//we compute the minimal distance between the query point and all cell borders
-	const PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.queryPoint,cs,nNSS.cellCenter);
+	const PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.localQueryPoint, cs, nNSS.localCellCenter);
 
 	//we deduce the minimum cell neighbourhood size (integer) that includes the search sphere
 	const int minNeighbourhoodSize = 1+(radius>minDistToBorder ? static_cast<int>(ceil((radius-minDistToBorder)/cs)) : 0);
@@ -2008,7 +2008,7 @@ int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSearchStr
 
 	for ( PointDescriptor &pDescr : nNSS.pointsInNeighbourhood )
 	{
-		pDescr.squareDistd = (*pDescr.point - nNSS.queryPoint).norm2d();
+		pDescr.squareDistd = (*pDescr.localPoint - nNSS.localQueryPoint).norm2d();
 
 		//if the distance is inferior to the sphere radius...
 		if (pDescr.squareDistd <= squareRadius)
@@ -3305,7 +3305,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		unsigned char shallowSteps = 0;
 #endif
 
-		//pointer on the current octree element
+		//pointer to the current octree element
 		cellsContainer::const_iterator startingElement = m_thePointsAndTheirCellCodes.begin();
 
 		bool result = true;
@@ -3527,7 +3527,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 #else
 		unsigned char shallowSteps = 0;
 #endif
-		//pointer on the current octree element
+		//pointer to the current octree element
 		cellsContainer::const_iterator startingElement = m_thePointsAndTheirCellCodes.begin();
 
 		//we compute some statistics on the fly
@@ -3858,9 +3858,9 @@ bool DgmOctree::rayCast(const CCVector3& rayAxis,
 
 				//first test with the total bounding box
 				const PointCoordinateType& halfCellSize = getCellSize(level) / 2;
-				CCVector3 cellCenter(	(2* cellPos.x + 1) * halfCellSize,
-										(2* cellPos.y + 1) * halfCellSize,
-										(2* cellPos.z + 1) * halfCellSize);
+				CCVector3 localCellCenter(	(2* cellPos.x + 1) * halfCellSize,
+											(2* cellPos.y + 1) * halfCellSize,
+											(2* cellPos.z + 1) * halfCellSize);
 
 				CCVector3 halfCell = CCVector3(halfCellSize, halfCellSize, halfCellSize);
 
@@ -3868,7 +3868,7 @@ bool DgmOctree::rayCast(const CCVector3& rayAxis,
 				{
 					double radialSqDist;
 					double sqDistToOrigin;
-					rayLocal.squareDistances(cellCenter, radialSqDist, sqDistToOrigin);
+					rayLocal.squareDistances(localCellCenter, radialSqDist, sqDistToOrigin);
 
 					double dx = sqrt(sqDistToOrigin);
 					double dy = std::max<double>(0, sqrt(radialSqDist) - SQRT_3 * halfCellSize);
@@ -3878,8 +3878,8 @@ bool DgmOctree::rayCast(const CCVector3& rayAxis,
 				}
 				else
 				{
-					skipThisCell = !AABB<PointCoordinateType>(	cellCenter - halfCell - margin,
-																cellCenter + halfCell + margin).intersects(rayLocal);
+					skipThisCell = !AABB<PointCoordinateType>(	localCellCenter - halfCell - margin,
+																localCellCenter + halfCell + margin ).intersects(rayLocal);
 				}
 
 				if (skipThisCell)
@@ -3897,7 +3897,7 @@ bool DgmOctree::rayCast(const CCVector3& rayAxis,
 		if (!skipThisCell)
 		{
 			//test the point
-			const CCVector3* P = m_theAssociatedCloud->getPoint(it->theIndex);
+			const CCVector3* P = m_theAssociatedCloud->getLocalPoint(it->theIndex);
 
 			double radialSqDist = ray.radialSquareDistance(*P);
 			double orderDist = -1.0;

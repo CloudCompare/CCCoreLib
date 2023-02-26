@@ -24,36 +24,42 @@ namespace CCCoreLib
 	public: //constructors
 
 		//! SimpleMesh Constructor
-		/** \param _theVertices the point cloud containing the vertices
+		/** \param vertices the point cloud containing the vertices
 			\param linkVerticesWithMesh specifies if the vertex cloud should be deleted when the SimpleMesh object is destructed
 		**/
-		SimpleMesh(GenericIndexedCloud* _theVertices, bool linkVerticesWithMesh = false);
+		SimpleMesh(GenericIndexedCloud* vertices, bool linkVerticesWithMesh = false);
 
 		//! SimpleMesh destructor
 		~SimpleMesh() override;
 
 	public: //inherited methods
 
-		void forEach(genericTriangleAction action) override;
 		void placeIteratorAtBeginning() override;
-		GenericTriangle* _getNextTriangle() override; //temporary
-		GenericTriangle* _getTriangle(unsigned triangleIndex) override; //temporary
-		VerticesIndexes* getNextTriangleVertIndexes() override;
-		VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) override;
-		unsigned size() const override { return static_cast<unsigned>(triIndexes.size()); }
-		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
-		void getTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
+		inline GenericLocalTriangle* _getNextLocalTriangle() override { return _getLocalTriangle(++m_globalIterator); } //temporary
+		inline GenericGlobalTriangle* _getNextGlobalTriangle() override { return _getGlobalTriangle(++m_globalIterator); } //temporary
+		GenericLocalTriangle* _getLocalTriangle(unsigned triangleIndex) override; //temporary
+		GenericGlobalTriangle* _getGlobalTriangle(unsigned triangleIndex) override; //temporary
+		inline VerticesIndexes* getNextTriangleVertIndexes() override { return getTriangleVertIndexes(m_globalIterator++); }
+		inline VerticesIndexes* getTriangleVertIndexes(unsigned triangleIndex) override { return &(m_triIndexes[triangleIndex]); }
+		unsigned size() const override { return static_cast<unsigned>(m_triIndexes.size()); }
+		void getLocalBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override; // simply returns the vertices bounding-box for now
+		void getGlobalBoundingBox(CCVector3d& bbMin, CCVector3d& bbMax) override; // simply returns the vertices bounding-box for now
+		void getLocalTriangleVertices(unsigned triangleIndex, CCVector3& A, CCVector3& B, CCVector3& C) const override;
+		void getGlobalTriangleVertices(unsigned triangleIndex, CCVector3d& A, CCVector3d& B, CCVector3d& C) const override;
+		CCVector3d getLocalToGlobalTranslation() const override;
+		CCVector3d toGlobal(const CCVector3& localPoint) const override;
+		CCVector3 toLocal(const CCVector3d& globalPoint) const override;
 
 	public: //specific methods
 
 		//! Returns the mesh capacity
-		inline unsigned capacity() const { return static_cast<unsigned>(triIndexes.capacity()); }
+		inline unsigned capacity() const { return static_cast<unsigned>(m_triIndexes.capacity()); }
 
 		//! Returns the vertices
-		inline const GenericIndexedCloud* vertices() const { return theVertices; }
+		inline const GenericIndexedCloud* vertices() const { return m_vertices; }
 
 		//! Clears the mesh
-		inline void clear() { triIndexes.resize(0); }
+		inline void clear() { m_triIndexes.resize(0); }
 
 		//! Adds a triangle to the mesh
 		/** Vertex indexes are expresesed relatively to the vertex cloud.
@@ -79,26 +85,29 @@ namespace CCCoreLib
 
 		//inherited from GenericIndexedMesh
 		bool normalsAvailable() const override;
-		bool interpolateNormals(unsigned triIndex, const CCVector3& P, CCVector3& N) override;
+		bool interpolateNormalsLocal(unsigned triIndex, const CCVector3& P, CCVector3& N) override;
+		bool interpolateNormalsGlobal(unsigned triIndex, const CCVector3d& P, CCVector3& N) override;
 
 	protected:
 
-		//! A triangle vertices indexes container
+		//! Vertex indexes container
 		using TriangleIndexesContainer = std::vector<VerticesIndexes>;
-		//! The triangles indexes
-		TriangleIndexesContainer triIndexes;
+		//! Vertex indexes
+		TriangleIndexesContainer m_triIndexes;
 
-		//! Iterator on the list of triangles
-		unsigned globalIterator;
-		//! Dump triangle structure to transmit temporary data
-		SimpleTriangle dummyTriangle;
+		//! Iterator on the set of triangles
+		unsigned m_globalIterator;
+		//! Temporary local triangle structure
+		SimpleLocalTriangle m_dummyLocalTriangle;
+		//! Temporary global triangle structure
+		SimpleGlobalTriangle m_dummyGlobalTriangle;
 
-		//! The associated point cloud (vertices)
-		GenericIndexedCloud* theVertices;
-		//! Specifies if the associated cloud should be deleted when the mesh is deleted
-		bool verticesLinked;
+		//! Associated point cloud (vertices)
+		GenericIndexedCloud* m_vertices;
+		//! Whether the associated cloud should be deleted when the mesh is deleted
+		bool m_verticesLinked;
 
-		//! Bounding-box
+		//! Local bounding-box
 		BoundingBox m_bbox;
 	};
 

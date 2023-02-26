@@ -220,17 +220,17 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		ScalarType maxDist = NAN_VALUE;
 
 		//on cherche la premiere distance superieure ou egale a "minSeedDist"
-		while (begin<numberOfPoints)
+		while (begin < numberOfPoints)
 		{
-			const CCVector3 *thePoint = theCloud->getPoint(begin);
-			const ScalarType& theDistance = theDists->at(begin);
+			const CCVector3* localPoint = theCloud->getLocalPoint(begin);
+			ScalarType distance = theDists->at(begin);
 			++begin;
 
 			//FIXME DGM: what happens if SF is negative?!
-			if (theCloud->getPointScalarValue(begin) >= 0 && theDistance >= minSeedDist)
+			if (theCloud->getPointScalarValue(begin) >= 0 && distance >= minSeedDist)
 			{
-				maxDist = theDistance;
-				startPoint = *thePoint;
+				maxDist = distance;
+				startPoint = *localPoint;
 				maxDistIndex = begin;
 				break;
 			}
@@ -245,13 +245,13 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		//on finit la recherche du max
 		for (unsigned i = begin; i < numberOfPoints; ++i)
 		{
-			const CCVector3 *thePoint = theCloud->getPoint(i);
-			const ScalarType& theDistance = theDists->at(i);
+			const CCVector3* localPoint = theCloud->getLocalPoint(i);
+			ScalarType distance = theDists->at(i);
 
-			if ((theCloud->getPointScalarValue(i) >= 0.0) && (theDistance > maxDist))
+			if ((theCloud->getPointScalarValue(i) >= 0.0) && (distance > maxDist))
 			{
-				maxDist = theDistance;
-				startPoint = *thePoint;
+				maxDist = distance;
+				startPoint = *localPoint;
 				maxDistIndex = i;
 			}
 		}
@@ -259,7 +259,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		//set seed point
 		{
 			Tuple3i cellPos;
-			theOctree->getTheCellPosWhichIncludesThePoint(&startPoint, cellPos, octreeLevel);
+			theOctree->getTheCellPosWhichIncludesThePoint(startPoint, cellPos, octreeLevel);
 			//clipping (important!)
 			cellPos.x = std::min(octreeLength, cellPos.x);
 			cellPos.y = std::min(octreeLength, cellPos.y);

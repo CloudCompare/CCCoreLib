@@ -11,20 +11,26 @@ namespace CCCoreLib
 	//! A generic triangle interface
 	/** Returns (temporary) references to each vertex.
 	**/
-	class CC_CORE_LIB_API GenericTriangle
+	template <typename Type> class CC_CORE_LIB_API GenericTriangleTpl
 	{
 	public:
 
 		//! Default destructor
-		virtual ~GenericTriangle() = default;
+		virtual ~GenericTriangleTpl() = default;
 
 		//! Returns the first vertex (A)
-		virtual const CCVector3* _getA() const = 0;
+		virtual const Vector3Tpl<Type>* _getA() const = 0;
 
 		//! Returns the second vertex (B)
-		virtual const CCVector3* _getB() const = 0;
+		virtual const Vector3Tpl<Type>* _getB() const = 0;
 
 		//! Returns the third vertex (C)
-		virtual const CCVector3* _getC() const = 0;
+		virtual const Vector3Tpl<Type>* _getC() const = 0;
 	};
+
+	//! Default local triangle
+	using GenericLocalTriangle = GenericTriangleTpl<PointCoordinateType>;
+	//! Default global triangle
+	using GenericGlobalTriangle = GenericTriangleTpl<double>;
+
 }

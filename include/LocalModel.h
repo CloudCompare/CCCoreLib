@@ -17,12 +17,12 @@ namespace CCCoreLib
 		//! Factory
 		/** \param type the model type
 			\param subset (small) set of points from which to compute the local model
-			\param center model "center"
+			\param center model local "center" point
 			\param squaredRadius model max radius (squared)
 		**/
 		static LocalModel* New(	LOCAL_MODEL_TYPES type,
 								Neighbourhood& subset,
-								const CCVector3 &center,
+								const CCVector3& localCenter,
 								PointCoordinateType squaredRadius);
 
 		//! Destructor
@@ -32,28 +32,28 @@ namespace CCCoreLib
 		virtual LOCAL_MODEL_TYPES getType() const = 0;
 
 		//! Returns the model center
-		inline const CCVector3& getCenter() const { return m_modelCenter; }
+		inline const CCVector3& getLocalCenter() const { return m_modelLocalCenter; }
 
 		//! Returns the model max radius (squared)
 		inline PointCoordinateType getSquareSize() const { return m_squaredRadius; }
 
 		//! Compute the (unsigned) distance between a 3D point and this model
-		/** \param[in] P the query point
-			\param[out] nearestPoint returns the nearest point (optional)
+		/** \param[in]	Plocal the query point (local)
+			\param[out]	nearestPoint returns the nearest point (optional)
 			\return the (unsigned) distance (or CCCoreLib::NAN_VALUE if the computation failed)
 		**/
-		virtual ScalarType computeDistanceFromModelToPoint(const CCVector3* P, CCVector3* nearestPoint = nullptr) const = 0;
+		virtual ScalarType computeDistanceFromLocalPointToModel(const CCVector3& Plocal, CCVector3* nearestPoint = nullptr) const = 0;
 
 	protected:
 
 		//! Constructor
-		/** \param center model "center"
+		/** \param localCenter model local "center" point
 			\param squaredRadius model max "radius" (squared)
 		**/
-		LocalModel(const CCVector3 &center, PointCoordinateType squaredRadius);
+		LocalModel(const CCVector3& localCenter, PointCoordinateType squaredRadius);
 
-		//! Center
-		CCVector3 m_modelCenter;
+		//! Local center
+		CCVector3 m_modelLocalCenter;
 
 		//! Max radius (squared)
 		PointCoordinateType m_squaredRadius;

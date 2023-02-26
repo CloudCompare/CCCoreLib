@@ -12,7 +12,6 @@
 #include <GenericIndexedMesh.h>
 #include <GeometricalAnalysisTools.h>
 #include <Jacobi.h>
-#include <KdTree.h>
 #include <ManualSegmentationTools.h>
 #include <NormalDistribution.h>
 #include <ParallelSort.h>
@@ -354,7 +353,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	}
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
-	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistances now
+	//data.cloud->forEachScalarValue(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistances now
 	if (inputModelMesh)
 	{
 		assert(data.CPSetPlain);
@@ -462,7 +461,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 						if (filteredData.CPSetRef)
 							filteredData.CPSetRef->addPointIndex(data.CPSetRef->getPointGlobalIndex(i));
 						else if (filteredData.CPSetPlain)
-							filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+							filteredData.CPSetPlain->addLocalPoint(*(data.CPSetPlain->getLocalPoint(i)));
 						if (filteredData.weights)
 							filteredData.weights->addElement(data.weights->getValue(i));
 					}
@@ -550,7 +549,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					}
 					else if (filteredData.CPSetPlain)
 					{
-						filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+						filteredData.CPSetPlain->addLocalPoint(*(data.CPSetPlain->getLocalPoint(i)));
 						//don't forget the scalar field with the nearest triangle index!
 						filteredData.CPSetPlain->addPointScalarValue(data.CPSetPlain->getPointScalarValue(i));
 					}
@@ -604,7 +603,9 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					{
 						unsigned triIndex = static_cast<unsigned>(data.CPSetPlain->getPointScalarValue(i));
 						assert(triIndex >= 0 && triIndex < inputModelMesh->size());
-						inputModelMesh->interpolateNormals(triIndex, *data.CPSetPlain->getPoint(i), Nm);
+						CCVector3d globalP;
+						data.CPSetPlain->getGlobalPoint(i, globalP);
+						inputModelMesh->interpolateNormalsGlobal(triIndex, globalP, Nm);
 					}
 					else
 					{
@@ -852,7 +853,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		else
 		{
 			//we simply have to rotate the existing temporary cloud
-			currentTrans.apply(*data.rotatedCloud);
+			currentTrans.applyToGlobal(*data.rotatedCloud);
 			data.rotatedCloud->invalidateBoundingBox(); //invalidate bb
 
 			//DGM: warning, we must manually invalidate the ReferenceCloud bbox after rotation!
@@ -932,11 +933,11 @@ double HornRegistrationTools::ComputeRMS(GenericCloud* lCloud,
 
 	for (unsigned i = 0; i < count; i++)
 	{
-		const CCVector3* Ri = rCloud->getNextPoint();
-		const CCVector3* Li = lCloud->getNextPoint();
-		CCVector3 Lit = trans.apply(*Li);
+		CCVector3d Ri = rCloud->getNextGlobalPoint();
+		CCVector3d Li = lCloud->getNextGlobalPoint();
+		CCVector3d Lit = trans.apply(Li);
 
-		rms += (*Ri - Lit).norm2();
+		rms += (Ri - Lit).norm2();
 	}
 
 	return sqrt(rms / count);
@@ -958,8 +959,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		return false;
 
 	//centers of mass
-	CCVector3 Gp = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedGravityCenter(P, coupleWeights) : GeometricalAnalysisTools::ComputeGravityCenter(P);
-	CCVector3 Gx = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedGravityCenter(X, coupleWeights) : GeometricalAnalysisTools::ComputeGravityCenter(X);
+	CCVector3 Gp = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedLocalGravityCenter(P, coupleWeights) : GeometricalAnalysisTools::ComputeLocalGravityCenter(P);
+	CCVector3 Gx = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedLocalGravityCenter(X, coupleWeights) : GeometricalAnalysisTools::ComputeLocalGravityCenter(X);
 
 	//specific case: 3 points only
 	//See section 5.A in Horn's paper
@@ -967,9 +968,9 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 	{
 		//compute the first set normal
 		P->placeIteratorAtBeginning();
-		const CCVector3* Ap = P->getNextPoint();
-		const CCVector3* Bp = P->getNextPoint();
-		const CCVector3* Cp = P->getNextPoint();
+		const CCVector3* Ap = P->getNextLocalPoint();
+		const CCVector3* Bp = P->getNextLocalPoint();
+		const CCVector3* Cp = P->getNextLocalPoint();
 		CCVector3 Np(0, 0, 1);
 		{
 			Np = (*Bp - *Ap).cross(*Cp - *Ap);
@@ -982,9 +983,9 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 		//compute the second set normal
 		X->placeIteratorAtBeginning();
-		const CCVector3* Ax = X->getNextPoint();
-		const CCVector3* Bx = X->getNextPoint();
-		const CCVector3* Cx = X->getNextPoint();
+		const CCVector3* Ax = X->getNextLocalPoint();
+		const CCVector3* Bx = X->getNextLocalPoint();
+		const CCVector3* Cx = X->getNextLocalPoint();
 		CCVector3 Nx(0, 0, 1);
 		{
 			Nx = (*Bx - *Ax).cross(*Cx - *Ax);
@@ -1035,7 +1036,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 
 		//we deduce the first translation
-		trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
+		trans.T = X->toGlobal(Gx) - (trans.R * P->toGlobal(Gp)) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
 
 		//we need to find the rotation in the (X) plane now
 		{
@@ -1043,16 +1044,10 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			CCVector3 Bpp = trans.apply(*Bp);
 			CCVector3 Cpp = trans.apply(*Cp);
 
-			double C = 0;
-			double S = 0;
-			CCVector3 Ssum(0, 0, 0);
-			CCVector3 rx;
-			CCVector3 rp;
-
-			rx = *Ax - Gx;
-			rp = App - Gx;
-			C = rx.dot(rp);
-			Ssum = rx.cross(rp);
+			CCVector3 rx = *Ax - Gx;
+			CCVector3 rp = App - Gx;
+			double C = rx.dot(rp);
+			CCVector3 Ssum = rx.cross(rp);
 
 			rx = *Bx - Gx;
 			rp = Bpp - Gx;
@@ -1064,7 +1059,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			C += rx.dot(rp);
 			Ssum += rx.cross(rp);
 
-			S = Ssum.dot(Nx);
+			double S = Ssum.dot(Nx);
 			double Q = sqrt(S*S + C*C);
 			if (LessThanEpsilon(Q))
 			{
@@ -1099,14 +1094,14 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			R.m_values[2][2] = cos_t + l3 * l3_inv_cos_t;
 
 			trans.R = R * trans.R;
-			trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //update T as well
+			trans.T = X->toGlobal(Gx) - (trans.R * P->toGlobal(Gp)) * (aPrioriScale*trans.s); //update T as well
 		}
 	}
 	else
 	{
 		CCVector3 bbMin;
 		CCVector3 bbMax;
-		X->getBoundingBox(bbMin, bbMax);
+		X->getLocalBoundingBox(bbMin, bbMax);
 
 		//if the data cloud is equivalent to a single point (for instance
 		//it's the case when the two clouds are very far away from
@@ -1203,8 +1198,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			{
 				//'a' refers to the data 'A' (moving) = P
 				//'b' refers to the model 'B' (not moving) = X
-				CCVector3d a_tilde = trans.R * (*(P->getNextPoint()) - Gp);	// a_tilde_i = R * (a_i - a_mean)
-				CCVector3d b_tilde = (*(X->getNextPoint()) - Gx);			// b_tilde_j =     (b_j - b_mean)
+				CCVector3d a_tilde = trans.R * (*(P->getNextLocalPoint()) - Gp);	// a_tilde_i = R * (a_i - a_mean)
+				CCVector3d b_tilde =           (*(X->getNextLocalPoint()) - Gx);	// b_tilde_j =     (b_j - b_mean)
 
 				acc_num += b_tilde.dot(a_tilde);
 				acc_denom += a_tilde.dot(a_tilde);
@@ -1216,698 +1211,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		}
 
 		//and we deduce the translation
-		trans.T = Gx.toDouble() - (trans.R*Gp) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
-	}
-
-	return true;
-}
-
-bool FPCSRegistrationTools::RegisterClouds(	GenericIndexedCloud* modelCloud,
-											GenericIndexedCloud* dataCloud,
-											ScaledTransformation& transform,
-											ScalarType delta,
-											ScalarType beta,
-											PointCoordinateType overlap,
-											unsigned nbBases,
-											unsigned nbTries,
-											GenericProgressCallback* progressCb,
-											unsigned nbMaxCandidates)
-{
-	//DGM: KDTree::buildFromCloud will call reset right away!
-	//if (progressCb)
-	//{
-	//	if (progressCb->textCanBeEdited())
-	//	{
-	//		progressCb->setMethodTitle("Clouds registration");
-	//		progressCb->setInfo("Starting 4PCS");
-	//	}
-	//	progressCb->update(0);
-	//	progressCb->start();
-	//}
-
-	//Initialize random seed with current time
-	srand(static_cast<unsigned>(time(nullptr)));
-
-	unsigned bestScore = 0;
-	unsigned score = 0;
-	transform.R.invalidate();
-	transform.T = CCVector3(0,0,0);
-
-	//Adapt overlap to the model cloud size
-	{
-		CCVector3 bbMin;
-		CCVector3 bbMax;
-		modelCloud->getBoundingBox(bbMin, bbMax);
-		CCVector3 diff = bbMax - bbMin;
-		overlap *= diff.norm() / 2;
-	}
-
-	//Build the associated KDtrees
-	KDTree* dataTree = new KDTree();
-	if (!dataTree->buildFromCloud(dataCloud, progressCb))
-	{
-		delete dataTree;
-		return false;
-	}
-	KDTree* modelTree = new KDTree();
-	if (!modelTree->buildFromCloud(modelCloud, progressCb))
-	{
-		delete dataTree;
-		delete modelTree;
-		return false;
-	}
-
-	//if (progressCb)
-	//    progressCb->stop();
-
-	for (unsigned i = 0; i < nbBases; i++)
-	{
-		//Randomly find the current reference base
-		Base reference;
-		if (!FindBase(modelCloud, overlap, nbTries, reference))
-			continue;
-
-		//Search for all the congruent bases in the second cloud
-		std::vector<Base> candidates;
-		unsigned count = dataCloud->size();
-		candidates.reserve(count);
-		if (candidates.capacity() < count) //not enough memory
-		{
-			delete dataTree;
-			delete modelTree;
-			transform.R = SquareMatrix();
-			return false;
-		}
-		const CCVector3* referenceBasePoints[4];
-		{
-			for (unsigned j = 0; j < 4; j++)
-				referenceBasePoints[j] = modelCloud->getPoint(reference.getIndex(j));
-		}
-		int result = FindCongruentBases(dataTree, beta, referenceBasePoints, candidates);
-		if (result == 0)
-			continue;
-		else if (result < 0) //something bad happened!
-		{
-			delete dataTree;
-			delete modelTree;
-			transform.R = SquareMatrix();
-			return false;
-		}
-
-		//Compute rigid transforms and filter bases if necessary
-		{
-			std::vector<ScaledTransformation> transforms;
-			if (!FilterCandidates(modelCloud, dataCloud, reference, candidates, nbMaxCandidates, transforms))
-			{
-				delete dataTree;
-				delete modelTree;
-				transform.R = SquareMatrix();
-				return false;
-			}
-
-			for (unsigned j = 0; j < candidates.size(); j++)
-			{
-				//Register the current candidate base with the reference base
-				const ScaledTransformation& RT = transforms[j];
-				//Apply the rigid transform to the data cloud and compute the registration score
-				if (RT.R.isValid())
-				{
-					score = ComputeRegistrationScore(modelTree, dataCloud, delta, RT);
-
-					//Keep parameters that lead to the best result
-					if (score > bestScore)
-					{
-						transform.R = RT.R;
-						transform.T = RT.T;
-						bestScore = score;
-					}
-				}
-			}
-		}
-
-		if (progressCb)
-		{
-			if (progressCb->textCanBeEdited())
-			{
-				char buffer[64];
-				snprintf(buffer, 64, "Trial %u/%u [best score = %u]", i + 1, nbBases, bestScore);
-				progressCb->setInfo(buffer);
-				progressCb->update(((i + 1)*100.0f) / nbBases);
-			}
-
-			if (progressCb->isCancelRequested())
-			{
-				delete dataTree;
-				delete modelTree;
-				transform.R = SquareMatrix();
-				return false;
-			}
-		}
-	}
-
-	delete dataTree;
-	delete modelTree;
-
-	if (progressCb)
-	{
-		progressCb->stop();
-	}
-
-	return (bestScore > 0);
-}
-
-unsigned FPCSRegistrationTools::ComputeRegistrationScore(	KDTree *modelTree,
-															GenericIndexedCloud *dataCloud,
-															ScalarType delta,
-															const ScaledTransformation& dataToModel)
-{
-	CCVector3 Q;
-	unsigned score = 0;
-
-	unsigned count = dataCloud->size();
-	for (unsigned i = 0; i < count; ++i)
-	{
-		dataCloud->getPoint(i, Q);
-		//Apply rigid transform to each point
-		Q = (dataToModel.R * Q + dataToModel.T).toPC();
-		//Check if there is a point in the model cloud that is close enough to q
-		if (modelTree->findNearestNeighbourWithMaxDist(Q.u, delta))
-		{
-			++score;
-		}
-	}
-
-	return score;
-}
-
-bool FPCSRegistrationTools::FindBase(	GenericIndexedCloud* cloud,
-										PointCoordinateType overlap,
-										unsigned nbTries,
-										Base &base)
-{
-	unsigned a;
-	unsigned b;
-	unsigned c;
-	unsigned d;
-	unsigned i;
-	unsigned size;
-	PointCoordinateType f;
-	PointCoordinateType best;
-	PointCoordinateType d0;
-	PointCoordinateType d1;
-	PointCoordinateType d2;
-	PointCoordinateType x;
-	PointCoordinateType y;
-	PointCoordinateType z;
-	PointCoordinateType w;
-	const CCVector3 *p0 = nullptr;
-	const CCVector3 *p1 = nullptr;
-	const CCVector3 *p2 = nullptr;
-	const CCVector3 *p3 = nullptr;
-	CCVector3 normal;
-	CCVector3 u;
-	CCVector3 v;
-
-	overlap *= overlap;
-	size = cloud->size();
-	best = 0.;
-	b = c = 0;
-	a = rand() % size;
-	p0 = cloud->getPoint(a);
-	//Randomly pick 3 points as sparsed as possible
-	for (i = 0; i < nbTries; i++)
-	{
-		unsigned t1 = (rand() % size);
-		unsigned t2 = (rand() % size);
-		if (t1 == a || t2 == a || t1 == t2)
-			continue;
-
-		p1 = cloud->getPoint(t1);
-		p2 = cloud->getPoint(t2);
-		//Checked that the selected points are not more than overlap-distant from p0
-		u = *p1 - *p0;
-		if (u.norm2() > overlap)
-			continue;
-		u = *p2 - *p0;
-		if (u.norm2() > overlap)
-			continue;
-
-		//compute [p0, p1, p2] area thanks to cross product
-		x = ((p1->y - p0->y)*(p2->z - p0->z)) - ((p1->z - p0->z)*(p2->y - p0->y));
-		y = ((p1->z - p0->z)*(p2->x - p0->x)) - ((p1->x - p0->x)*(p2->z - p0->z));
-		z = ((p1->x - p0->x)*(p2->y - p0->y)) - ((p1->y - p0->y)*(p2->x - p0->x));
-		//don't need to compute the true area : f=(area²)*2 is sufficient for comparison
-		f = x * x + y * y + z * z;
-		if (f > best)
-		{
-			b = t1;
-			c = t2;
-			best = f;
-			normal.x = x;
-			normal.y = y;
-			normal.z = z;
-		}
-	}
-
-	if (b == c)
-		return false;
-
-	//Once we found the points, we have to search for a fourth coplanar point
-	f = normal.norm();
-	if (f <= 0)
-		return false;
-	normal *= 1.0f / f;
-	//plane equation : p lies in the plane if x*p[0] + y*p[1] + z*p[2] + w = 0
-	x = normal.x;
-	y = normal.y;
-	z = normal.z;
-	w = -(x*p0->x) - (y*p0->y) - (z*p0->z);
-	d = a;
-	best = -1.;
-	p1 = cloud->getPoint(b);
-	p2 = cloud->getPoint(c);
-	for(i=0; i<nbTries; i++)
-	{
-		unsigned t1 = (rand() % size);
-		if (t1 == a || t1 == b || t1 == c)
-			continue;
-		p3 = cloud->getPoint(t1);
-		//p3 must be close enough to at least two other points (considering overlap)
-		d0 = (*p3 - *p0).norm2();
-		d1 = (*p3 - *p1).norm2();
-		d2 = (*p3 - *p2).norm2();
-		if ((d0 >= overlap && d1 >= overlap) || (d0 >= overlap && d2 >= overlap) || (d1 >= overlap && d2 >= overlap))
-			continue;
-		//Compute distance to the plane (cloud[a], cloud[b], cloud[c])
-		f = std::abs((x*p3->x) + (y*p3->y) + (z*p3->z) + w);
-		//keep the point which is the closest to the plane, while being as far as possible from the other three points
-		f = (f + 1.0f) / (sqrt(d0) + sqrt(d1) + sqrt(d2));
-		if ((best < 0.) || (f < best))
-		{
-			d = t1;
-			best = f;
-		}
-	}
-
-	//Store the result in the base parameter
-	if (d != a)
-	{
-		//Find the points order in the quadrilateral
-		p0 = cloud->getPoint(a);
-		p1 = cloud->getPoint(b);
-		p2 = cloud->getPoint(c);
-		p3 = cloud->getPoint(d);
-		//Search for the diagonnals of the convexe hull (3 tests max)
-		//Note : if the convexe hull is made of 3 points, the points order has no importance
-		u = (*p1 - *p0)*(*p2 - *p0);
-		v = (*p1 - *p0)*(*p3 - *p0);
-		if (u.dot(v) <= 0)
-		{
-			//p2 and p3 lie on both sides of [p0, p1]
-			base.init(a, b, c, d);
-			return true;
-		}
-		u = (*p2 - *p1)*(*p0 - *p1);
-		v = (*p2 - *p1)*(*p3 - *p1);
-		if (u.dot(v) <= 0)
-		{
-			//p0 and p3 lie on both sides of [p2, p1]
-			base.init(b, c, d, a);
-			return true;
-		}
-		base.init(a, c, b, d);
-		return true;
-	}
-
-	return false;
-}
-
-//pair of indexes
-using IndexPair = std::pair<unsigned,unsigned>;
-
-int FPCSRegistrationTools::FindCongruentBases( KDTree* tree,
-											   ScalarType delta,
-											   const CCVector3* base[4],
-											   std::vector<Base>& results )
-{
-	//Compute reference base invariants (r1, r2)
-	PointCoordinateType r1;
-	PointCoordinateType r2;
-	PointCoordinateType d1;
-	PointCoordinateType d2;
-	{
-		const CCVector3* p0 = base[0];
-		const CCVector3* p1 = base[1];
-		const CCVector3* p2 = base[2];
-		const CCVector3* p3 = base[3];
-
-		d1 = (*p1-*p0).norm();
-		d2 = (*p3-*p2).norm();
-
-		CCVector3 inter;
-		if (!LinesIntersections(*p0, *p1, *p2, *p3, inter, r1, r2))
-			return 0;
-	}
-
-	GenericIndexedCloud* cloud = tree->getAssociatedCloud();
-
-	//Find all pairs which are d1-appart and d2-appart
-	std::vector<IndexPair> pairs1;
-	std::vector<IndexPair> pairs2;
-	{
-		unsigned count = static_cast<unsigned>(cloud->size());
-		std::vector<unsigned> pointsIndexes;
-		try
-		{
-			pointsIndexes.reserve(count);
-		}
-		catch(...)
-		{
-			//not enough memory
-			return -1;
-		}
-
-		for (unsigned i = 0; i < count; i++)
-		{
-			const CCVector3* q0 = cloud->getPoint(i);
-			IndexPair idxPair;
-			idxPair.first = i;
-			//Extract all points from the cloud which are d1-appart (up to delta) from q0
-			pointsIndexes.clear();
-			tree->radiusSearch(q0->u, static_cast<ScalarType>(d1), delta, pointsIndexes);
-			{
-				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
-				{
-					//As ||pi-pj|| = ||pj-pi||, we only take care of pairs that verify i<j
-					if (pointsIndexes[j] > i)
-					{
-						idxPair.second = pointsIndexes[j];
-						pairs1.push_back(idxPair);
-					}
-				}
-			}
-			//Extract all points from the cloud which are d2-appart (up to delta) from q0
-			pointsIndexes.clear();
-			tree->radiusSearch(q0->u, static_cast<ScalarType>(d2), delta, pointsIndexes);
-			{
-				for (std::size_t j = 0; j < pointsIndexes.size(); j++)
-				{
-					if (pointsIndexes[j] > i)
-					{
-						idxPair.second = pointsIndexes[j];
-						pairs2.push_back(idxPair);
-					}
-				}
-			}
-		}
-	}
-
-	//Select among the pairs the ones that can be congruent to the base "base"
-	std::vector<IndexPair> match;
-	{
-		PointCloud tmpCloud1;
-		PointCloud tmpCloud2;
-		{
-			unsigned count = static_cast<unsigned>(pairs1.size());
-			if (!tmpCloud1.reserve(count * 2)) //not enough memory
-				return -2;
-			for (unsigned i = 0; i < count; i++)
-			{
-				//generate the two intermediate points from r1 in pairs1[i]
-				const CCVector3 *q0 = cloud->getPoint(pairs1[i].first);
-				const CCVector3 *q1 = cloud->getPoint(pairs1[i].second);
-				CCVector3 P1 = *q0 + r1*(*q1-*q0);
-				tmpCloud1.addPoint(P1);
-				CCVector3 P2 = *q1 + r1*(*q0-*q1);
-				tmpCloud1.addPoint(P2);
-			}
-		}
-
-		{
-			unsigned count = static_cast<unsigned>(pairs2.size());
-			if (!tmpCloud2.reserve(count*2)) //not enough memory
-				return -3;
-			for (unsigned i = 0; i < count; i++)
-			{
-				//generate the two intermediate points from r2 in pairs2[i]
-				const CCVector3 *q0 = cloud->getPoint(pairs2[i].first);
-				const CCVector3 *q1 = cloud->getPoint(pairs2[i].second);
-				CCVector3 P1 = *q0 + r2 * (*q1 - *q0);
-				tmpCloud2.addPoint(P1);
-				CCVector3 P2 = *q1 + r2 * (*q0 - *q1);
-				tmpCloud2.addPoint(P2);
-			}
-		}
-
-		//build kdtree for nearest neighbour fast research
-		KDTree intermediateTree;
-		if (!intermediateTree.buildFromCloud(&tmpCloud1))
-			return -4;
-
-		//Find matching (up to delta) intermediate points in tmpCloud1 and tmpCloud2
-		{
-			unsigned count = static_cast<unsigned>(tmpCloud2.size());
-			match.reserve(count);
-			if (match.capacity() < count)	//not enough memory
-				return -5;
-
-			for (unsigned i = 0; i < count; i++)
-			{
-				const CCVector3 *q0 = tmpCloud2.getPoint(i);
-				unsigned a;
-				if (intermediateTree.findNearestNeighbour(q0->u, a, delta))
-				{
-					IndexPair idxPair;
-					idxPair.first = i;
-					idxPair.second = a;
-					match.push_back(idxPair);
-				}
-			}
-		}
-	}
-
-	//Find bases from matching intermediate points indexes
-	{
-		results.resize(0);
-		std::size_t count = match.size();
-		if (count > 0)
-		{
-			try
-			{
-				results.reserve(count);
-			}
-			catch (const std::bad_alloc&)
-			{
-				//not enough memory
-				return -6;
-			}
-			for (std::size_t i = 0; i < count; i++)
-			{
-				Base quad;
-				unsigned b = match[i].second / 2;
-				if ((match[i].second % 2) == 0)
-				{
-					quad.a = pairs1[b].first;
-					quad.b = pairs1[b].second;
-				}
-				else
-				{
-					quad.a = pairs1[b].second;
-					quad.b = pairs1[b].first;
-				}
-
-				unsigned a = match[i].first / 2;
-				if ((match[i].first % 2) == 0)
-				{
-					quad.c = pairs2[a].first;
-					quad.d = pairs2[a].second;
-				}
-				else
-				{
-					quad.c = pairs2[a].second;
-					quad.d = pairs2[a].first;
-				}
-				results.push_back(quad);
-			}
-		}
-	}
-
-	return static_cast<int>(results.size());
-}
-
-
-bool FPCSRegistrationTools::LinesIntersections(	const CCVector3 &p0,
-												const CCVector3 &p1,
-												const CCVector3 &p2,
-												const CCVector3 &p3,
-												CCVector3 &inter,
-												PointCoordinateType& lambda,
-												PointCoordinateType& mu)
-{
-	CCVector3 p02;
-	CCVector3 p32;
-	CCVector3 p10;
-	CCVector3 A;
-	CCVector3 B;
-	PointCoordinateType num;
-	PointCoordinateType denom;
-
-	//Find lambda and mu such that :
-	//A = p0+lambda(p1-p0)
-	//B = p2+mu(p3-p2)
-	//(lambda, mu) = argmin(||A-B||²)
-	p02 = p0-p2;
-	p32 = p3-p2;
-	p10 = p1-p0;
-	num = (p02.dot(p32) * p32.dot(p10)) - (p02.dot(p10) * p32.dot(p32));
-	denom = (p10.dot(p10) * p32.dot(p32)) - (p32.dot(p10) * p32.dot(p10));
-	if (std::abs(denom) < 0.00001)
-		return false;
-	lambda = num / denom;
-	num = p02.dot(p32) + (lambda*p32.dot(p10));
-	denom = p32.dot(p32);
-	if (std::abs(denom) < 0.00001)
-		return false;
-	mu = num / denom;
-	A.x = p0.x + (lambda*p10.x);
-	A.y = p0.y + (lambda*p10.y);
-	A.z = p0.z + (lambda*p10.z);
-	B.x = p2.x + (mu*p32.x);
-	B.y = p2.y + (mu*p32.y);
-	B.z = p2.z + (mu*p32.z);
-	inter.x = (A.x + B.x) / 2.0f;
-	inter.y = (A.y + B.y) / 2.0f;
-	inter.z = (A.z + B.z) / 2.0f;
-
-	return true;
-}
-
-bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud *modelCloud,
-												GenericIndexedCloud *dataCloud,
-												Base& reference,
-												std::vector<Base>& candidates,
-												unsigned nbMaxCandidates,
-												std::vector<ScaledTransformation>& transforms)
-{
-	std::vector<Base> table;
-	std::vector<float> scores;
-	std::vector<float> sortedscores;
-	const CCVector3* p[4];
-	ScaledTransformation t;
-	std::vector<ScaledTransformation> tarray;
-	PointCloud referenceBaseCloud;
-	PointCloud dataBaseCloud;
-
-	unsigned candidatesCount = static_cast<unsigned>(candidates.size());
-	if (candidatesCount == 0)
-		return false;
-
-	bool filter = (nbMaxCandidates>0 && candidatesCount > nbMaxCandidates);
-	{
-		try
-		{
-			table.resize(candidatesCount);
-		}
-		catch (.../*const std::bad_alloc&*/) //out of memory
-		{
-			return false;
-		}
-		for (unsigned i=0; i<candidatesCount; i++)
-			table[i].copy(candidates[i]);
-	}
-
-	if (!referenceBaseCloud.reserve(4)) //we never know ;)
-		return false;
-
-	{
-		for (unsigned j=0; j<4; j++)
-		{
-			p[j] = modelCloud->getPoint(reference.getIndex(j));
-			referenceBaseCloud.addPoint(*p[j]);
-		}
-	}
-
-	try
-	{
-		scores.reserve(candidatesCount);
-		sortedscores.reserve(candidatesCount);
-		tarray.reserve(candidatesCount);
-		transforms.reserve(candidatesCount);
-	}
-	catch (.../*const std::bad_alloc&*/) //out of memory
-	{
-		return false;
-	}
-
-	//enough memory?
-	if (	scores.capacity() < candidatesCount
-			||	sortedscores.capacity() < candidatesCount
-			||	tarray.capacity() < candidatesCount
-			||	transforms.capacity() < candidatesCount)
-	{
-		return false;
-	}
-
-	{
-		for (unsigned i=0; i<table.size(); i++)
-		{
-			dataBaseCloud.reset();
-			if (!dataBaseCloud.reserve(4)) //we never know ;)
-				return false;
-			for (unsigned j=0; j<4; j++)
-				dataBaseCloud.addPoint(*dataCloud->getPoint(table[i].getIndex(j)));
-
-			if (!RegistrationTools::RegistrationProcedure(&dataBaseCloud, &referenceBaseCloud, t, false))
-				return false;
-
-			tarray.push_back(t);
-			if (filter)
-			{
-				float score = 0;
-				GenericIndexedCloud* b = PointProjectionTools::applyTransformation(&dataBaseCloud, t);
-				if (!b)
-					return false; //not enough memory
-				for (unsigned j=0; j<4; j++)
-				{
-					const CCVector3* q = b->getPoint(j);
-					score += static_cast<float>((*q - *(p[j])).norm());
-				}
-				delete b;
-				scores.push_back(score);
-				sortedscores.push_back(score);
-			}
-		}
-	}
-
-	if (filter)
-	{
-		transforms.resize(0);
-		try
-		{
-			candidates.resize(nbMaxCandidates);
-		}
-		catch (.../*const std::bad_alloc&*/) //out of memory
-		{
-			return false;
-		}
-
-		//Sort the scores in ascending order and only keep the nbMaxCandidates smallest scores
-		sort(sortedscores.begin(), sortedscores.end());
-		float score = sortedscores[nbMaxCandidates - 1];
-		unsigned j = 0;
-		for (unsigned i = 0; i < scores.size(); i++)
-		{
-			if (scores[i] <= score && j < nbMaxCandidates)
-			{
-				candidates[i].copy(table[i]);
-				transforms.push_back(tarray[i]);
-				j++;
-			}
-		}
-	}
-	else
-	{
-		transforms = tarray;
+		trans.T = X->toGlobal(Gx) - (trans.R * P->toGlobal(Gp)) * (aPrioriScale*trans.s); //#26 in besl paper, modified with the scale as in jschmidt
 	}
 
 	return true;

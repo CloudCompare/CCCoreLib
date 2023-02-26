@@ -9,16 +9,16 @@
 namespace CCCoreLib
 {
 	//! A simple triangle class
-	/** Implements the GenericTriangle class with references to 3D points.
+	/** Implements the GenericTriangleTpl interface with references to 3D points.
 		WARNING: make sure that references don't point to temporary objects!
 		WARNING: not compatible with parallelization.
 	**/
-	class CC_CORE_LIB_API SimpleRefTriangle : public GenericTriangle
+	template <typename Type> class SimpleRefTriangleTpl : public GenericTriangleTpl<Type>
 	{
 	public:
 
 		//! Default constructor
-		SimpleRefTriangle()
+		SimpleRefTriangleTpl()
 			: A(nullptr)
 			, B(nullptr)
 			, C(nullptr)
@@ -29,38 +29,43 @@ namespace CCCoreLib
 			\param _B second vertex
 			\param _C third vertex
 		**/
-		SimpleRefTriangle(const CCVector3* _A, const CCVector3* _B, const CCVector3* _C)
+		SimpleRefTriangleTpl(const Vector3Tpl<Type>* _A, const Vector3Tpl<Type>* _B, const Vector3Tpl<Type>* _C)
 			: A(_A)
 			, B(_B)
 			, C(_C)
 		{}
 
-		//inherited methods (see GenericDistribution)
-		inline const CCVector3* _getA() const override { return A; }
-		inline const CCVector3* _getB() const override { return B; }
-		inline const CCVector3* _getC() const override { return C; }
+		//inherited methods (see GenericTriangleTpl)
+		inline const Vector3Tpl<Type>* _getA() const override { return A; }
+		inline const Vector3Tpl<Type>* _getB() const override { return B; }
+		inline const Vector3Tpl<Type>* _getC() const override { return C; }
 
 		//! A vertex (ref)
-		const CCVector3 *A;
+		const Vector3Tpl<Type> *A;
 		//! B vertex (ref)
-		const CCVector3 *B;
+		const Vector3Tpl<Type> *B;
 		//! C vertex (ref)
-		const CCVector3 *C;
+		const Vector3Tpl<Type> *C;
 	};
 
+	//! Simple local triangle
+	using SimpleLocalRefTriangle = SimpleRefTriangleTpl<PointCoordinateType>;
+	//! Simple global triangle
+	using SimpleGlobalRefTriangle = SimpleRefTriangleTpl<double>;
+
 	//! A simple triangle class
-	/** Implements the GenericTriangle class with a triplet of 3D points.
+	/** Implements the GenericTriangleTpl interface with a triplet of 3D points.
 		Relies on direct storage for speed enhancement and parallelization!
 	**/
-	class CC_CORE_LIB_API SimpleTriangle : public GenericTriangle
+	template <typename Type> class SimpleTriangleTpl : public GenericTriangleTpl<Type>
 	{
 	public:
 
 		//! Default constructor
-		SimpleTriangle()
-			: A(0,0,0)
-			, B(0,0,0)
-			, C(0,0,0)
+		SimpleTriangleTpl()
+			: A(0, 0, 0)
+			, B(0, 0, 0)
+			, C(0, 0, 0)
 		{}
 
 		//! Constructor from 3 vertices
@@ -68,22 +73,27 @@ namespace CCCoreLib
 			\param _B second vertex
 			\param _C third vertex
 		**/
-		SimpleTriangle(const CCVector3& _A, const CCVector3& _B, const CCVector3& _C)
+		SimpleTriangleTpl(const Vector3Tpl<Type>& _A, const Vector3Tpl<Type>& _B, const Vector3Tpl<Type>& _C)
 			: A(_A)
 			, B(_B)
 			, C(_C)
 		{}
 
-		//inherited methods (see GenericDistribution)
-		inline const CCVector3* _getA() const override { return &A; }
-		inline const CCVector3* _getB() const override { return &B; }
-		inline const CCVector3* _getC() const override { return &C; }
+		//inherited methods (see GenericTriangleTpl)
+		inline const Vector3Tpl<Type>* _getA() const override { return &A; }
+		inline const Vector3Tpl<Type>* _getB() const override { return &B; }
+		inline const Vector3Tpl<Type>* _getC() const override { return &C; }
 
 		//! A vertex
-		CCVector3 A;
+		Vector3Tpl<Type> A;
 		//! B vertex
-		CCVector3 B;
+		Vector3Tpl<Type> B;
 		//! C vertex
-		CCVector3 C;
+		Vector3Tpl<Type> C;
 	};
+
+	//! Simple local triangle
+	using SimpleLocalTriangle = SimpleTriangleTpl<PointCoordinateType>;
+	//! Simple global triangle
+	using SimpleGlobalTriangle = SimpleTriangleTpl<double>;
 }

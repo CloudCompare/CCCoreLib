@@ -121,7 +121,7 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 		{
 			CCVector3 bbMin;
 			CCVector3 bbMax;
-			subset->getBoundingBox(bbMin, bbMax);
+			subset->getLocalBoundingBox(bbMin, bbMax);
 			cellBB = bbMax - bbMin;
 		}
 
@@ -135,7 +135,7 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 	assert(s_sortedCoordsForSplit.size() >= static_cast<std::size_t>(count));
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = subset->getPoint(i);
+		const CCVector3* P = subset->getLocalPoint(i);
 		s_sortedCoordsForSplit[i] = P->u[splitDim];
 	}
 
@@ -188,7 +188,7 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 	//fill subsets
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = subset->getPoint(i);
+		const CCVector3* P = subset->getLocalPoint(i);
 		(P->u[splitDim] < splitCoord ? leftSubset : rightSubset)->addPointIndex(subset->getPointGlobalIndex(i));
 	}
 
