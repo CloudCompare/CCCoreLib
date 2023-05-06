@@ -839,6 +839,11 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 		//skip this cell if the process is aborted / has failed
 		return;
 	}
+	if (!s_intersection_MT)
+	{
+		assert(false);
+		return;
+	}
 
 	if (s_normProgressCb_MT)
 	{
@@ -1427,11 +1432,6 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 	assert(!params.multiThread || params.maxSearchDist <= 0); //maxSearchDist is not compatible with parallel processing
 	assert(!params.signedDistances || !intersection.distanceTransform()); //signed distances are not compatible with Distance Transform acceleration
 
-	if (params.useDistanceMap != (intersection.distanceTransform() != nullptr))
-	{
-		return DISTANCE_COMPUTATION_RESULTS::ERROR_OCTREE_AND_MESH_INTERSECTION_MISMATCH;
-	}
-
 	if (!octree)
 	{
 		//invalid input
@@ -1442,6 +1442,24 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 	if (!intersection.isInitialized())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_INVALID_OCTREE_AND_MESH_INTERSECTION;
+	}
+
+	if (!intersection.hasDistanceTransform() && !intersection.hasGridMeshIntersection())
+	{
+		assert(false);
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_INVALID_OCTREE_AND_MESH_INTERSECTION;
+	}
+
+	if (params.multiThread && !intersection.hasGridMeshIntersection())
+	{
+		// a grid/mesh intersection is mandatory for multithread mode
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_INVALID_OCTREE_AND_MESH_INTERSECTION;
+	}
+
+	if (params.useDistanceMap && !intersection.hasDistanceTransform())
+	{
+		// a valid distance transform is mandatory to use it ;)
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_OCTREE_AND_MESH_INTERSECTION_MISMATCH;
 	}
 
 	//Closest Point Set
@@ -1500,7 +1518,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		ReferenceCloud Yk(octree->associatedCloud());
 
 		//if we only need approximate distances
-		if (intersection.distanceTransform())
+		if (intersection.hasDistanceTransform())
 		{
 			//for each cell
 			for (unsigned i = 0; i < numberOfCells; ++i, ++pCodeAndIndex)
@@ -1604,7 +1622,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 #ifdef ENABLE_CLOUD2MESH_DIST_MT
 	else
 	{
-		//extraction des indexes et codes des cellules du niveau "octreeLevel"
+		//extract indexes and codes for all cells at depth 'octreeLevel'
 		DgmOctree::cellsContainer cellsDescs;
 		if (!octree->getCellCodesAndIndexes(params.octreeLevel, cellsDescs, true))
 		{
@@ -1614,7 +1632,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		unsigned numberOfCells = static_cast<unsigned>(cellsDescs.size());
 
 		//Progress callback
-		NormalizedProgress nProgress(progressCb,numberOfCells);
+		NormalizedProgress nProgress(progressCb, numberOfCells);
 		if (progressCb)
 		{
 			if (progressCb->textCanBeEdited())
@@ -1714,6 +1732,11 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 	if (params.signedDistances)
 	{
 		//signed distances are incompatible with approximate distances (with Distance Transform)
+		params.useDistanceMap = false;
+	}
+	if (params.multiThread)
+	{
+		//multi-thread is incompatible with Distance Transform
 		params.useDistanceMap = false;
 	}
 	if (params.CPSet)

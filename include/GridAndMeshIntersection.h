@@ -92,6 +92,12 @@ namespace CCCoreLib
 		//! Computes the distances between a given cell and the inner grid boundaries
 		void computeSignedDistToBoundaries(const Tuple3i& cellPos, Tuple3i& distToLowerBorder, Tuple3i& distToUpperBorder) const;
 
+		//! Returns whether a valid distance transform has been computed
+		bool hasDistanceTransform() const;
+
+		//! Returns whether a valid grid-mesh intersection has been computed
+		bool hasGridMeshIntersection() const;
+
 	protected:
 
 		//! Mesh

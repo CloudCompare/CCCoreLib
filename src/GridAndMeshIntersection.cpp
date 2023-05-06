@@ -274,3 +274,14 @@ bool GridAndMeshIntersection::initDistanceTransformWithMesh(GenericIndexedMesh* 
 	m_initialized = true;
 	return true;
 }
+
+bool GridAndMeshIntersection::hasDistanceTransform() const
+{
+	return nullptr != m_distanceTransform && m_distanceTransform->isInitialized();
+}
+
+bool GridAndMeshIntersection::hasGridMeshIntersection() const
+{
+	return m_perCellTriangleList.isInitialized();
+}
+
