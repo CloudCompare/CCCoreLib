@@ -581,6 +581,7 @@ CCVector3 GeometricalAnalysisTools::ComputeWeightedGravityCenter(GenericCloud* c
 	return sum.toPC();
 }
 
+
 SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cloud, const PointCoordinateType* _gravityCenter)
 {
 	assert(cloud);
@@ -996,6 +997,164 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 
 	return NoError;
 }
+
+bool GeometricalAnalysisTools::Landau_Smith(std::vector<CCVector3> xy, CCVector3& center, float& radius) {
+	int N = xy.size();
+	PointCoordinateType p1 = 0.0, p2 = 0.0, p3 = 0.0, p4 = 0.0, p5 = 0.0, p6 = 0.0, p7 = 0.0, p8 = 0.0, p9 = 0.0;
+
+	for (int i = 0; i < N; ++i) {
+		p1 += xy[i].x;
+		p2 += xy[i].x * xy[i].x;
+		p3 += xy[i].x * xy[i].y;
+		p4 += xy[i].y;
+		p5 += xy[i].y * xy[i].y;
+		p6 += xy[i].x * xy[i].x * xy[i].x;
+		p7 += xy[i].x * xy[i].y * xy[i].y;
+		p8 += xy[i].y * xy[i].y * xy[i].y;
+		p9 += xy[i].x * xy[i].x * xy[i].y;
+	}
+
+	PointCoordinateType a1 = 2 * (p1 * p1 - N * p2);
+	PointCoordinateType b1 = 2 * (p1 * p4 - N * p3);
+	PointCoordinateType a2 = b1;
+	PointCoordinateType b2 = 2 * (p4 * p4 - N * p5);
+	PointCoordinateType c1 = p2 * p1 - N * p6 + p1 * p5 - N * p7;
+	PointCoordinateType c2 = p2 * p4 - N * p8 + p4 * p5 - N * p9;
+
+	center.x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1); // returns the center along x
+	center.y = (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1); // returns the center along y
+	radius = sqrt((p2 - 2 * p1 * center.x + N * center.x * center.x + p5 - 2 * p4 * center.y + N * center.y * center.y) / N); // Radius of circle
+
+	return true;
+}
+
+
+// Power iteration to find an approximate eigenvector
+void GeometricalAnalysisTools::powerIteration(SquareMatrixd& a, CCVector3& b_k, int numSimulation = 50) {
+    //std::vector<PointCoordinateType> b_k = {1.0, 0.0, 0.0};
+	b_k = { 1.0, 0.0, 0.0 };
+    for(int i = 0; i < numSimulation; ++i) {
+        // Calculate the matrix-by-vector product Ab
+        std::vector<double> b_k1 = {a.m_values[0][0]*b_k[0] + a.m_values[0][1]*b_k[1] + a.m_values[0][2]*b_k[2],
+                                     a.m_values[1][0]*b_k[0] + a.m_values[1][1]*b_k[1] + a.m_values[1][2]*b_k[2],
+                                     a.m_values[2][0]*b_k[0] + a.m_values[2][1]*b_k[1] + a.m_values[2][2]*b_k[2]};
+        // Calculate the norm
+        double norm = sqrt(b_k1[0]*b_k1[0] + b_k1[1]*b_k1[1] + b_k1[2]*b_k1[2]);
+        // Re normalize the vector
+        b_k = {static_cast<float>(b_k1[0]/norm), static_cast<float>(b_k1[1]/norm), static_cast<float>(b_k1[2]/norm)};
+    }
+
+	if (b_k[2] < 0)
+	{
+		b_k = -b_k;
+	}
+    return;
+}
+
+
+GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust(
+	GenericIndexedCloudPersist* cloud,
+	CCVector3& circle_center,
+	CCVector3& circle_direction,
+	PointCoordinateType& circle_radius,
+	GenericProgressCallback* progressCb/*=nullptr*/)
+{
+	if (!cloud)
+	{
+		assert(false);
+		return InvalidInput;
+	}
+
+	unsigned n = cloud->size();
+	if (n < 4)
+		return NotEnoughPoints;
+
+	//for progress notification
+	NormalizedProgress nProgress(progressCb, 5);
+	if (progressCb)
+	{
+		if (progressCb->textCanBeEdited())
+		{
+			progressCb->setMethodTitle("Detect circle using Landau Smith algorithm");
+		}
+		progressCb->update(0);
+		progressCb->start();
+	}
+
+	//step 1: calculate covariance matrix
+	SquareMatrixd eigVectors;
+	SquareMatrixd covMatrix(3);
+
+	CCVector3 centerPts = ComputeGravityCenter(cloud);
+
+	cloud->placeIteratorAtBeginning();
+	const CCVector3* P = cloud->getNextPoint();
+	while (P)
+	{
+		covMatrix.m_values[0][0] += ((double)P->x - centerPts.x) * ((double)P->x - centerPts.x);
+		covMatrix.m_values[0][1] += ((double)P->x - centerPts.x) * ((double)P->y - centerPts.y);
+		covMatrix.m_values[0][2] += ((double)P->x - centerPts.x) * ((double)P->z - centerPts.z);
+		covMatrix.m_values[1][0] += ((double)P->y - centerPts.y) * ((double)P->x - centerPts.x);
+		covMatrix.m_values[1][1] += ((double)P->y - centerPts.y) * ((double)P->y - centerPts.y);
+		covMatrix.m_values[1][2] += ((double)P->y - centerPts.y) * ((double)P->z - centerPts.z);
+		covMatrix.m_values[2][0] += ((double)P->z - centerPts.z) * ((double)P->x - centerPts.x);
+		covMatrix.m_values[2][1] += ((double)P->z - centerPts.z) * ((double)P->y - centerPts.y);
+		covMatrix.m_values[2][2] += ((double)P->z - centerPts.z) * ((double)P->z - centerPts.z);
+
+		P = cloud->getNextPoint();
+	}
+	covMatrix.scale(1.0 / (n - 1));
+
+
+	if (progressCb && !nProgress.oneStep())
+	{
+		//progress canceled by the user
+		return ProcessCancelledByUser;
+	}
+	//step 2: calculate the first principle component of PCA as the direction of the point cloud main axis
+	CCVector3 eigenVector_l1;
+	powerIteration(covMatrix, eigenVector_l1);
+
+	if (progressCb && !nProgress.oneStep())
+	{
+		//progress canceled by the user
+		return ProcessCancelledByUser;
+	}
+	//step 3: rotate the point cloud axis to be vertical and project point cloud to 2D plane
+	std::vector<CCVector3> clusterPts_plane;
+	cloud->placeIteratorAtBeginning();
+	P = cloud->getNextPoint();
+	while (P)
+	{
+		float eigen_prj = eigenVector_l1.dot(*P - centerPts);
+		clusterPts_plane.push_back(*P - eigen_prj * eigenVector_l1);
+		P = cloud->getNextPoint();
+	}
+
+	CCVector3 rotAxis = eigenVector_l1.cross(CCVector3(0, 0, 1));	
+	rotAxis /= rotAxis.norm();
+	float rotAngle = std::acos(eigenVector_l1.dot(CCVector3(0, 0, 1)));
+	std::vector<CCVector3> clusterPts_prj(n);
+	for (int i = 0; i < n; ++i) {
+		CCVector3 temp = clusterPts_plane[i] - centerPts;
+		clusterPts_prj[i] = temp * std::cos(rotAngle)
+			+ rotAxis.cross(temp) * std::sin(rotAngle)
+			+ rotAxis * rotAxis.dot(temp) * (1 - std::cos(rotAngle));
+	}
+
+	if (progressCb && !nProgress.oneStep())
+	{
+		//progress canceled by the user
+		return ProcessCancelledByUser;
+	}
+	//step 4: calculate the circle center and radius on the 2D plane using the Landau Smith algorithm
+	GeometricalAnalysisTools::Landau_Smith(clusterPts_prj, circle_center, circle_radius);
+	circle_center += centerPts;
+	circle_direction = eigenVector_l1;
+
+	return NoError;
+}
+
 
 //******************************************************************************
 //

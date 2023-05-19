@@ -7,6 +7,12 @@
 #include "DgmOctree.h"
 #include "Neighbourhood.h"
 
+
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 namespace CCCoreLib
 {
 	class GenericProgressCallback;
@@ -184,6 +190,16 @@ namespace CCCoreLib
 												const CCVector3& D,
 												CCVector3& center,
 												PointCoordinateType& radius );
+
+		//customized
+		static ErrorCode DetectCircleRobust(GenericIndexedCloudPersist* cloud,
+			CCVector3& center,
+			CCVector3& direction,
+			PointCoordinateType& radius,
+			GenericProgressCallback* progressCb = nullptr);
+		static bool GeometricalAnalysisTools::Landau_Smith(std::vector<CCVector3> xy, CCVector3& center, float& radius);
+		static void GeometricalAnalysisTools::powerIteration(SquareMatrixd& a, CCVector3& b_k, int numSimulation);
+
 
 	protected:
 
