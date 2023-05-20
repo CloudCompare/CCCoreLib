@@ -212,7 +212,7 @@ namespace CCCoreLib
 		/**** GETTERS ****/
 
 		//! Returns gravity center
-		/** \return 0 if computation failed
+		/** \return nullptr if computation failed
 		**/
 		const CCVector3* getGravityCenter();
 
@@ -225,7 +225,7 @@ namespace CCCoreLib
 		//! Returns best interpolating plane equation (Least-square)
 		/** Returns an array of the form [a,b,c,d] such as:
 				ax + by + cz = d
-			\return 0 if computation failed
+			\return nullptr if computation failed
 		**/
 		const PointCoordinateType* getLSPlane();
 
@@ -243,17 +243,17 @@ namespace CCCoreLib
 
 		//! Returns best interpolating plane (Least-square) 'X' base vector
 		/** This corresponds to the largest eigen value (i.e. the largest cloud dimension)
-			\return 0 if computation failed
+			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneX();
 		//! Returns best interpolating plane (Least-square) 'Y' base vector
 		/** This corresponds to the second largest eigen value (i.e. the second largest cloud dimension)
-			\return 0 if computation failed
+			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneY();
 		//! Returns best interpolating plane (Least-square) normal vector
 		/** This corresponds to the smallest eigen value (i.e. the second largest cloud dimension)
-			\return 0 if computation failed
+			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneNormal();
 
@@ -262,7 +262,7 @@ namespace CCCoreLib
 				Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
 			\warning: 'X','Y' and 'Z' are output in dims (optional):
 				dims = [index(X),index(Y),index(Z)] where: 0=x, 1=y, 2=z
-			\return 0 if computation failed
+			\return nullptr if computation failed
 		**/
 		const PointCoordinateType* getQuadric(Tuple3ub* dims = nullptr);
 
