@@ -156,14 +156,14 @@ namespace CCCoreLib
 		/** Inspired from "Parameter Estimation Techniques: A Tutorial with Application
 			to Conic Fitting" by Zhengyou Zhang (Inria Technical Report 2676).
 			More specifically the section 9.5 about Least Median of Squares.
-			\param[in]  cloud input cloud
-			\param[in]  outliersRatio proportion of outliers (between 0 and 1)
-			\param[out] center center of the detected sphere
-			\param[out] radius radius of the detected sphere
-			\param[out] rms residuals RMS for the detected sphere
-			\param[in] progressCb for progress notification (optional)
-			\param[in] confidence probability that the detected sphere is the right one (strictly below 1)
-			\param[in] seed if different than 0, this seed will be used for random numbers generation (instead of a random one)
+			\param[in]  cloud			input cloud
+			\param[in]  outliersRatio	proportion of outliers (between 0 and 1)
+			\param[out] center			center of the detected sphere
+			\param[out] radius			radius of the detected sphere
+			\param[out] rms				residuals RMS for the detected sphere
+			\param[in]  progressCb		for progress notification (optional)
+			\param[in]  confidence		probability that the detected sphere is the right one (strictly below 1)
+			\param[in]  seed			if different than 0, this seed will be used for random numbers generation (instead of a random one)
 			\result success
 		**/
 		static ErrorCode DetectSphereRobust(	GenericIndexedCloudPersist* cloud,
@@ -176,12 +176,12 @@ namespace CCCoreLib
 												unsigned seed = 0);
 
 		//! Computes the center and radius of a sphere passing through 4 points
-		/** \param[in] A first point
-			\param[in] B second point
-			\param[in] C third point
-			\param[in] D fourth point
-			\param[out] center center of the sphere
-			\param[out] radius radius of the sphere
+		/** \param[in]  A		first point
+			\param[in]  B		second point
+			\param[in]  C		third point
+			\param[in]  D		fourth point
+			\param[out] center	center of the sphere
+			\param[out] radius	radius of the sphere
 			\return success
 		**/
 		static ErrorCode ComputeSphereFrom4(	const CCVector3& A,
@@ -191,14 +191,22 @@ namespace CCCoreLib
 												CCVector3& center,
 												PointCoordinateType& radius );
 
-		//customized
-		static ErrorCode DetectCircleRobust(GenericIndexedCloudPersist* cloud,
-			CCVector3& center,
-			CCVector3& direction,
-			PointCoordinateType& radius,
-			GenericProgressCallback* progressCb = nullptr);
-		static bool GeometricalAnalysisTools::Landau_Smith(std::vector<CCVector3> xy, CCVector3& center, float& radius);
-		static void GeometricalAnalysisTools::powerIteration(SquareMatrixd& a, CCVector3& b_k, int numSimulation);
+		//! Detects a circle from a point cloud
+		/** Based on "A Simple approach for the Estimation of Circular Arc Center and Its radius" by S. Thomas and Y. Chan
+			\param[in]  cloud		point cloud
+			\param[out] center		circle center
+			\param[out] normal		normal to the plane to which the circle belongs
+			\param[out] radius		circle radius
+			\param[out] rms			fitting RMS (optional)
+			\param[in]  progressCb	for progress notification (optional)
+			\return success
+		**/
+		static ErrorCode DetectCircle(GenericIndexedCloudPersist* cloud,
+											CCVector3& center,
+											CCVector3& normal,
+											PointCoordinateType& radius,
+											double& rms,
+											GenericProgressCallback* progressCb = nullptr);
 
 
 	protected:

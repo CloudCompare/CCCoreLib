@@ -998,11 +998,19 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 	return NoError;
 }
 
-bool GeometricalAnalysisTools::Landau_Smith(std::vector<CCVector3> xy, CCVector3& center, float& radius) {
-	int N = xy.size();
-	PointCoordinateType p1 = 0.0, p2 = 0.0, p3 = 0.0, p4 = 0.0, p5 = 0.0, p6 = 0.0, p7 = 0.0, p8 = 0.0, p9 = 0.0;
+static bool Landau_Smith(const std::vector<CCVector2d>& xy, CCVector2d& center, PointCoordinateType& radius)
+{
+	size_t N = xy.size();
+	if (N < 3)
+	{
+		assert(false);
+		return false;
+	}
 
-	for (int i = 0; i < N; ++i) {
+	double p1 = 0.0, p2 = 0.0, p3 = 0.0, p4 = 0.0, p5 = 0.0, p6 = 0.0, p7 = 0.0, p8 = 0.0, p9 = 0.0;
+
+	for (size_t i = 0; i < N; ++i)
+	{
 		p1 += xy[i].x;
 		p2 += xy[i].x * xy[i].x;
 		p3 += xy[i].x * xy[i].y;
@@ -1014,51 +1022,31 @@ bool GeometricalAnalysisTools::Landau_Smith(std::vector<CCVector3> xy, CCVector3
 		p9 += xy[i].x * xy[i].x * xy[i].y;
 	}
 
-	PointCoordinateType a1 = 2 * (p1 * p1 - N * p2);
-	PointCoordinateType b1 = 2 * (p1 * p4 - N * p3);
-	PointCoordinateType a2 = b1;
-	PointCoordinateType b2 = 2 * (p4 * p4 - N * p5);
-	PointCoordinateType c1 = p2 * p1 - N * p6 + p1 * p5 - N * p7;
-	PointCoordinateType c2 = p2 * p4 - N * p8 + p4 * p5 - N * p9;
+	double a1 = 2 * (p1 * p1 - N * p2);
+	double b1 = 2 * (p1 * p4 - N * p3);
+	double a2 = b1;
+	double b2 = 2 * (p4 * p4 - N * p5);
+	double c1 = p2 * p1 - N * p6 + p1 * p5 - N * p7;
+	double c2 = p2 * p4 - N * p8 + p4 * p5 - N * p9;
 
-	center.x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1); // returns the center along x
-	center.y = (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1); // returns the center along y
-	radius = sqrt((p2 - 2 * p1 * center.x + N * center.x * center.x + p5 - 2 * p4 * center.y + N * center.y * center.y) / N); // Radius of circle
+	center.x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1); // center along x
+	center.y = (a1 * c2 - a2 * c1) / (a1 * b2 - a2 * b1); // center along y
+	radius = static_cast<PointCoordinateType>(sqrt(((p2 + p5) - (2 * p1 * center.x) + (N * center.x * center.x) - (2 * p4 * center.y) + (N * center.y * center.y)) / N)); // circle radius
 
 	return true;
 }
 
-
-// Power iteration to find an approximate eigenvector
-void GeometricalAnalysisTools::powerIteration(SquareMatrixd& a, CCVector3& b_k, int numSimulation = 50) {
-    //std::vector<PointCoordinateType> b_k = {1.0, 0.0, 0.0};
-	b_k = { 1.0, 0.0, 0.0 };
-    for(int i = 0; i < numSimulation; ++i) {
-        // Calculate the matrix-by-vector product Ab
-        std::vector<double> b_k1 = {a.m_values[0][0]*b_k[0] + a.m_values[0][1]*b_k[1] + a.m_values[0][2]*b_k[2],
-                                     a.m_values[1][0]*b_k[0] + a.m_values[1][1]*b_k[1] + a.m_values[1][2]*b_k[2],
-                                     a.m_values[2][0]*b_k[0] + a.m_values[2][1]*b_k[1] + a.m_values[2][2]*b_k[2]};
-        // Calculate the norm
-        double norm = sqrt(b_k1[0]*b_k1[0] + b_k1[1]*b_k1[1] + b_k1[2]*b_k1[2]);
-        // Re normalize the vector
-        b_k = {static_cast<float>(b_k1[0]/norm), static_cast<float>(b_k1[1]/norm), static_cast<float>(b_k1[2]/norm)};
-    }
-
-	if (b_k[2] < 0)
-	{
-		b_k = -b_k;
-	}
-    return;
-}
-
-
-GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust(
-	GenericIndexedCloudPersist* cloud,
-	CCVector3& circle_center,
-	CCVector3& circle_direction,
-	PointCoordinateType& circle_radius,
-	GenericProgressCallback* progressCb/*=nullptr*/)
+GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircle(	GenericIndexedCloudPersist* cloud,
+																					CCVector3& center,
+																					CCVector3& normal,
+																					PointCoordinateType& radius,
+																					double& rms/*=nullptr*/,
+																					GenericProgressCallback* progressCb/*=nullptr*/)
 {
+	if (rms)
+	{
+		rms = std::numeric_limits<double>::quiet_NaN();
+	}
 	if (!cloud)
 	{
 		assert(false);
@@ -1067,10 +1055,12 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust
 
 	unsigned n = cloud->size();
 	if (n < 4)
+	{
 		return NotEnoughPoints;
+	}
 
 	//for progress notification
-	NormalizedProgress nProgress(progressCb, 5);
+	NormalizedProgress nProgress(progressCb, 7);
 	if (progressCb)
 	{
 		if (progressCb->textCanBeEdited())
@@ -1081,65 +1071,11 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust
 		progressCb->start();
 	}
 
-	//step 1: calculate covariance matrix
-	SquareMatrixd eigVectors;
-	SquareMatrixd covMatrix(3);
-
-	CCVector3 centerPts = ComputeGravityCenter(cloud);
-
-	cloud->placeIteratorAtBeginning();
-	const CCVector3* P = cloud->getNextPoint();
-	while (P)
+	//step 1: fit a plane on the cloud to retrieve the eigenvalues and vectors of the covariance matrix
+	Neighbourhood Yk(cloud);
+	if (!Yk.getLSPlane())
 	{
-		covMatrix.m_values[0][0] += ((double)P->x - centerPts.x) * ((double)P->x - centerPts.x);
-		covMatrix.m_values[0][1] += ((double)P->x - centerPts.x) * ((double)P->y - centerPts.y);
-		covMatrix.m_values[0][2] += ((double)P->x - centerPts.x) * ((double)P->z - centerPts.z);
-		covMatrix.m_values[1][0] += ((double)P->y - centerPts.y) * ((double)P->x - centerPts.x);
-		covMatrix.m_values[1][1] += ((double)P->y - centerPts.y) * ((double)P->y - centerPts.y);
-		covMatrix.m_values[1][2] += ((double)P->y - centerPts.y) * ((double)P->z - centerPts.z);
-		covMatrix.m_values[2][0] += ((double)P->z - centerPts.z) * ((double)P->x - centerPts.x);
-		covMatrix.m_values[2][1] += ((double)P->z - centerPts.z) * ((double)P->y - centerPts.y);
-		covMatrix.m_values[2][2] += ((double)P->z - centerPts.z) * ((double)P->z - centerPts.z);
-
-		P = cloud->getNextPoint();
-	}
-	covMatrix.scale(1.0 / (n - 1));
-
-
-	if (progressCb && !nProgress.oneStep())
-	{
-		//progress canceled by the user
-		return ProcessCancelledByUser;
-	}
-	//step 2: calculate the first principle component of PCA as the direction of the point cloud main axis
-	CCVector3 eigenVector_l1;
-	powerIteration(covMatrix, eigenVector_l1);
-
-	if (progressCb && !nProgress.oneStep())
-	{
-		//progress canceled by the user
-		return ProcessCancelledByUser;
-	}
-	//step 3: rotate the point cloud axis to be vertical and project point cloud to 2D plane
-	std::vector<CCVector3> clusterPts_plane;
-	cloud->placeIteratorAtBeginning();
-	P = cloud->getNextPoint();
-	while (P)
-	{
-		float eigen_prj = eigenVector_l1.dot(*P - centerPts);
-		clusterPts_plane.push_back(*P - eigen_prj * eigenVector_l1);
-		P = cloud->getNextPoint();
-	}
-
-	CCVector3 rotAxis = eigenVector_l1.cross(CCVector3(0, 0, 1));	
-	rotAxis /= rotAxis.norm();
-	float rotAngle = std::acos(eigenVector_l1.dot(CCVector3(0, 0, 1)));
-	std::vector<CCVector3> clusterPts_prj(n);
-	for (int i = 0; i < n; ++i) {
-		CCVector3 temp = clusterPts_plane[i] - centerPts;
-		clusterPts_prj[i] = temp * std::cos(rotAngle)
-			+ rotAxis.cross(temp) * std::sin(rotAngle)
-			+ rotAxis * rotAxis.dot(temp) * (1 - std::cos(rotAngle));
+		return ProcessFailed;
 	}
 
 	if (progressCb && !nProgress.oneStep())
@@ -1147,14 +1083,147 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust
 		//progress canceled by the user
 		return ProcessCancelledByUser;
 	}
-	//step 4: calculate the circle center and radius on the 2D plane using the Landau Smith algorithm
-	GeometricalAnalysisTools::Landau_Smith(clusterPts_prj, circle_center, circle_radius);
-	circle_center += centerPts;
-	circle_direction = eigenVector_l1;
+	//step 2: try to fit a circle with each eigenvector and keep the best result
+	const CCVector3* eigenvectors[3]
+	{
+		Yk.getLSPlaneX(),
+		Yk.getLSPlaneY(),
+		Yk.getLSPlaneNormal()
+	};
+
+	std::vector<CCVector2d> pointsOnPlane;
+	try
+	{
+		pointsOnPlane.resize(cloud->size());
+	}
+	catch (const std::bad_alloc&)
+	{
+		return NotEnoughMemory;
+	}
+
+	// compute the cloud (gravity) center
+	const CCVector3* G = Yk.getGravityCenter();
+	assert(G);
+
+	radius = std::numeric_limits<PointCoordinateType>::quiet_NaN();
+	double bestRMS = std::numeric_limits<double>::quiet_NaN();
+
+#ifdef DEBUG_TRACE
+	FILE* fp = fopen("C:\\Temp\\circle_fit.txt", "wt");
+#endif
+
+	for (unsigned dim = 0; dim < 3; ++dim)
+	{
+		const CCVector3* eigenVector = eigenvectors[dim];
+		assert(eigenVector);
+
+		// compute a local coordinate system
+		CCVector3 x = eigenVector->orthogonal();
+		CCVector3 y = eigenVector->cross(x);
+#ifdef DEBUG_TRACE
+		{
+			fprintf(fp, "Dim %i\n", dim);
+			fprintf(fp, "X = %f %f %f\n", x.x, x.y, x.z);
+			fprintf(fp, "Y = %f %f %f\n", y.x, y.y, y.z);
+			fprintf(fp, "Z = %f %f %f\n", eigenVector->x, eigenVector->y, eigenVector->z);
+		}
+#endif
+
+		//step 3: project the point cloud onto a 2D plane
+		for (unsigned i = 0; i < n; ++i)
+		{
+			CCVector3 Plocal = *cloud->getPoint(i) - *G;
+			pointsOnPlane[i] = { Plocal.dot(x), Plocal.dot(y) };
+		}
+
+		if (progressCb && !nProgress.oneStep())
+		{
+			//progress canceled by the user
+			return ProcessCancelledByUser;
+		}
+
+#ifdef DEBUG_TRACE
+		{
+			FILE* fpc = nullptr;
+			switch (dim)
+			{
+			case 0:
+				fpc = fopen("C:\\Temp\\circle_dim0.asc", "wt");
+				break;
+			case 1:
+				fpc = fopen("C:\\Temp\\circle_dim1.asc", "wt");
+				break;
+			case 2:
+				fpc = fopen("C:\\Temp\\circle_dim2.asc", "wt");
+				break;
+			}
+
+			for (const CCVector2d& P2D : pointsOnPlane)
+			{
+				fprintf(fpc, "%f %f 0\n", P2D.x, P2D.y);
+			}
+			fclose(fpc);
+		}
+#endif
+
+		//step 4: calculate the circle center and radius on the 2D plane using the Landau Smith algorithm
+		CCVector2d thisCenter2D;
+		PointCoordinateType thisRadius = 0;
+		if (!Landau_Smith(pointsOnPlane, thisCenter2D, thisRadius))
+		{
+			assert(false);
+			return ProcessFailed;
+		}
+
+#ifdef DEBUG_TRACE
+		fprintf(fp, "Center (%f, %f) - radius = %f\n", thisCenter2D.x, thisCenter2D.y, thisRadius);
+#endif
+
+		// estimate the RMS
+		{
+			double thisRMS = 0.0;
+			for (const CCVector2d& P2D : pointsOnPlane)
+			{
+				double r = (P2D - thisCenter2D).norm();
+				double error = thisRadius - r;
+				thisRMS += error * error;
+			}
+
+			thisRMS = sqrt(thisRMS / n);
+
+#ifdef DEBUG_TRACE
+			fprintf(fp, "RMS = %f\n", thisRMS);
+			fprintf(fp, "=================\n");
+#endif
+
+			if (dim == 0 || thisRMS < bestRMS)
+			{
+				bestRMS = thisRMS;
+				radius = thisRadius;
+				// reposition the circle center in 3D
+				center = *G + static_cast<PointCoordinateType>(thisCenter2D.x) * x + static_cast<PointCoordinateType>(thisCenter2D.y) * y;
+				normal = CCVector3::fromArray(eigenVector->u);
+			}
+		}
+
+		if (progressCb && !nProgress.oneStep())
+		{
+			//progress canceled by the user
+			return ProcessCancelledByUser;
+		}
+	}
+
+#ifdef DEBUG_TRACE
+	fclose(fp);
+#endif
+
+	if (rms)
+	{
+		rms = bestRMS;
+	}
 
 	return NoError;
 }
-
 
 //******************************************************************************
 //
@@ -1193,19 +1262,19 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectCircleRobust
 //    J, factorization failed on step J, and the solutions could not
 //    be computed.
 //
-int dmat_solve ( int n, int rhs_num, double a[] )
+static int DMAT_SOLVE(int n, int rhs_num, double a[])
 {
 	for (int j = 0; j < n; j++)
 	{
 		//  Choose a pivot row.
 		int ipivot = j;
-		double apivot = a[j + j*n];
+		double apivot = a[j + j * n];
 
 		for (int i = j; i < n; i++)
 		{
-			if (std::abs(apivot) < std::abs(a[i + j*n]))
+			if (std::abs(apivot) < std::abs(a[i + j * n]))
 			{
-				apivot = a[i + j*n];
+				apivot = a[i + j * n];
 				ipivot = i;
 			}
 		}
@@ -1218,14 +1287,14 @@ int dmat_solve ( int n, int rhs_num, double a[] )
 		//  Interchange.
 		for (int i = 0; i < n + rhs_num; i++)
 		{
-			std::swap(a[ipivot + i*n], a[j + i*n]);
+			std::swap(a[ipivot + i * n], a[j + i * n]);
 		}
 
 		//  A(J,J) becomes 1.
-		a[j + j*n] = 1.0;
+		a[j + j * n] = 1.0;
 		for (int k = j; k < n + rhs_num; k++)
 		{
-			a[j + k*n] = a[j + k*n] / apivot;
+			a[j + k * n] = a[j + k * n] / apivot;
 		}
 
 		//  A(I,J) becomes 0.
@@ -1233,11 +1302,11 @@ int dmat_solve ( int n, int rhs_num, double a[] )
 		{
 			if (i != j)
 			{
-				double factor = a[i + j*n];
-				a[i + j*n] = 0.0;
+				double factor = a[i + j * n];
+				a[i + j * n] = 0.0;
 				for (int k = j; k < n + rhs_num; k++)
 				{
-					a[i + k*n] = a[i + k*n] - factor * a[j + k*n];
+					a[i + k * n] = a[i + k * n] - factor * a[j + k * n];
 				}
 			}
 		}
@@ -1246,34 +1315,33 @@ int dmat_solve ( int n, int rhs_num, double a[] )
 	return 0;
 }
 
-GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeSphereFrom4(
-		const CCVector3& A,
-		const CCVector3& B,
-		const CCVector3& C,
-		const CCVector3& D,
-		CCVector3& center,
-		PointCoordinateType& radius)
+GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeSphereFrom4(	const CCVector3& A,
+																					const CCVector3& B,
+																					const CCVector3& C,
+																					const CCVector3& D,
+																					CCVector3& center,
+																					PointCoordinateType& radius)
 {
 	//inspired from 'tetrahedron_circumsphere_3d' by Adrian Bowyer and John Woodwark
 
 	//Set up the linear system.
 	double a[12];
 	{
-		CCVector3 AB = B-A;
+		CCVector3 AB = B - A;
 		a[0] = AB.x;
 		a[3] = AB.y;
 		a[6] = AB.z;
 		a[9] = AB.norm2d();
 	}
 	{
-		CCVector3 AC = C-A;
+		CCVector3 AC = C - A;
 		a[1]  = AC.x;
 		a[4]  = AC.y;
 		a[7]  = AC.z;
 		a[10] = AC.norm2d();
 	}
 	{
-		CCVector3 AD = D-A;
+		CCVector3 AD = D - A;
 		a[2]  = AD.x;
 		a[5]  = AD.y;
 		a[8]  = AD.z;
@@ -1281,7 +1349,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeSphereFrom4
 	}
 
 	//  Solve the linear system (with Gauss-Jordan elimination)
-	if ( dmat_solve ( 3, 1, a ) != 0 )
+	if (DMAT_SOLVE(3, 1, a) != 0)
 	{
 		//system is singular?
 		return ProcessFailed;
@@ -1289,8 +1357,8 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeSphereFrom4
 
 	//  Compute the radius and center.
 	CCVector3 u = CCVector3(static_cast<PointCoordinateType>(a[0 + 3 * 3]),
-			static_cast<PointCoordinateType>(a[1 + 3 * 3]),
-			static_cast<PointCoordinateType>(a[2 + 3 * 3])) / 2;
+							static_cast<PointCoordinateType>(a[1 + 3 * 3]),
+							static_cast<PointCoordinateType>(a[2 + 3 * 3])) / 2;
 	radius = u.norm();
 	center = A + u;
 
