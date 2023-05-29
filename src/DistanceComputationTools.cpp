@@ -34,7 +34,7 @@
 //Note that there is the case CC_DEBUG=OFF and neither TBB nor Qt
 #undef ENABLE_CLOUD2MESH_DIST_MT
 #endif
-#endif // not CC_DEBUG
+#endif // #ifndef CC_DEBUG
 
 namespace CCCoreLib
 {
@@ -815,50 +815,57 @@ int ComputeMaxNeighborhoodLength(ScalarType maxSearchDist, PointCoordinateType c
 
 #ifdef ENABLE_CLOUD2MESH_DIST_MT
 
-/*** MULTI THREADING WRAPPER ***/
-static const DgmOctree* s_octree_MT = nullptr;
-static NormalizedProgress* s_normProgressCb_MT = nullptr;
-static const GridAndMeshIntersection* s_intersection_MT = nullptr;
-static bool s_cellFunc_MT_success = true;
-static int s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-static DistanceComputationTools::Cloud2MeshDistancesComputationParams s_params_MT;
+namespace CCCoreLib
+{
+	//! Structure containing objects needed to run octree operations in parallel
+	struct MultiThreadingWrapper
+	{
+		const DgmOctree* octree = nullptr;
+		NormalizedProgress* normProgressCb = nullptr;
+		const GridAndMeshIntersection* intersection_MT = nullptr;
+		bool cellFunc_success = true;
+		int cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+		DistanceComputationTools::Cloud2MeshDistancesComputationParams params_MT;
 
-//'processTriangles' mechanism (based on bit mask)
-static std::vector<std::vector<bool>> s_bitArrayPool_MT;
-static bool s_useBitArrays_MT = true;
-#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-static QMutex s_currentBitMaskMutex;
+		//'processTriangles' mechanism (based on bit mask)
+		std::vector<std::vector<bool>> bitArrayPool_MT;
+		bool useBitArrays_MT = true;
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
+		QMutex currentBitMaskMutex;
 #elif defined(CC_CORE_LIB_USES_TBB)
-static std::mutex s_currentBitMaskMutex;
+		std::mutex currentBitMaskMutex;
 #endif
+	};
+}
+static CCCoreLib::MultiThreadingWrapper s_multiThreadingWrapper;
 
 static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 {
-	if (!s_cellFunc_MT_success)
+	if (!s_multiThreadingWrapper.cellFunc_success)
 	{
 		//skip this cell if the process is aborted / has failed
 		return;
 	}
-	if (!s_intersection_MT)
+	if (!s_multiThreadingWrapper.intersection_MT)
 	{
 		assert(false);
 		return;
 	}
 
-	if (s_normProgressCb_MT)
+	if (s_multiThreadingWrapper.normProgressCb)
 	{
 		QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
 
-		if (!s_normProgressCb_MT->oneStep())
+		if (!s_multiThreadingWrapper.normProgressCb->oneStep())
 		{
-			s_cellFunc_MT_success = false;
-			s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::CANCELED_BY_USER;
+			s_multiThreadingWrapper.cellFunc_success = false;
+			s_multiThreadingWrapper.cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::CANCELED_BY_USER;
 			return;
 		}
 	}
 
-	ReferenceCloud Yk(s_octree_MT->associatedCloud());
-	s_octree_MT->getPointsInCellByCellIndex(&Yk, desc.theIndex, s_params_MT.octreeLevel);
+	ReferenceCloud Yk(s_multiThreadingWrapper.octree->associatedCloud());
+	s_multiThreadingWrapper.octree->getPointsInCellByCellIndex(&Yk, desc.theIndex, s_multiThreadingWrapper.params_MT.octreeLevel);
 
 	//min distance array
 	unsigned remainingPoints = Yk.size();
@@ -871,18 +878,18 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	catch (const std::bad_alloc&)
 	{
 		//not enough memory
-		s_cellFunc_MT_success = false;
-		s_cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+		s_multiThreadingWrapper.cellFunc_success = false;
+		s_multiThreadingWrapper.cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
 		return;
 	}
 
 	//get cell pos
 	Tuple3i cellPos;
-	s_octree_MT->getCellPos(desc.theCode, s_params_MT.octreeLevel, cellPos, true);
+	s_multiThreadingWrapper.octree->getCellPos(desc.theCode, s_multiThreadingWrapper.params_MT.octreeLevel, cellPos, true);
 
 	//get the distance to the nearest and farthest boundaries
 	Tuple3i signedDistToLowerBorder, signedDistToUpperBorder;
-	s_intersection_MT->computeSignedDistToBoundaries(cellPos, signedDistToLowerBorder, signedDistToUpperBorder);
+	s_multiThreadingWrapper.intersection_MT->computeSignedDistToBoundaries(cellPos, signedDistToLowerBorder, signedDistToUpperBorder);
 
 	Tuple3i minDistToGridBoundaries, maxDistToGridBoundaries;
 	for (unsigned char k = 0; k < 3; ++k)
@@ -893,33 +900,37 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	int minDistToBoundaries = std::max(minDistToGridBoundaries.x, std::max(minDistToGridBoundaries.y, minDistToGridBoundaries.z));
 	int maxDistToBoundaries = std::max(maxDistToGridBoundaries.x, std::max(maxDistToGridBoundaries.y, maxDistToGridBoundaries.z));
 
-	if (s_params_MT.maxSearchDist > 0)
+	if (s_multiThreadingWrapper.params_MT.maxSearchDist > 0)
 	{
 		//no need to look farther than 'maxNeighbourhoodLength'
-		int maxNeighbourhoodLength = ComputeMaxNeighborhoodLength(s_params_MT.maxSearchDist, s_octree_MT->getCellSize(s_params_MT.octreeLevel));
+		int maxNeighbourhoodLength = ComputeMaxNeighborhoodLength(s_multiThreadingWrapper.params_MT.maxSearchDist, s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel));
 		if (maxNeighbourhoodLength < maxDistToBoundaries)
+		{
 			maxDistToBoundaries = maxNeighbourhoodLength;
+		}
 
-		ScalarType maxDistance = s_params_MT.maxSearchDist;
-		if (!s_params_MT.signedDistances)
+		ScalarType maxDistance = s_multiThreadingWrapper.params_MT.maxSearchDist;
+		if (!s_multiThreadingWrapper.params_MT.signedDistances)
 		{
 			//we compute squared distances when not in 'signed' mode!
-			maxDistance = s_params_MT.maxSearchDist*s_params_MT.maxSearchDist;
+			maxDistance = s_multiThreadingWrapper.params_MT.maxSearchDist*s_multiThreadingWrapper.params_MT.maxSearchDist;
 		}
 
 		for (unsigned j = 0; j < remainingPoints; ++j)
+		{
 			Yk.setPointScalarValue(j, maxDistance);
+		}
 	}
 
 	//determine the cell center
 	CCVector3 cellCenter;
-	s_octree_MT->computeCellCenter(cellPos, s_params_MT.octreeLevel, cellCenter);
+	s_multiThreadingWrapper.octree->computeCellCenter(cellPos, s_multiThreadingWrapper.params_MT.octreeLevel, cellCenter);
 
 	//express 'startPos' relatively to the grid borders
-	Tuple3i startPos = s_intersection_MT->toLocal(cellPos);
+	Tuple3i startPos = s_multiThreadingWrapper.intersection_MT->toLocal(cellPos);
 
 	//octree cell size
-	const PointCoordinateType& cellLength = s_octree_MT->getCellSize(s_params_MT.octreeLevel);
+	const PointCoordinateType& cellLength = s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel);
 
 	//useful variables
 	std::vector<unsigned> trianglesToTest;
@@ -928,20 +939,20 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 
 	//bit mask for efficient comparisons
 	std::vector<bool> bitArray;
-	if (s_useBitArrays_MT)
+	if (s_multiThreadingWrapper.useBitArrays_MT)
 	{
-		const unsigned numTri = s_intersection_MT->mesh()->size();
-		s_currentBitMaskMutex.lock();
-		if (s_bitArrayPool_MT.empty())
+		const unsigned numTri = s_multiThreadingWrapper.intersection_MT->mesh()->size();
+		s_multiThreadingWrapper.currentBitMaskMutex.lock();
+		if (s_multiThreadingWrapper.bitArrayPool_MT.empty())
 		{
 			bitArray.resize(numTri);
 		}
 		else
 		{
-			bitArray = std::move(s_bitArrayPool_MT.back());
-			s_bitArrayPool_MT.pop_back();
+			bitArray = std::move(s_multiThreadingWrapper.bitArrayPool_MT.back());
+			s_multiThreadingWrapper.bitArrayPool_MT.pop_back();
 		}
-		s_currentBitMaskMutex.unlock();
+		s_multiThreadingWrapper.currentBitMaskMutex.unlock();
 		bitArray.assign(numTri, false);
 	}
 
@@ -988,7 +999,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + k;
-						const TriangleList* triList = s_intersection_MT->trianglesInCell(localCellPos, true);
+						const TriangleList* triList = s_multiThreadingWrapper.intersection_MT->trianglesInCell(localCellPos, true);
 						if (triList)
 						{
 							if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
@@ -997,9 +1008,9 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 								trianglesToTest.resize(trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (unsigned p = 0; p<triList->indexes.size(); ++p)
+							for (unsigned p = 0; p < triList->indexes.size(); ++p)
 							{
-								if (s_useBitArrays_MT)
+								if (s_multiThreadingWrapper.useBitArrays_MT)
 								{
 									const unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
@@ -1023,7 +1034,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z - e;
-						const TriangleList* triList = s_intersection_MT->trianglesInCell(localCellPos, true);
+						const TriangleList* triList = s_multiThreadingWrapper.intersection_MT->trianglesInCell(localCellPos, true);
 						if (triList)
 						{
 							if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
@@ -1032,9 +1043,9 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 								trianglesToTest.resize(trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (unsigned p = 0; p<triList->indexes.size(); ++p)
+							for (unsigned p = 0; p < triList->indexes.size(); ++p)
 							{
-								if (s_useBitArrays_MT)
+								if (s_multiThreadingWrapper.useBitArrays_MT)
 								{
 									const unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
@@ -1052,11 +1063,11 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 						}
 					}
 
-					if (f == dist && dist>0) //'positive' side
+					if (f == dist && dist > 0) //'positive' side
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + f;
-						const TriangleList* triList = s_intersection_MT->trianglesInCell(localCellPos, true);
+						const TriangleList* triList = s_multiThreadingWrapper.intersection_MT->trianglesInCell(localCellPos, true);
 						if (triList)
 						{
 							if (trianglesToTestCount + triList->indexes.size() > trianglesToTestCapacity)
@@ -1065,9 +1076,9 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 								trianglesToTest.resize(trianglesToTestCapacity);
 							}
 							//let's test all the triangles that intersect this cell
-							for (unsigned p = 0; p<triList->indexes.size(); ++p)
+							for (unsigned p = 0; p < triList->indexes.size(); ++p)
 							{
-								if (s_useBitArrays_MT)
+								if (s_multiThreadingWrapper.useBitArrays_MT)
 								{
 									const unsigned indexTri = triList->indexes[p];
 									//if the triangles has not been processed yet
@@ -1088,16 +1099,23 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 			}
 		}
 
-		ComparePointsAndTriangles(Yk, remainingPoints, s_intersection_MT->mesh(), trianglesToTest, trianglesToTestCount, minDists, maxRadius, s_params_MT);
+		ComparePointsAndTriangles(	Yk,
+									remainingPoints,
+									s_multiThreadingWrapper.intersection_MT->mesh(),
+									trianglesToTest,
+									trianglesToTestCount,
+									minDists,
+									maxRadius,
+									s_multiThreadingWrapper.params_MT );
 	}
 
 	//Save the bit mask
-	if (s_useBitArrays_MT)
+	if (s_multiThreadingWrapper.useBitArrays_MT)
 	{
-		s_currentBitMaskMutex.lock();
-		s_bitArrayPool_MT.push_back({});
-		s_bitArrayPool_MT.back() = std::move(bitArray);
-		s_currentBitMaskMutex.unlock();
+		s_multiThreadingWrapper.currentBitMaskMutex.lock();
+		s_multiThreadingWrapper.bitArrayPool_MT.push_back({});
+		s_multiThreadingWrapper.bitArrayPool_MT.back() = std::move(bitArray);
+		s_multiThreadingWrapper.currentBitMaskMutex.unlock();
 	}
 }
 
@@ -1210,6 +1228,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 		}
 	}
 
+	const Tuple3ui& gridSize = intersection.internalGridSize();
+
 	//let's find the nearest triangles for each point in the neighborhood 'Yk'
 	ScalarType maxRadius = 0;
 	for (int dist = minDistToBoundaries; dist <= maxDistToBoundaries && remainingPoints != 0; ++dist, maxRadius += static_cast<ScalarType>(cellSize))
@@ -1228,10 +1248,14 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 		{
 			bool imax = (std::abs(i) == dist);
 			Tuple3i localCellPos(startPos.x + i, 0, 0);
+			if (localCellPos.x < 0 || static_cast<unsigned>(localCellPos.x) >= gridSize.x)
+				continue;
 
 			for (int j = -c; j <= d; j++)
 			{
 				localCellPos.y = startPos.y + j;
+				if (localCellPos.y < 0 || static_cast<unsigned>(localCellPos.y) >= gridSize.y)
+					continue;
 
 				//if i or j is 'maximal'
 				if (imax || std::abs(j) == dist)
@@ -1241,6 +1265,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + k;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{
@@ -1275,6 +1301,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z - e;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{
@@ -1307,6 +1335,8 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 					{
 						//are there any triangles near this cell?
 						localCellPos.z = startPos.z + f;
+						if (localCellPos.z < 0 || static_cast<unsigned>(localCellPos.z) >= gridSize.z)
+							continue;
 						const TriangleList* triList = intersection.trianglesInCell(localCellPos, true);
 						if (triList)
 						{
@@ -1485,6 +1515,23 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 	}
 
 #ifdef ENABLE_CLOUD2MESH_DIST_MT
+
+#ifdef CC_CORE_LIB_USES_QT_CONCURRENT
+	if (params.multiThread)
+	{
+		if (params.maxThreadCount == 0)
+		{
+			// retrieve the maximum number of threads
+			params.maxThreadCount = QThread::idealThreadCount();
+		}
+		if (params.maxThreadCount == 1)
+		{
+			// if only one thread should/cloud be used, the direct approach is more efficient
+			params.multiThread = false;
+		}
+	}
+#endif
+
 	if (!params.multiThread)
 #endif
 	{
@@ -1610,6 +1657,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 
 			//Yk.clear(); //not necessary
 
+			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
 			if (progressCb && !nProgress.oneStep())
 			{
 				//process cancelled by the user
@@ -1646,46 +1694,41 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 			progressCb->start();
 		}
 
-		s_octree_MT = octree;
-		s_normProgressCb_MT = &nProgress;
-		s_cellFunc_MT_success = true;
-		s_cellFunc_MT_results = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-		s_params_MT = params;
-		s_intersection_MT = &intersection;
+		s_multiThreadingWrapper.octree = octree;
+		s_multiThreadingWrapper.normProgressCb = &nProgress;
+		s_multiThreadingWrapper.cellFunc_success = true;
+		s_multiThreadingWrapper.cellFunc_MT_results = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+		s_multiThreadingWrapper.params_MT = params;
+		s_multiThreadingWrapper.intersection_MT = &intersection;
 		//acceleration structure
-		s_useBitArrays_MT = true;
-
-		//Single thread emulation
-		//for (unsigned i = 0; i < numberOfCells; ++i)
-		//	CloudMeshDistCellFunc_MT(cellsDescs[i]);
+		s_multiThreadingWrapper.useBitArrays_MT = true;
 
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
-		int maxThreadCount = params.maxThreadCount;
-		if (maxThreadCount == 0)
-		{
-			maxThreadCount = QThread::idealThreadCount();
-		}
-		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
+		QThreadPool::globalInstance()->setMaxThreadCount(params.maxThreadCount);
 		QtConcurrent::blockingMap(cellsDescs, CloudMeshDistCellFunc_MT);
 #elif defined(CC_CORE_LIB_USES_TBB)
 		tbb::parallel_for(tbb::blocked_range<int>(0, cellsDescs.size()),
-			[&](tbb::blocked_range<int> r) {
-				for (auto i = r.begin(); r.end(); ++i) { CloudMeshDistCellFunc_MT(cellsDescs[i]); }
+			[&](tbb::blocked_range<int> r)
+			{
+				for (auto i = r.begin(); r.end(); ++i)
+				{
+					CloudMeshDistCellFunc_MT(cellsDescs[i]);
+				}
 			}
 		);
 #endif
 
-		s_octree_MT = nullptr;
-		s_normProgressCb_MT = nullptr;
-		s_intersection_MT = nullptr;
+		s_multiThreadingWrapper.octree = nullptr;
+		s_multiThreadingWrapper.normProgressCb = nullptr;
+		s_multiThreadingWrapper.intersection_MT = nullptr;
 
 		//clean acceleration structure
-		s_bitArrayPool_MT.clear();
-		if (!s_cellFunc_MT_success && s_cellFunc_MT_results == DISTANCE_COMPUTATION_RESULTS::SUCCESS)
+		s_multiThreadingWrapper.bitArrayPool_MT.clear();
+		if (!s_multiThreadingWrapper.cellFunc_success && s_multiThreadingWrapper.cellFunc_MT_results == DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 		{
-			s_cellFunc_MT_results = DISTANCE_COMPUTATION_RESULTS::ERROR_EXECUTE_CLOUD_MESH_DIST_CELL_FUNC_MT_FAILURE;
+			s_multiThreadingWrapper.cellFunc_MT_results = DISTANCE_COMPUTATION_RESULTS::ERROR_EXECUTE_CLOUD_MESH_DIST_CELL_FUNC_MT_FAILURE;
 		}
-		return (s_cellFunc_MT_success ? DISTANCE_COMPUTATION_RESULTS::SUCCESS : s_cellFunc_MT_results);
+		return (s_multiThreadingWrapper.cellFunc_success ? DISTANCE_COMPUTATION_RESULTS::SUCCESS : s_multiThreadingWrapper.cellFunc_MT_results);
 	}
 #endif
 }

@@ -17,20 +17,13 @@
 #define OCTREE_CODES_64_BITS
 #endif
 
-#ifndef CC_DEBUG
-//enables multi-threading handling (Release only)
-//requires TBB or QtConcurrent
-#if defined(CC_CORE_LIB_USES_TBB) || defined(CC_CORE_LIB_USES_QT_CONCURRENT)
-#define ENABLE_MT_OCTREE
-#endif
-#endif
-
 namespace CCCoreLib
 {
 	class ReferenceCloud;
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
 	class NormalizedProgress;
+	struct MultiThreadingWrapper;
 
 	//! The octree structure used throughout the library
 	/** Implements the GenericOctree interface.
@@ -377,7 +370,7 @@ namespace CCCoreLib
 		explicit DgmOctree(GenericIndexedCloudPersist* cloud);
 
 		//! DgmOctree destructor
-		~DgmOctree() override = default;
+		~DgmOctree() override;
 
 		//! Clears the octree
 		virtual void clear();
@@ -1100,64 +1093,6 @@ namespace CCCoreLib
 
 	protected:
 
-		/*******************************/
-		/**         STRUCTURES        **/
-		/*******************************/
-
-		//! Internal structure used to perform a top-down scan of the octree
-		struct octreeTopDownScanStruct
-		{
-			//Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment padding!
-
-			//! Cell position inside subdivision level
-			unsigned pos;									//4 bytes
-			//! Number of points in cell
-			unsigned elements;								//4 bytes
-			//! Subdivision level
-			unsigned char level;							//1 byte (+ 3 for alignment)
-
-			//Total											//12 bytes
-		};
-
-		/********************************/
-		/**         ATTRIBUTES         **/
-		/********************************/
-
-		//! The coded octree structure
-		cellsContainer m_thePointsAndTheirCellCodes;
-
-		//! Associated cloud
-		GenericIndexedCloudPersist* m_theAssociatedCloud;
-
-		//! Number of points projected in the octree
-		unsigned m_numberOfProjectedPoints;
-
-		//! Nearest power of 2 smaller than the number of points (used for binary search)
-		unsigned m_nearestPow2;
-
-		//! Min coordinates of the octree bounding-box
-		CCVector3 m_dimMin;
-		//! Max coordinates of the octree bounding-box
-		CCVector3 m_dimMax;
-
-		//! Min coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMin;
-		//! Max coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMax;
-
-		//! Cell dimensions for all subdivision levels
-		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL+2];
-		//! Min and max occupied cells indexes, for all dimensions and every subdivision level
-		int m_fillIndexes[(MAX_OCTREE_LEVEL+1)*6];
-		//! Number of cells per level of subdivision
-		unsigned m_cellCount[MAX_OCTREE_LEVEL+1];
-		//! Max cell population per level of subdivision
-		unsigned m_maxCellPopulation[MAX_OCTREE_LEVEL+1];
-		//! Average cell population per level of subdivision
-		double m_averageCellPopulation[MAX_OCTREE_LEVEL+1];
-		//! Std. dev. of cell population per level of subdivision
-		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL+1];
-
 		/******************************/
 		/**         METHODS          **/
 		/******************************/
@@ -1190,9 +1125,9 @@ namespace CCCoreLib
 			\param level the level of subdivision
 		**/
 		void getNeighborCellsAround(const Tuple3i& cellPos,
-									cellIndexesContainer &neighborCellsIndexes,
-									int neighbourhoodLength,
-									unsigned char level) const;
+			cellIndexesContainer &neighborCellsIndexes,
+			int neighbourhoodLength,
+			unsigned char level) const;
 
 		//! Gets point in the neighbourhing cells of a specific cell
 		/** \warning May throw a std::bad_alloc exception if memory is insufficient.
@@ -1201,8 +1136,8 @@ namespace CCCoreLib
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 		**/
 		void getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &nNSS,
-											 int neighbourhoodLength,
-											 bool getOnlyPointsWithValidScalar = false) const;
+			int neighbourhoodLength,
+			bool getOnlyPointsWithValidScalar = false) const;
 
 		//! Returns the index of a given cell represented by its code
 		/** Same algorithm as the other "getCellIndex" method, but in an optimized form.
@@ -1215,29 +1150,69 @@ namespace CCCoreLib
 		**/
 		unsigned getCellIndex(CellCode truncatedCellCode, unsigned char bitShift, unsigned begin, unsigned end) const;
 
-#ifdef ENABLE_MT_OCTREE
-		//! Octree cell description helper struct
-		struct octreeCellDesc
+	protected:
+
+		/*******************************/
+		/**         STRUCTURES        **/
+		/*******************************/
+
+		//! Internal structure used to perform a top-down scan of the octree
+		struct octreeTopDownScanStruct
 		{
-			DgmOctree::CellCode truncatedCode;
-			unsigned i1, i2;
-			unsigned char level;
+			//Warning: put the non aligned members (< 4 bytes) at the end to avoid too much alignment padding!
+
+			//! Cell position inside subdivision level
+			unsigned pos;									//4 bytes
+			//! Number of points in cell
+			unsigned elements;								//4 bytes
+			//! Subdivision level
+			unsigned char level;							//1 byte (+ 3 for alignment)
+
+			//Total											//12 bytes
 		};
 
-		//! Structure containing objects needed to run octree operations in parallel
-		struct multiThreadingWrapper
-		{
-			DgmOctree *octree = nullptr;
-			DgmOctree::octreeCellFunc cell_func = nullptr;
-			void **userParams = nullptr;
-			GenericProgressCallback *progressCb = nullptr;
-			NormalizedProgress *normProgressCb = nullptr;
-			bool cellFunc_success = true;
+	protected:
 
-			void launchOctreeCellFunc(const octreeCellDesc& desc);
-		};
-		multiThreadingWrapper m_MT_wrapper;
-#endif
+		/********************************/
+		/**         ATTRIBUTES         **/
+		/********************************/
+
+		//! The coded octree structure
+		cellsContainer m_thePointsAndTheirCellCodes;
+
+		//! Associated cloud
+		GenericIndexedCloudPersist* m_theAssociatedCloud;
+
+		//! Number of points projected in the octree
+		unsigned m_numberOfProjectedPoints;
+
+		//! Nearest power of 2 smaller than the number of points (used for binary search)
+		unsigned m_nearestPow2;
+
+		//! Min coordinates of the octree bounding-box
+		CCVector3 m_dimMin;
+		//! Max coordinates of the octree bounding-box
+		CCVector3 m_dimMax;
+
+		//! Min coordinates of the bounding-box of the set of points projected in the octree
+		CCVector3 m_pointsMin;
+		//! Max coordinates of the bounding-box of the set of points projected in the octree
+		CCVector3 m_pointsMax;
+
+		//! Cell dimensions for all subdivision levels
+		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL + 2];
+		//! Min and max occupied cells indexes, for all dimensions and every subdivision level
+		int m_fillIndexes[(MAX_OCTREE_LEVEL + 1) * 6];
+		//! Number of cells per level of subdivision
+		unsigned m_cellCount[MAX_OCTREE_LEVEL + 1];
+		//! Max cell population per level of subdivision
+		unsigned m_maxCellPopulation[MAX_OCTREE_LEVEL + 1];
+		//! Average cell population per level of subdivision
+		double m_averageCellPopulation[MAX_OCTREE_LEVEL + 1];
+		//! Std. dev. of cell population per level of subdivision
+		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL + 1];
+
+		MultiThreadingWrapper* m_MT_wrapper;
 	};
 
 }
