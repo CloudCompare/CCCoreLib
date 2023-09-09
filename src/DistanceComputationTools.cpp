@@ -20,6 +20,9 @@
 #include <algorithm>
 #include <cassert>
 
+//Qt
+#include <QCoreApplication>
+
 #ifndef CC_DEBUG
 #if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 #define ENABLE_CLOUD2MESH_DIST_MT

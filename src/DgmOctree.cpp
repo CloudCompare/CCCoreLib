@@ -19,6 +19,10 @@
 //#define COMPUTE_NN_SEARCH_STATISTICS
 //#define ADAPTATIVE_BINARY_SEARCH
 
+//Qt
+#include <QtConcurrentMap>
+#include <QCoreApplication>
+
 #ifndef CC_DEBUG
 //enables multi-threading handling (Release only)
 //requires TBB or QtConcurrent
@@ -26,8 +30,6 @@
 #define ENABLE_MT_OCTREE
 #include <QThread>
 #include <QThreadPool>
-#include <QtConcurrentMap>
-#include <QCoreApplication>
 #elif defined(CC_CORE_LIB_USES_TBB)
 #define ENABLE_MT_OCTREE
 #include <algorithm>
