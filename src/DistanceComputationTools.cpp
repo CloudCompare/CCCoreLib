@@ -1462,7 +1462,6 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 																	Cloud2MeshDistancesComputationParams& params,
 																	GenericProgressCallback* progressCb/*=nullptr*/)
 {
-	assert(!params.multiThread || params.maxSearchDist <= 0); //maxSearchDist is not compatible with parallel processing
 	assert(!params.signedDistances || !intersection.distanceTransform()); //signed distances are not compatible with Distance Transform acceleration
 
 	if (!octree)
@@ -1774,7 +1773,6 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_REFERENCEMESH;
 	}
 
-
 	if (params.signedDistances)
 	{
 		//signed distances are incompatible with approximate distances (with Distance Transform)
@@ -1791,7 +1789,6 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 		params.useDistanceMap = false;
 		params.maxSearchDist = 0;
 	}
-
 
 	//compute the bounding box that contains both the cloud and the mesh BBs
 	CCVector3 cubicalMinBB;
