@@ -342,10 +342,13 @@ int DgmOctree::build(	const CCVector3& octreeMin,
 
 int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 {
+	m_buildInProgress = true;
+
 	unsigned pointCount = (m_theAssociatedCloud ? m_theAssociatedCloud->size() : 0);
 	if (pointCount == 0)
 	{
 		//no cloud/point?!
+		m_buildInProgress = false;
 		return -1;
 	}
 
@@ -356,6 +359,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	}
 	catch (.../*const std::bad_alloc&*/) //out of memory
 	{
+		m_buildInProgress = false;
 		return -1;
 	}
 
@@ -389,7 +393,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	{
 		const CCVector3* P = m_theAssociatedCloud->getPoint(i);
 
-		//does the point falls in the 'accepted points' box?
+		//does the point fall inside the 'accepted' bounding-box?
 		//(potentially different from the octree box - see DgmOctree::build)
 		if (	(P->x >= m_pointsMin[0]) && (P->x <= m_pointsMax[0])
 			&&	(P->y >= m_pointsMin[1]) && (P->y <= m_pointsMax[1])
@@ -446,8 +450,9 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 			++m_numberOfProjectedPoints;
 		}
 
-		if (!nprogress.oneStep())
+		if (!nprogress.oneStep() || !m_buildInProgress)
 		{
+			m_buildInProgress = false;
 			m_thePointsAndTheirCellCodes.resize(0);
 			m_numberOfProjectedPoints = 0;
 			if (progressCb)
@@ -471,7 +476,15 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	}
 
 	if (m_numberOfProjectedPoints < pointCount)
+	{
 		m_thePointsAndTheirCellCodes.resize(m_numberOfProjectedPoints); //smaller --> should always be ok
+	}
+
+	if (false == m_buildInProgress)
+	{
+		// build programmatically cancelled
+		return 0;
+	}
 
 	if (progressCb && progressCb->textCanBeEdited())
 	{
@@ -479,7 +492,24 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	}
 
 	//we sort the 'cells' by ascending code order
-	ParallelSort(m_thePointsAndTheirCellCodes.begin(), m_thePointsAndTheirCellCodes.end(), IndexAndCode::codeComp);
+	try
+	{
+		ParallelSort(m_thePointsAndTheirCellCodes.begin(),
+			m_thePointsAndTheirCellCodes.end(),
+			[&](const IndexAndCode& a, const IndexAndCode& b)
+			{
+				if (!m_buildInProgress)
+				{
+					throw std::exception();
+				}
+				return a.theCode < b.theCode;
+			});
+	}
+	catch (const std::exception&)
+	{
+		// build programmatically cancelled
+		return 0;
+	}
 
 	//update the pre-computed 'number of cells per level of subdivision' array
 	updateCellCountTable();
@@ -510,6 +540,8 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	}
 
 	m_nearestPow2 = (1 << static_cast<int>(log(static_cast<double>(m_numberOfProjectedPoints - 1)) / LOG_NAT_2));
+
+	m_buildInProgress = false;
 
 	return static_cast<int>(m_numberOfProjectedPoints);
 }

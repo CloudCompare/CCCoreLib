@@ -8,6 +8,7 @@
 #include "CCPlatform.h"
 
 //system
+#include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <vector>
@@ -294,16 +295,6 @@ namespace CCCoreLib
 				return theCode > iac.theCode;
 			}
 
-			//! Compares two IndexAndCode instances based on their code
-			/** \param a first IndexAndCode structure
-				\param b second IndexAndCode structure
-				\return whether the code of 'a' is smaller than the code of 'b'
-			**/
-			static bool codeComp(const IndexAndCode& a, const IndexAndCode& b) throw()
-			{
-				return a.theCode < b.theCode;
-			}
-
 			//! Compares two IndexAndCode instances based on their index
 			/** \param a first IndexAndCode structure
 				\param b second IndexAndCode structure
@@ -398,6 +389,18 @@ namespace CCCoreLib
 					const CCVector3* pointsMinFilter = nullptr,
 					const CCVector3* pointsMaxFilter = nullptr,
 					GenericProgressCallback* progressCb = nullptr);
+
+		//! Returns whether a build is in progress
+		inline bool isBuildInProgress() const
+		{
+			return m_buildInProgress;
+		}
+
+		//! Cancels the ongoing build (if any is in progress)
+		inline void cancelBuild()
+		{
+			m_buildInProgress = false;
+		}
 
 		/**** GETTERS ****/
 
@@ -1212,7 +1215,11 @@ namespace CCCoreLib
 		//! Std. dev. of cell population per level of subdivision
 		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL + 1];
 
+		//! Multithreading wrapper
 		MultiThreadingWrapper* m_MT_wrapper;
+
+		//! Whether the octree build is in progress
+		std::atomic<bool> m_buildInProgress;
 	};
 
 }
