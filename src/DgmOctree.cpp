@@ -3264,7 +3264,9 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			progressCb->update(0);
 			m_MT_wrapper->normProgressCb = new NormalizedProgress(progressCb, m_theAssociatedCloud->size());
 			progressCb->start();
+#ifndef __APPLE__
 			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+#endif
 		}
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
@@ -3459,7 +3461,9 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			if (progressCb)
 			{
 				progressCb->update((100.0f * cell.index) / m_numberOfProjectedPoints);
+#ifndef __APPLE__
 				QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+#endif
 				if (progressCb->isCancelRequested())
 				{
 					result = false;
