@@ -778,7 +778,8 @@ ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
 
 	SquareMatrixd eigVectors;
 	std::vector<double> eigValues;
-	if (!Jacobi<double>::ComputeEigenValuesAndVectors(computeCovarianceMatrix(), eigVectors, eigValues, true))
+	SquareMatrixd covarianceMatrix = computeCovarianceMatrix();
+	if (!Jacobi<double>::ComputeEigenValuesAndVectors(covarianceMatrix, eigVectors, eigValues, true))
 	{
 		//failed to compute the eigen values
 		return NAN_VALUE;
@@ -812,7 +813,8 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 
 	SquareMatrixd eigVectors;
 	std::vector<double> eigValues;
-	if (!Jacobi<double>::ComputeEigenValuesAndVectors(computeCovarianceMatrix(), eigVectors, eigValues, true))
+	SquareMatrixd covarianceMatrix = computeCovarianceMatrix();
+	if (!Jacobi<double>::ComputeEigenValuesAndVectors(covarianceMatrix, eigVectors, eigValues, true))
 	{
 		//failed to compute the eigen values
 		return std::numeric_limits<double>::quiet_NaN();
