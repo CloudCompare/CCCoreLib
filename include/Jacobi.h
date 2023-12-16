@@ -8,8 +8,6 @@
 
 namespace CCCoreLib
 {
-#define ROTATE(a,i,j,k,l) { Scalar g = a[i][j]; h = a[k][l]; a[i][j] = g-s*(h+g*tau); a[k][l] = h+s*(g-h*tau); }
-	
 	//! Jacobi eigen vectors/values decomposition
 	template <typename Scalar> class Jacobi
 	{
@@ -17,180 +15,72 @@ namespace CCCoreLib
 		
 		using SquareMatrix = SquareMatrixTpl<Scalar>;
 		using EigenValues = std::vector<Scalar>;
-		
-		//! Computes the eigenvalues and eigenvectors of a given square matrix
-		/** It uses Rutishauser's modfications of the classical Jacobi rotation method with threshold pivoting.
-		  
-		Note: this code is inspired from John Burkardt's 'jacobi_eigenvalue' code
-		See https://people.sc.fsu.edu/~jburkardt/cpp_src/jacobi_eigenvalue/jacobi_eigenvalue.cpp
-		
-		\warning DGM: this method gives strange results in some particular cases!!!
-		
-		\param[in] matrix input square matrix
-		\param[out] eigenVectors eigenvectors (as a square matrix)
-		\param[out] eigenValues eigenvalues
-		\param[in] maxIterationCount max number of iteration (optional)
-		\return success
-		**/
-		static bool ComputeEigenValuesAndVectors2(const SquareMatrix& matrix, SquareMatrix& eigenVectors, EigenValues& eigenValues, unsigned maxIterationCount = 50)
+
+		//! Tests tha consistency between eigenvalues and eigenvectors
+		static bool TestEigenVecAndValues(const SquareMatrix& matrix, const SquareMatrix& eigenVectors, const EigenValues& eigenValues)
 		{
-			if (!matrix.isValid())
+			CCVector3 e1(	static_cast<PointCoordinateType>(eigenVectors.getValue(0, 0)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(1, 0)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(2, 0)) );
+			CCVector3 e2(	static_cast<PointCoordinateType>(eigenVectors.getValue(0, 1)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(1, 1)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(2, 1)) );
+			CCVector3 e3(	static_cast<PointCoordinateType>(eigenVectors.getValue(0, 2)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(1, 2)),
+							static_cast<PointCoordinateType>(eigenVectors.getValue(2, 2)) );
+
+			CCVector3 imE1, imE2, imE3;
+			matrix.apply(e1.u, imE1.u);
+			matrix.apply(e2.u, imE2.u);
+			matrix.apply(e3.u, imE3.u);
+
+			CCVector3 l1_e1 = static_cast<PointCoordinateType>(eigenValues[0]) * e1;
+			CCVector3 l2_e2 = static_cast<PointCoordinateType>(eigenValues[1]) * e2;
+			CCVector3 l3_e3 = static_cast<PointCoordinateType>(eigenValues[2]) * e3;
+
+			PointCoordinateType v1 = e1.dot(imE1) / e1.norm();	// should equal v1
+			PointCoordinateType dot1 = v1 / imE1.norm();		// should equal 1
+
+			PointCoordinateType v2 = e2.dot(imE2) / e2.norm();	// should equal v2
+			PointCoordinateType dot2 = v2 / imE2.norm();		// should equal 1
+
+			PointCoordinateType v3 = e3.dot(imE3) / e3.norm();	// should equal v3
+			PointCoordinateType dot3 = v3 / imE3.norm();		// should equal 1
+
+			CCVector3 res1 = l1_e1 - imE1; // should equal (0, 0, 0)
+			CCVector3 res2 = l2_e2 - imE2; // should equal (0, 0, 0)
+			CCVector3 res3 = l3_e3 - imE3; // should equal (0, 0, 0)
+
+			PointCoordinateType norm1 = res1.norm(); // should equal 0
+			PointCoordinateType norm2 = res2.norm(); // should equal 0
+			PointCoordinateType norm3 = res3.norm(); // should equal 0
+
+			if (	abs(norm1) > 1.0e-5
+				||	abs(norm2) > 1.0e-5
+				||	abs(norm3) > 1.0e-5 )
 			{
 				return false;
 			}
-			
-			unsigned n = matrix.size();
-			
-			//duplicate the current matrix (as it may be modified afterwards!)
-			SquareMatrix a(matrix);
-			
-			//output eigen vectors matrix
-			eigenVectors = SquareMatrix(n);
-			if (!eigenVectors.isValid())
-			{
-				return false;
-			}
-			eigenVectors.toIdentity();
-			
-			std::vector<Scalar> bw, zw;
-			try
-			{
-				eigenValues.resize(n);
-				zw.resize(n, 0);
-				bw.resize(n);
-				
-				//initialize bw and d to the diagonal of this matrix
-				for (unsigned i = 0; i < n; i++)
-				{
-					bw[i] = eigenValues[i] = a.m_values[i][i];
-				}
-			}
-			catch (const std::bad_alloc&)
-			{
-				//not enough memory
-				return false;
-			}
-			
-			for (unsigned it = 0; it < maxIterationCount; ++it)
-			{
-				//The convergence threshold is based on the size of the elements in
-				//the strict upper triangle of the matrix.
-				double sum = 0.0;
-				for (unsigned j = 0; j < n; ++j)
-				{
-					for (unsigned i = 0; i < j; ++i)
-					{
-						double val = a.m_values[i][j];
-						sum += val * val;
-					}
-				}
-				
-				Scalar thresh = static_cast<Scalar>(sqrt(sum) / (4 * n));
-				if (thresh == 0)
-				{
-					break;
-				}
-				
-				for (unsigned p = 0; p < n; ++p)
-				{
-					for (unsigned q = p + 1; q < n; ++q)
-					{
-						Scalar gapq = 10 * std::abs(a.m_values[p][q]);
-						Scalar termp = gapq + std::abs(eigenValues[p]);
-						Scalar termq = gapq + std::abs(eigenValues[q]);
-						
-						//Annihilate tiny offdiagonal elements
-						if (it > 4
-								&& termp == std::abs(eigenValues[p])
-								&& termq == std::abs(eigenValues[q]))
-						{
-							a.m_values[p][q] = 0;
-						}
-						//Otherwise, apply a rotation
-						else if (thresh <= std::abs(a.m_values[p][q]))
-						{
-							Scalar h = eigenValues[q] - eigenValues[p];
-							Scalar term = std::abs(h) + gapq;
-							
-							Scalar t = 0;
-							if (term == std::abs(h))
-							{
-								t = a.m_values[p][q] / h;
-							}
-							else
-							{
-								Scalar theta = h / (2 * a.m_values[p][q]);
-								t = 1 / (std::abs(theta) + sqrt(1 + theta*theta));
-								if (theta < 0)
-								{
-									t = -t;
-								}
-							}
-							Scalar c = 1 / sqrt(1 + t*t);
-							Scalar s = t * c;
-							Scalar tau = s / (1 + c);
-							h = t * a.m_values[q][p];
-							
-							//Accumulate corrections to diagonal elements.
-							zw[p] -= h;
-							zw[q] += h;
-							eigenValues[p] -= h;
-							eigenValues[q] += h;
-							
-							a.m_values[p][q] = 0;
-							
-							// Rotate, using information from the upper triangle of A only.
-							unsigned j;
-							for (j = 0; j < p; ++j)
-							{
-								Scalar g = a.m_values[j][p];
-								Scalar h = a.m_values[j][q];
-								a.m_values[j][p] = g - s * (h + g * tau);
-								a.m_values[j][q] = h + s * (g - h * tau);
-							}
-							
-							for (j = p + 1; j < q; ++j)
-							{
-								Scalar g = a.m_values[p][j];
-								Scalar h = a.m_values[j][q];
-								a.m_values[p][j] = g - s * (h + g * tau);
-								a.m_values[j][q] = h + s * (g - h * tau);
-							}
-							
-							for (j = q + 1; j < n; ++j)
-							{
-								Scalar g = a.m_values[p][j];
-								Scalar h = a.m_values[q][j];
-								a.m_values[p][j] = g - s * (h + g * tau);
-								a.m_values[q][j] = h + s * (g - h * tau);
-							}
-							
-							//Accumulate information in the eigenvector matrix.
-							for (j = 0; j < n; ++j)
-							{
-								Scalar g = eigenVectors.m_values[j][p];
-								Scalar h = eigenVectors.m_values[j][q];
-								eigenVectors.m_values[j][p] = g - s * (h + g * tau);
-								eigenVectors.m_values[j][q] = h + s * (g - h * tau);
-							}
-						}
-					}
-				}
-				
-				for (unsigned i = 0; i < n; ++i)
-				{
-					bw[i] += zw[i];
-					eigenValues[i] = bw[i];
-					zw[i] = 0.0;
-				}
-			}
-			
+
 			return true;
 		}
 		
-		//! Computes eigen vectors (and values) with the Jacobian method
-		/** See the Numerical Recipes. **/
-		static bool ComputeEigenValuesAndVectors(	const SquareMatrix& matrix,
+		#define ROTATE(a,i,j,k,l) { Scalar g = a[i][j]; h = a[k][l]; a[i][j] = g-s*(h+g*tau); a[k][l] = h+s*(g-h*tau); }
+
+		//! Computes the eigenvalues and eigenvectors of a given symmetrical square matrix
+		/** Uses the Jacobian method.
+			See the Numerical Recipes.
+
+			\warning Input matrix is diagonilized in place.
+
+			\param[in]  matrix            symmetrical square matrix
+			\param[out] eigenVectors      output eigenvectors (as a square matrix)
+			\param[out] eigenValues       output eigenvalues
+			\param[in]  absoluteValues    whether to output absolute eigenvalues only
+			\param[in]  maxIterationCount max number of iteration (optional)
+			\return success
+		**/
+		static bool ComputeEigenValuesAndVectors(	SquareMatrix& matrix,
 													SquareMatrix& eigenVectors,
 													EigenValues& eigenValues,
 													bool absoluteValues = true,
@@ -204,7 +94,7 @@ namespace CCCoreLib
 			unsigned n = matrix.size();
 			unsigned matrixSquareSize = n * n;
 			
-			//output eigen vectors matrix
+			//Output eigen vectors matrix
 			eigenVectors = SquareMatrix(n);
 			if (!eigenVectors.isValid())
 			{
@@ -221,12 +111,12 @@ namespace CCCoreLib
 			}
 			catch (const std::bad_alloc&)
 			{
-				//not enough memory
+				//Not enough memory
 				return false;
 			}
 			Scalar* d = eigenValues.data();
 			
-			//init
+			//Initialization
 			{
 				for (unsigned ip = 0; ip < n; ip++)
 				{
@@ -243,7 +133,9 @@ namespace CCCoreLib
 					for (unsigned ip = 0; ip < n - 1; ip++)
 					{
 						for (unsigned iq = ip + 1; iq < n; iq++)
+						{
 							sm += std::abs(matrix.m_values[ip][iq]);
+						}
 					}
 				}
 				
@@ -251,10 +143,15 @@ namespace CCCoreLib
 				{
 					if (absoluteValues)
 					{
-						//we only need the absolute values of eigenvalues
+						//We only need the absolute values of eigenvalues
 						for (unsigned ip = 0; ip < n; ip++)
+						{
 							d[ip] = std::abs(d[ip]);
+						}
 					}
+
+					//Consistency test
+					//assert(TestEigenVecAndValues(matrix, eigenVectors, eigenValues));
 					
 					return true;
 				}
@@ -271,9 +168,9 @@ namespace CCCoreLib
 					{
 						Scalar pq = std::abs(matrix.m_values[ip][iq]) * 100;
 						//After four sweeps, skip the rotation if the off-diagonal element is small.
-						if (i > 4
-								&& static_cast<float>(std::abs(d[ip]) + pq) == static_cast<float>(std::abs(d[ip]))
-								&& static_cast<float>(std::abs(d[iq]) + pq) == static_cast<float>(std::abs(d[iq])))
+						if (	i > 4
+							&&	static_cast<float>(std::abs(d[ip]) + pq) == static_cast<float>(std::abs(d[ip]))
+							&&	static_cast<float>(std::abs(d[iq]) + pq) == static_cast<float>(std::abs(d[iq])))
 						{
 							matrix.m_values[ip][iq] = 0;
 						}
@@ -290,7 +187,9 @@ namespace CCCoreLib
 								Scalar theta = h / (2 * matrix.m_values[ip][iq]); //Equation (11.1.10).
 								t = 1 / (std::abs(theta) + sqrt(1 + theta*theta));
 								if (theta < 0)
+								{
 									t = -t;
+								}
 							}
 							
 							Scalar c = 1 / sqrt(t*t + 1);
@@ -306,28 +205,36 @@ namespace CCCoreLib
 							//Case of rotations 1 <= j < p
 							{
 								for (unsigned j = 0; j + 1 <= ip; j++)
+								{
 									ROTATE(matrix.m_values, j, ip, j, iq)
+								}
 							}
 							//Case of rotations p < j < q
 							{
 								for (unsigned j = ip + 1; j + 1 <= iq; j++)
+								{
 									ROTATE(matrix.m_values, ip, j, j, iq)
+								}
 							}
 							//Case of rotations q < j <= n
 							{
 								for (unsigned j = iq + 1; j < n; j++)
+								{
 									ROTATE(matrix.m_values, ip, j, iq, j)
+								}
 							}
 							//Last case
 							{
 								for (unsigned j = 0; j < n; j++)
+								{
 									ROTATE(eigenVectors.m_values, j, ip, j, iq)
+								}
 							}
 						}
 					}
 				}
 				
-				//update b, d and z
+				//Update b, d and z
 				{
 					for (unsigned ip = 0; ip < n; ip++)
 					{
@@ -342,51 +249,60 @@ namespace CCCoreLib
 			return false;
 		}
 		
-		//! Sorts the eigenvectors in the decreasing order of their associated eigenvalues
-		/** \param eigenVectors eigenvectors (as a square matrix)
-		\param eigenValues eigenvalues
-		\return success
+		//! Sorts the eigenvectors in the decreasing order of their associated eigenvalues (in place)
+		/** \param[in,out] eigenVectors eigenvectors (as a square matrix)
+			\param[in,out] eigenValues  eigenvalues
+			\return success
 		**/
 		static bool SortEigenValuesAndVectors(SquareMatrix& eigenVectors, EigenValues& eigenValues)
 		{
-			if (!eigenVectors.isValid()
-					|| eigenVectors.size() < 2
-					|| eigenVectors.size() != eigenValues.size())
+			unsigned n = eigenVectors.size();
+
+			if (	!eigenVectors.isValid()
+				||	n < 2
+				||	n != eigenValues.size())
 			{
 				assert(false);
 				return false;
 			}
-			
-			unsigned n = eigenVectors.size();
+
 			for (unsigned i = 0; i < n - 1; i++)
 			{
 				unsigned maxValIndex = i;
-				for (unsigned j = i + 1; j<n; j++)
+				for (unsigned j = i + 1; j < n; j++)
+				{
 					if (eigenValues[j] > eigenValues[maxValIndex])
+					{
 						maxValIndex = j;
-				
+					}
+				}
+
 				if (maxValIndex != i)
 				{
 					std::swap(eigenValues[i], eigenValues[maxValIndex]);
 					for (unsigned j = 0; j < n; ++j)
+					{
 						std::swap(eigenVectors.m_values[j][i], eigenVectors.m_values[j][maxValIndex]);
+					}
 				}
 			}
 			
 			return true;
 		}
 		
-		//! Returns the given eigenvector
-		/** \param eigenVectors eigenvectors (as a square matrix)
-		\param index requested eigenvector index (< eigenvectors matrix size)
-		\param eigenVector output vector (size = matrix size)
-		\return success
+		//! Returns a specific eigenvector
+		/** \param[in]  eigenVectors eigenvectors (as a square matrix)
+			\param[in]  index        requested eigenvector index (< eigenvectors matrix size)
+			\param[out] eigenVector  output vector (same size as the matrix)
+			\return success
 		**/
 		static bool GetEigenVector(const SquareMatrix& eigenVectors, unsigned index, Scalar eigenVector[])
 		{
-			if (eigenVector && index < eigenVectors.size())
+			unsigned n = eigenVectors.size();
+
+			if (eigenVector && index < n)
 			{
-				for (unsigned i = 0; i < eigenVectors.size(); ++i)
+				for (size_t i = 0; i < n; ++i)
 				{
 					eigenVector[i] = eigenVectors.m_values[i][index];
 				}
@@ -400,53 +316,71 @@ namespace CCCoreLib
 		}
 		
 		//! Returns the biggest eigenvalue and its associated eigenvector
-		/** \param eigenVectors eigenvectors (as a square matrix)
-		\param eigenValues eigenvalues
-		\param maxEigenValue biggest eigenvalue
-		\param maxEigenVector eigenvector vector corresponding to the biggest eigenvalue
-		\return success
+		/** \param[in]  eigenVectors   eigenvectors (as a square matrix)
+			\param[in]  eigenValues    eigenvalues
+			\param[out] maxEigenValue  biggest eigenvalue
+			\param[out] maxEigenVector eigenvector vector corresponding to the biggest eigenvalue
+			\return success
 		**/
-		static bool GetMaxEigenValueAndVector(const SquareMatrix& eigenVectors, const EigenValues& eigenValues, Scalar& maxEigenValue, Scalar maxEigenVector[])
+		static bool GetMaxEigenValueAndVector(	const SquareMatrix& eigenVectors,
+												const EigenValues& eigenValues,
+												Scalar& maxEigenValue,
+												Scalar maxEigenVector[])
 		{
-			if (!eigenVectors.isValid()
-					|| eigenVectors.size() < 2
-					|| eigenVectors.size() != eigenValues.size())
+			unsigned n = eigenVectors.size();
+
+			if (	!eigenVectors.isValid()
+				||	n < 2
+				||	n != eigenValues.size())
 			{
 				assert(false);
 				return false;
 			}
 			
 			unsigned maxIndex = 0;
-			for (unsigned i = 1; i<eigenVectors.size(); ++i)
+			for (unsigned i = 1; i < n; ++i)
+			{
 				if (eigenValues[i] > eigenValues[maxIndex])
+				{
 					maxIndex = i;
+				}
+			}
 			
 			maxEigenValue = eigenValues[maxIndex];
 			return GetEigenVector(eigenVectors, maxIndex, maxEigenVector);
 		}
 		
 		//! Returns the smallest eigenvalue and its associated eigenvector
-		/** \param eigenVectors eigenvectors (as a square matrix)
-		\param eigenValues eigenvalues
-		\param minEigenValue smallest eigenvalue
-		\param minEigenVector eigenvector vector corresponding to the smallest eigenvalue
-		\return success
+		/** \param[in]  eigenVectors   eigenvectors (as a square matrix)
+			\param[in]  eigenValues    eigenvalues
+			\param[out] minEigenValue  smallest eigenvalue
+			\param[out] minEigenVector eigenvector vector corresponding to the smallest eigenvalue
+			\return success
 		**/
-		static bool GetMinEigenValueAndVector(const SquareMatrix& eigenVectors, const EigenValues& eigenValues, Scalar& minEigenValue, Scalar minEigenVector[])
+		static bool GetMinEigenValueAndVector(	const SquareMatrix& eigenVectors,
+												const EigenValues& eigenValues,
+												Scalar& minEigenValue,
+												Scalar minEigenVector[])
 		{
-			if (!eigenVectors.isValid()
-					|| eigenVectors.size() < 2
-					|| eigenVectors.size() != eigenValues.size())
+			unsigned n = eigenVectors.size();
+
+			if (	!eigenVectors.isValid()
+				||	n < 2
+				||	n != eigenValues.size())
 			{
 				assert(false);
 				return false;
 			}
-			
+
 			unsigned minIndex = 0;
-			for (unsigned i = 1; i < eigenVectors.size(); ++i)
+			for (unsigned i = 1; i < n; ++i)
+			{
 				if (eigenValues[i] < eigenValues[minIndex])
+				{
 					minIndex = i;
-			
+				}
+			}
+
 			minEigenValue = eigenValues[minIndex];
 			return GetEigenVector(eigenVectors, minIndex, minEigenVector);
 		}
