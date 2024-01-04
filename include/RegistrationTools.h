@@ -38,13 +38,15 @@ namespace CCCoreLib
 			SKIP_TRANSLATION	= 56,
 		};
 
-		//! 'Filters' a transformation by constraining it along certain rotation axes and translation directions
+		//! 'Filters' a transformation by constraining it about some rotation axes and/or along some translation directions
 		/**	\param inTrans input transformation
 			\param transformationFilters filters to be applied on the resulting transformation at each step (experimental) - see RegistrationTools::TRANSFORMATION_FILTERS flags
 			\param outTrans output transformation
 		**/
 		static void FilterTransformation(	const ScaledTransformation& inTrans,
 											int transformationFilters,
+											const CCVector3& toBeAlignedGravityCenter,
+											const CCVector3& referenceGravityCenter,
 											ScaledTransformation& outTrans );
 
 	protected:
@@ -62,12 +64,14 @@ namespace CCCoreLib
 			Warning: P and X must have the same size, and must be in the same
 			order (i.e. P[i] is the point equivalent to X[i] for all 'i').
 
-			\param P the cloud to register (data)
-			\param X the reference cloud (model)
-			\param trans the resulting transformation
-			\param adjustScale whether to estimate scale (s) as well (see jschmidt 2005)
-			\param coupleWeights weights for each (Pi,Xi) couple (optional)
-			\param aPrioriScale 'a priori' scale (Sa) between P and X
+			\param[in]  P the cloud to register (data)
+			\param[in]  X the reference cloud (model)
+			\param[in]  trans the resulting transformation
+			\param[in]  adjustScale whether to estimate scale (s) as well (see jschmidt 2005)
+			\param[in]  coupleWeights weights for each (Pi,Xi) couple (optional)
+			\param[in]  aPrioriScale 'a priori' scale (Sa) between P and X
+			\param[out] Gp optional: gravity center of the P cloud (potentially weighted)
+			\param[out] Gx optional: gravity center of the X cloud (potentially weighted)
 			\return success
 		**/
 		static bool RegistrationProcedure(	GenericCloud* P,
@@ -75,7 +79,9 @@ namespace CCCoreLib
 											ScaledTransformation& trans,
 											bool adjustScale = false,
 											ScalarField* coupleWeights = nullptr,
-											PointCoordinateType aPrioriScale = 1.0f);
+											PointCoordinateType aPrioriScale = 1.0f,
+											CCVector3* Gp = nullptr,
+											CCVector3* Gx = nullptr);
 
 	};
 
