@@ -27,20 +27,11 @@ using namespace CCCoreLib;
 
 void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTrans,
 												int filters,
+												const CCVector3& toBeAlignedGravityCenter,
+												const CCVector3& referenceGravityCenter,
 												ScaledTransformation& outTrans )
 {
 	outTrans = inTrans;
-
-	//filter translation
-	if (filters & SKIP_TRANSLATION)
-	{
-		if (filters & SKIP_TX)
-			outTrans.T.x = 0;
-		if (filters & SKIP_TY)
-			outTrans.T.y = 0;
-		if (filters & SKIP_TZ)
-			outTrans.T.z = 0;
-	}
 
 	//filter rotation
 	int rotationFilter = (filters & SKIP_ROTATION);
@@ -115,7 +106,23 @@ void RegistrationTools::FilterTransformation(	const ScaledTransformation& inTran
 		{
 			//we ignore all rotation components
 		}
+
+		//fix the translation to compensate for the change of the rotation matrix
+		CCVector3d alignedGravityCenter = outTrans.apply(toBeAlignedGravityCenter.toDouble());
+		outTrans.T += (referenceGravityCenter.toDouble() - alignedGravityCenter);
 	}
+
+	//filter translation
+	if (filters & SKIP_TRANSLATION)
+	{
+		if (filters & SKIP_TX)
+			outTrans.T.x = 0;
+		if (filters & SKIP_TY)
+			outTrans.T.y = 0;
+		if (filters & SKIP_TZ)
+			outTrans.T.z = 0;
+	}
+
 }
 
 struct ModelCloud
@@ -792,11 +799,15 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 		//single iteration of the registration procedure
 		currentTrans = ScaledTransformation();
+		CCVector3 dataGravityCenter, modelGravityCenter;
 		if (!RegistrationTools::RegistrationProcedure(	data.cloud,
 														data.CPSetRef ? static_cast<GenericCloud*>(data.CPSetRef) : static_cast<GenericCloud*>(data.CPSetPlain),
 														currentTrans,
 														params.adjustScale,
-														coupleWeights))
+														coupleWeights,
+														PC_ONE,
+														&dataGravityCenter,
+														&modelGravityCenter))
 		{
 			result = ICP_ERROR_REGISTRATION_STEP;
 			break;
@@ -819,7 +830,11 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		if (params.transformationFilters != SKIP_NONE)
 		{
 			//filter translation (in place)
-			FilterTransformation(currentTrans, params.transformationFilters, currentTrans);
+			FilterTransformation(	currentTrans,
+									params.transformationFilters,
+									dataGravityCenter,
+									modelGravityCenter,
+									currentTrans);
 		}
 
 		//get rotated data cloud
@@ -947,9 +962,11 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 												ScaledTransformation& trans,
 												bool adjustScale/*=false*/,
 												ScalarField* coupleWeights/*=nullptr*/,
-												PointCoordinateType aPrioriScale/*=1.0f*/)
+												PointCoordinateType aPrioriScale/*=1.0f*/,
+												CCVector3* _Gp/*=nullptr*/,
+												CCVector3* _Gx/*=nullptr*/)
 {
-	//resulting transformation (R is invalid on initialization, T is (0,0,0) and s==1)
+	//output transformation (R is invalid on initialization, T is (0,0,0) and s==1)
 	trans.R.invalidate();
 	trans.T = CCVector3d(0, 0, 0);
 	trans.s = 1.0;
@@ -960,6 +977,11 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 	//centers of mass
 	CCVector3 Gp = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedGravityCenter(P, coupleWeights) : GeometricalAnalysisTools::ComputeGravityCenter(P);
 	CCVector3 Gx = coupleWeights ? GeometricalAnalysisTools::ComputeWeightedGravityCenter(X, coupleWeights) : GeometricalAnalysisTools::ComputeGravityCenter(X);
+
+	if (_Gp)
+		*_Gp = Gp;
+	if (_Gx)
+		*_Gx = Gx;
 
 	//specific case: 3 points only
 	//See section 5.A in Horn's paper
@@ -1011,7 +1033,8 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			double cos_t = Np.dot(Nx);
 			assert(cos_t > -1.0 && cos_t < 1.0); //see above
 			double s = sqrt((1 + cos_t) * 2);
-			double q[4] = { s / 2, a.x / s, a.y / s, a.z / s }; //don't forget to normalize the quaternion
+			double q[4] { s / 2, a.x / s, a.y / s, a.z / s };
+			//don't forget to normalize the quaternion
 			double qnorm = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
 			assert( qnorm >= ZERO_TOLERANCE_D );
 			qnorm = sqrt(qnorm);
@@ -1782,8 +1805,8 @@ bool FPCSRegistrationTools::LinesIntersections(	const CCVector3 &p0,
 	return true;
 }
 
-bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud *modelCloud,
-												GenericIndexedCloud *dataCloud,
+bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud* modelCloud,
+												GenericIndexedCloud* dataCloud,
 												Base& reference,
 												std::vector<Base>& candidates,
 												unsigned nbMaxCandidates,
@@ -1849,16 +1872,22 @@ bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud *modelCloud,
 	}
 
 	{
-		for (unsigned i=0; i<table.size(); i++)
+		for (size_t i = 0; i < table.size(); i++)
 		{
 			dataBaseCloud.reset();
 			if (!dataBaseCloud.reserve(4)) //we never know ;)
+			{
 				return false;
-			for (unsigned j=0; j<4; j++)
+			}
+			for (unsigned j = 0; j < 4; j++)
+			{
 				dataBaseCloud.addPoint(*dataCloud->getPoint(table[i].getIndex(j)));
+			}
 
 			if (!RegistrationTools::RegistrationProcedure(&dataBaseCloud, &referenceBaseCloud, t, false))
+			{
 				return false;
+			}
 
 			tarray.push_back(t);
 			if (filter)
@@ -1866,8 +1895,10 @@ bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud *modelCloud,
 				float score = 0;
 				GenericIndexedCloud* b = PointProjectionTools::applyTransformation(&dataBaseCloud, t);
 				if (!b)
+				{
 					return false; //not enough memory
-				for (unsigned j=0; j<4; j++)
+				}
+				for (unsigned j = 0; j < 4; j++)
 				{
 					const CCVector3* q = b->getPoint(j);
 					score += static_cast<float>((*q - *(p[j])).norm());
@@ -1895,7 +1926,7 @@ bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud *modelCloud,
 		sort(sortedscores.begin(), sortedscores.end());
 		float score = sortedscores[nbMaxCandidates - 1];
 		unsigned j = 0;
-		for (unsigned i = 0; i < scores.size(); i++)
+		for (size_t i = 0; i < scores.size(); i++)
 		{
 			if (scores[i] <= score && j < nbMaxCandidates)
 			{
