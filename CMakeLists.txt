@@ -218,7 +218,7 @@ endif()
 
 # QT (optional)
 if ( CCCORELIB_USE_QT_CONCURRENT )
-	find_package( Qt5
+	find_package( Qt6
 		COMPONENTS
 			Concurrent
 		REQUIRED
@@ -232,7 +232,7 @@ if ( CCCORELIB_USE_QT_CONCURRENT )
 
 	target_link_libraries( CCCoreLib
 		PUBLIC
-			Qt5::Concurrent
+            Qt6::Concurrent
 	)
 
 	target_compile_definitions( CCCoreLib
