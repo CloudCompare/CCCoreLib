@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <vector>
 #include <functional>
+#include <stdint.h>
 
 namespace CCCoreLib
 {
@@ -75,11 +76,11 @@ namespace CCCoreLib
 		bool init(unsigned di, unsigned dj, unsigned dk, unsigned margin, GridElement defaultCellValue = 0)
 		{
 			m_innerSize			= Tuple3ui(di, dj, dk);
-			m_margin			= margin;
-			m_innerCellCount	= m_innerSize.x * m_innerSize.y * m_innerSize.z;
+			m_margin			= static_cast<int64_t>(margin);
+			m_innerCellCount	= (static_cast<uint64_t>(m_innerSize.x) * m_innerSize.y) * m_innerSize.z;
 			m_rowSize			= (m_innerSize.x + 2 * m_margin);
 			m_sliceSize			= (m_innerSize.y + 2 * m_margin) * m_rowSize;
-			m_totalCellCount	= (m_innerSize.z + 2 * m_margin) * m_sliceSize;
+			m_totalCellCount	= static_cast<uint64_t>((m_innerSize.z + 2 * m_margin) * m_sliceSize);
 			m_marginShift		= m_margin * (1 + m_rowSize + m_sliceSize);
 
 			if (m_totalCellCount == 0)
@@ -192,9 +193,9 @@ namespace CCCoreLib
 				const GenericTriangle* T = mesh->_getNextTriangle();
 
 				//current triangle vertices
-				const CCVector3* triPoints[3] = {	T->_getA(),
-													T->_getB(),
-													T->_getC() };
+				const CCVector3* triPoints[3] {	T->_getA(),
+												T->_getB(),
+												T->_getC() };
 
 				CCVector3 AB = (*triPoints[1]) - (*triPoints[0]);
 				CCVector3 BC = (*triPoints[2]) - (*triPoints[1]);
@@ -205,7 +206,7 @@ namespace CCCoreLib
 					 GreaterThanSquareEpsilon( BC.norm2() ) &&
 					 GreaterThanSquareEpsilon( CA.norm2() ) )
 				{
-					Tuple3i cellPos[3] =
+					Tuple3i cellPos[3]
 					{
 						computeCellPos(*(triPoints[0]), gridMinCorner, cellLength),
 						computeCellPos(*(triPoints[1]), gridMinCorner, cellLength),
@@ -496,14 +497,14 @@ namespace CCCoreLib
 		inline const GridElement* data() const { return m_grid.data(); }
 
 		//! Returns the number of cell count (whithout margin)
-		inline unsigned innerCellCount() const { return m_innerCellCount; }
+		inline uint64_t innerCellCount() const { return m_innerCellCount; }
 		//! Returns the total number of cell count (with margin)
-		inline unsigned totalCellCount() const { return m_totalCellCount; }
+		inline uint64_t totalCellCount() const { return m_totalCellCount; }
 
 	protected:
 
 		//! Converts a 3D position to an absolute index
-		inline int pos2index(int i, int j, int k) const { return i + j * static_cast<int>(m_rowSize) + k * static_cast<int>(m_sliceSize) + static_cast<int>(m_marginShift); }
+		inline int64_t pos2index(int i, int j, int k) const { return static_cast<int64_t>(i) + (j * m_rowSize) + (k * m_sliceSize) + m_marginShift; }
 
 		//! Grid data
 		std::vector<GridElement> m_grid;
@@ -511,16 +512,16 @@ namespace CCCoreLib
 		//! Dimensions of the grid (without margin)
 		Tuple3ui m_innerSize;
 		//! Margin
-		unsigned m_margin;
+		int64_t m_margin;
 		//! 1D row size (with margin)
-		unsigned m_rowSize;
+		int64_t m_rowSize;
 		//! 2D slice size (with margin)
-		unsigned m_sliceSize;
+		int64_t m_sliceSize;
 		//! 3D grid size without margin
-		unsigned m_innerCellCount;
+		uint64_t m_innerCellCount;
 		//! 3D grid size with margin
-		unsigned m_totalCellCount;
+		uint64_t m_totalCellCount;
 		//! First index of real data (i.e. after marin)
-		unsigned m_marginShift;
+		int64_t m_marginShift;
 	};
 }
