@@ -91,7 +91,7 @@ namespace CCCoreLib
 		//! Returns triangles indexes array (pointer to)
 		/** Handle with care!
 		**/
-		inline int* getTriangleVertIndexesArray() { return m_triIndexes; }
+		inline int* getTriangleVertIndexesArray() { return m_triIndexes.data(); }
 
 		//! Filters out the triangles based on their edge length
 		/** Warning: may remove ALL triangles!
@@ -115,7 +115,7 @@ namespace CCCoreLib
 		GenericIndexedCloud* m_associatedCloud;
 
 		//! Triangle vertex indexes
-		int* m_triIndexes;
+		std::vector<int> m_triIndexes;
 
 		//! Iterator on the list of triangle vertex indexes
 		int* m_globalIterator;

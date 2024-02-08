@@ -651,15 +651,15 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(GenericClou
 		CCVector3 Pt = *P->getNextPoint() - Gp;
 		CCVector3 Qt = *Q->getNextPoint() - Gq;
 
-		l1[0] += Pt.x * Qt.x;
-		l1[1] += Pt.x * Qt.y;
-		l1[2] += Pt.x * Qt.z;
-		l2[0] += Pt.y * Qt.x;
-		l2[1] += Pt.y * Qt.y;
-		l2[2] += Pt.y * Qt.z;
-		l3[0] += Pt.z * Qt.x;
-		l3[1] += Pt.z * Qt.y;
-		l3[2] += Pt.z * Qt.z;
+		l1[0] += static_cast<double>(Pt.x) * Qt.x;
+		l1[1] += static_cast<double>(Pt.x) * Qt.y;
+		l1[2] += static_cast<double>(Pt.x) * Qt.z;
+		l2[0] += static_cast<double>(Pt.y) * Qt.x;
+		l2[1] += static_cast<double>(Pt.y) * Qt.y;
+		l2[2] += static_cast<double>(Pt.y) * Qt.z;
+		l3[0] += static_cast<double>(Pt.z) * Qt.x;
+		l3[1] += static_cast<double>(Pt.z) * Qt.y;
+		l3[2] += static_cast<double>(Pt.z) * Qt.z;
 	}
 
 	covMat.scale(1.0 / count);
@@ -730,17 +730,17 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(	Ge
 	}
 
 	//remove the centers of gravity
-	r1[0] -= Gp.x * Gq.x;
-	r1[1] -= Gp.x * Gq.y;
-	r1[2] -= Gp.x * Gq.z;
+	r1[0] -= static_cast<double>(Gp.x) * Gq.x;
+	r1[1] -= static_cast<double>(Gp.x) * Gq.y;
+	r1[2] -= static_cast<double>(Gp.x) * Gq.z;
 	//2nd row
-	r2[0] -= Gp.y * Gq.x;
-	r2[1] -= Gp.y * Gq.y;
-	r2[2] -= Gp.y * Gq.z;
+	r2[0] -= static_cast<double>(Gp.y) * Gq.x;
+	r2[1] -= static_cast<double>(Gp.y) * Gq.y;
+	r2[2] -= static_cast<double>(Gp.y) * Gq.z;
 	//3rd row
-	r3[0] -= Gp.z * Gq.x;
-	r3[1] -= Gp.z * Gq.y;
-	r3[2] -= Gp.z * Gq.z;
+	r3[0] -= static_cast<double>(Gp.z) * Gq.x;
+	r3[1] -= static_cast<double>(Gp.z) * Gq.y;
+	r3[2] -= static_cast<double>(Gp.z) * Gq.z;
 
 	return covMat;
 }

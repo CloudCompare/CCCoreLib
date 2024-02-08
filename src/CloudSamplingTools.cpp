@@ -527,7 +527,7 @@ ReferenceCloud* CloudSamplingTools::sorFilter(	GenericIndexedCloudPersist* input
 			for (unsigned i = 0; i < pointCount; ++i)
 			{
 				sumDist += meanDistances[i];
-				sumSquareDist += meanDistances[i] * meanDistances[i];
+				sumSquareDist += static_cast<double>(meanDistances[i]) * meanDistances[i];
 			}
 			avgDist = sumDist / pointCount;
 			stdDev = sqrt(std::abs(sumSquareDist / pointCount - avgDist*avgDist));

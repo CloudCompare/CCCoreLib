@@ -2924,7 +2924,7 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 
 	//we search the max @ 'percent'% (to avoid outliers)
 	std::vector<PointCoordinateType> tail;
-	std::size_t tailSize = static_cast<std::size_t>(ceil(static_cast<float>(count) * percent));
+	std::size_t tailSize = static_cast<std::size_t>(ceil(static_cast<double>(count) * percent));
 	tail.resize(tailSize);
 
 	//compute deviations

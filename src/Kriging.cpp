@@ -433,7 +433,7 @@ bool Kriging::ordinaryKrige(const KrigeParams& params,
 	try
 	{
 		output.clear();
-		output.reserve(m_rasterParams.width * m_rasterParams.height);
+		output.reserve(static_cast<size_t>(m_rasterParams.width) * m_rasterParams.height);
 
 		for (unsigned i = 0; i < m_rasterParams.width; ++i)
 		{
