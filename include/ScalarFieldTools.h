@@ -71,16 +71,15 @@ namespace CCCoreLib
 												DgmOctree* theOctree = nullptr);
 
 		//! Computes a spatial gaussian filter on a scalar field associated to a point cloud
-		/** The "amplitutde" of the gaussian filter must be precised (sigma).
-			As 99% of the gaussian distribution is between -3*sigma and +3*sigma
-			around the mean value, this filter will only look for neighbouring
-			points (around each point) in a sphere of radius 3*sigma.
-			It also permits to use the filter as a bilateral filter. Where the wights are computed also considering the
-			distance of the neighbor's scalar value from the current point scalar value. (weighted with gaussian as distances are)
-			Warning: this method assumes the input scalar field is different from output.
+		/** The "amplitutde" of the Gaussian filter must be specified (sigma).
+			As 99% of the Gaussian distribution is between -3*sigma and +3*sigma around the mean value,
+			this filter will only look for neighbors within a sphere of radius 3*sigma.
+			One can also use the filter as a Bilateral filter. In this case the weights are computed considering the
+			difference of the neighbors SF values with the current point SF value (also following a Gaussian distribution).
+			Warning: this method assumes the input scalar field is different from the output one.
 			\param sigma filter variance
 			\param theCloud a point cloud (associated to scalar values)
-			\param sigmaSF the sigma for the bilateral filter. when different than -1 turns the gaussian filter into a bilateral filter
+			\param sigmaSF if strictly positive, the variance for the Bilateral filter
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param theOctree the octree, if it has already been computed
 			\return success
