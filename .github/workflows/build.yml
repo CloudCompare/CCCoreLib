@@ -1,14 +1,6 @@
 name: Build
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-  schedule:
-    - cron: "0 0 * * *"
+on: [ push, pull_request ]
 
 jobs:
   build:
@@ -22,26 +14,23 @@ jobs:
         scalar_double: ["OFF", "ON"]
         config:
           - {
-              name: "macOS Clang",
-              os: macos-latest,
-              generator: "Ninja",
-            }
-          - {
-              name: "Ubuntu GCC",
-              os: ubuntu-latest,
-              generator: "Ninja",
-            }
-          - {
               name: "Windows MSVC",
               os: windows-latest,
               generator: "Ninja",
-           }
+              conda_library_dir: "Library"
+            }
+          - {
+                name: "macOS Clang",
+                os: macos-latest,
+                generator: "Ninja",
+                conda_library_dir: "."
+            }
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
 
       - name: Setup (Windows)
         if: matrix.config.os == 'windows-latest'
@@ -49,100 +38,116 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install Dependencies (macOS)
-        if: matrix.config.os == 'macos-latest'
-        run: |
-          #with cgal: brew install cgal ninja qt5 tbb
-          brew install ninja qt5 tbb
-
-          echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
-
-      - name: Install Dependencies (Ubuntu)
-        if: matrix.config.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-
-          sudo apt-get install -y libcgal-dev libtbb-dev ninja-build qtbase5-dev
-
-      # DGM: caching conda doesn't seem to work properly anymore
-      #- name: Conda Cache (Windows)
-      #  if: matrix.config.os == 'windows-latest'
-      #  uses: actions/cache@v3
-      #  with:
-      #    path: C:\Miniconda3\envs\CCCoreLib
-      #    key: conda-cache-${{ runner.os }}-${{ hashFiles('.ci/conda.yml') }}
-
-      # DGM: without caching, using conda takes too long...
-      #- name: Install Dependencies (Windows)
-      #  if: matrix.config.os == 'windows-latest'
-      #  uses: conda-incubator/setup-miniconda@v2
-      #  with:
-      #    activate-environment: CCCoreLib
-      #    auto-activate-base: false
-      #    environment-file: .ci/conda.yml
-      #    channels: conda-forge
-      #    miniconda-version: 'latest'
-
-      # DGM: we'll just use Qt for now (and not CGAL)
-      - name: Install Qt
-        if:  matrix.config.os == 'windows-latest'
-        uses: jurplel/install-qt-action@v3
+      - name: Install Dependencies
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: CCCoreLib
+          auto-activate-base: false
+          environment-file: .ci/conda.yml
+          miniconda-version: 'latest'
 
       - name: Configure MSVC console (Windows)
-        if:  matrix.config.os == 'windows-latest'
+        if: matrix.config.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Set environment for MSVC (Windows)
-        if:  matrix.config.os == 'windows-latest'
+        if: matrix.config.os == 'windows-latest'
         run: |
           # Set these env vars so cmake picks the correct compiler
           # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
           echo "CXX=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "CC=cl.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Configure (macOS)
         if: matrix.config.os == 'macos-latest'
-        run: >
+        shell: bash -l {0}
+        run: |
           mkdir cccorelib-build
 
-          cmake
-          -B cccorelib-build
-          -G "${{ matrix.config.generator }}"
-          -DCMAKE_BUILD_TYPE=Release
-          -DCCCORELIB_USE_CGAL=FALSE
-          -DCCCORELIB_USES_TBB=TRUE
-          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
-          .
+          export CONDA_LIB_DIR="$CONDA_PREFIX/${{ matrix.config.conda_library_dir }}"
 
-      - name: Configure (Ubuntu)
-        if: matrix.config.os == 'ubuntu-latest'
-        run: >
-          mkdir cccorelib-build
-
-          cmake
-          -B cccorelib-build
-          -G "${{ matrix.config.generator }}"
-          -DCMAKE_BUILD_TYPE=Release
-          -DCCCORELIB_USE_CGAL=TRUE
-          -DCCCORELIB_USES_TBB=TRUE
-          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
+          cmake \
+          -B cccorelib-build \
+          -G "${{ matrix.config.generator }}" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="$CONDA_LIB_DIR" \
+          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} \
+          -DCCCORELIB_USE_CGAL=FALSE \
+          -DCCCORELIB_USES_TBB=TRUE \
           .
 
       - name: Configure (Windows)
         if:  matrix.config.os == 'windows-latest'
+        shell: bash -l {0}
+        run: |
+          mkdir build
+
+          # DGM: without caching, using conda takes too long.
+          # Therefore we can't set -DCCCORELIB_USE_CGAL=TRUE
+          cmake \
+          -B cccorelib-build \
+          -G "${{ matrix.config.generator }}" \
+          -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$CONDA_LIB_DIR" \
+          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} \
+          -DCCCORELIB_USE_CGAL=FALSE \
+          -DCCCORELIB_USES_TBB=TRUE \
+          .
+
+      - name: Build
+        run: cmake --build cccorelib-build --parallel
+
+  ubuntu-build:
+    name: Ubuntu ${{ matrix.compiler }} SCALAR_DOUBLE=${{ matrix.scalar_double }}
+    runs-on: ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scalar_double: [ "OFF", "ON" ]
+        compiler: ["GCC", "Clang"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: >
+          sudo apt-get update -qq
+
+          sudo apt-get install -qy cmake ninja-build
+          qt5-default qttools5-dev qttools5-dev-tools
+          libtbb-dev
+          libcgal-dev libcgal-qt5-dev
+
+      - name: Setup GCC
+        if: matrix.compiler == 'GCC'
+        run: |
+          echo "CC=gcc" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+
+      - name: Setup Clang
+        if: matrix.compiler == 'Clang'
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+
+      - name: Configure cmake
         run: >
           mkdir cccorelib-build
 
           cmake
           -B cccorelib-build
-          -G "${{ matrix.config.generator }}"
+          -S .
+          -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          # DGM: without caching, using conda takes tool long...
-          #-DCCCORELIB_USE_CGAL=TRUE
-          -DCCCORELIB_USE_CGAL=FALSE
-          -DCCCORELIB_USES_TBB=TRUE
           -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
+          -DCCCORELIB_USE_CGAL=TRUE
+          -DCCCORELIB_USES_TBB=TRUE
           .
 
       - name: Build
-        run: |
-          cmake --build cccorelib-build
+        run: cmake --build cccorelib-build --parallel
