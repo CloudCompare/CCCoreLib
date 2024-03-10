@@ -370,6 +370,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		c2mDistParams.signedDistances = params.useC2MSignedDistances;
 		c2mDistParams.CPSet = data.CPSetPlain;
 		c2mDistParams.maxThreadCount = params.maxThreadCount;
+		c2mDistParams.robust = params.robustC2MSignedDistances;
 		if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams, progressCb) < 0)
 		{
 			//an error occurred during distances computation...
@@ -882,6 +883,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			c2mDistParams.signedDistances = params.useC2MSignedDistances;
 			c2mDistParams.CPSet = data.CPSetPlain;
 			c2mDistParams.maxThreadCount = params.maxThreadCount;
+			c2mDistParams.robust = params.robustC2MSignedDistances;
 			if (DistanceComputationTools::computeCloud2MeshDistances(data.cloud, inputModelMesh, c2mDistParams) < 0)
 			{
 				//an error occurred during distances computation...

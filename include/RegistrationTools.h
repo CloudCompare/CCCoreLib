@@ -171,6 +171,7 @@ namespace CCCoreLib
 				, transformationFilters(SKIP_NONE)
 				, maxThreadCount(0)
 				, useC2MSignedDistances(false)
+				, robustC2MSignedDistances(true)
 				, normalsMatching(NO_NORMAL)
 			{}
 
@@ -211,6 +212,9 @@ namespace CCCoreLib
 			/** Useful when registering a cloud with a mesh AND partial overlap, to move the cloud towards the outside of the mesh
 			**/
 			bool useC2MSignedDistances;
+
+			//! Whether to compute robust signed C2M distances.
+			bool robustC2MSignedDistances;
 
 			//! Normals matching method
 			NORMALS_MATCHING normalsMatching;

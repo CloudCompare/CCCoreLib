@@ -41,7 +41,6 @@
 
 namespace CCCoreLib
 {
-
 	//! List of triangles (indexes)
 	struct TriangleList
 	{
@@ -195,12 +194,12 @@ int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPe
 	}
 
 	//additional parameters
-	void* additionalParameters[] = {	reinterpret_cast<void*>(referenceCloud),
-										reinterpret_cast<void*>(referenceOctree),
-										reinterpret_cast<void*>(&params),
-										reinterpret_cast<void*>(&maxSearchSquareDistd),
-										reinterpret_cast<void*>(&computeSplitDistances)
-								   };
+	void* additionalParameters[] {	reinterpret_cast<void*>(referenceCloud),
+									reinterpret_cast<void*>(referenceOctree),
+									reinterpret_cast<void*>(&params),
+									reinterpret_cast<void*>(&maxSearchSquareDistd),
+									reinterpret_cast<void*>(&computeSplitDistances)
+								};
 
 	int result = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 
@@ -704,7 +703,7 @@ bool DistanceComputationTools::computeCellHausdorffDistanceWithLocalModel(	const
 }
 
 //! Method used by computeCloud2MeshDistancesWithOctree
-static void ComparePointsAndTriangles(	ReferenceCloud& Yk,
+static bool ComparePointsAndTriangles(	ReferenceCloud& Yk,
 										unsigned& remainingPoints,
 										const GenericIndexedMesh* mesh,
 										std::vector<unsigned>& trianglesToTest,
@@ -722,6 +721,22 @@ static void ComparePointsAndTriangles(	ReferenceCloud& Yk,
 	CCVector3 nearestPoint;
 	CCVector3* _nearestPoint = params.CPSet ? &nearestPoint : nullptr;
 
+	std::vector<bool> pointProjectsInsideTriangle;
+	std::vector<double> absDotProducts;
+	if (params.robust)
+	{
+		try
+		{
+			pointProjectsInsideTriangle.resize(remainingPoints, false);
+			absDotProducts.resize(remainingPoints, 1.0);
+		}
+		catch (const std::bad_alloc&)
+		{
+			//not enough memory
+			return false;
+		}
+	}
+
 	//for each triangle
 	while (trianglesToTestCount != 0)
 	{
@@ -733,23 +748,94 @@ static void ComparePointsAndTriangles(	ReferenceCloud& Yk,
 		//for each point inside the current cell
 		if (params.signedDistances)
 		{
-			//we have to use absolute distances
-			for (unsigned j = 0; j < remainingPoints; ++j)
+			if (params.robust)
 			{
-				//compute the distance to the triangle
-				ScalarType dPTri = DistanceComputationTools::computePoint2TriangleDistance(Yk.getPoint(j), &tri, true, _nearestPoint);
-				//keep it if it's smaller
-				ScalarType min_d = Yk.getPointScalarValue(j);
-				if (!ScalarField::ValidValue(min_d) || min_d * min_d > dPTri*dPTri)
+				for (unsigned j = 0; j < remainingPoints; ++j)
 				{
-					Yk.setPointScalarValue(j, params.flipNormals ? -dPTri : dPTri);
-					if (params.CPSet)
+					//compute the distance to the triangle
+					bool nearestPointInsideTriangle = false;
+					double absDotProd = 0.0;
+					ScalarType distToTri = DistanceComputationTools::computePoint2TriangleDistance(	Yk.getPoint(j),
+																									&tri,
+																									true,
+																									_nearestPoint,
+																									&nearestPointInsideTriangle,
+																									&absDotProd);
+
+					absDotProd = std::abs(absDotProd);
+
+					ScalarType previousDist = Yk.getPointScalarValue(j);
+
+					bool betterCandidate = !ScalarField::ValidValue(previousDist); // first valid distance? We'll keep it for now
+
+					if (!betterCandidate)
 					{
-						//Closest Point Set: save the nearest point and nearest triangle as well
-						unsigned pointIndex = Yk.getPointGlobalIndex(j);
-						assert(_nearestPoint);
-						*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
-						params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
+						ScalarType absDistToTri = std::abs(distToTri);
+						ScalarType absPreviousDist = std::abs(previousDist);
+
+						if (!pointProjectsInsideTriangle[j] && nearestPointInsideTriangle && (absDistToTri - absPreviousDist <= std::numeric_limits<ScalarType>::epsilon()))
+						{
+							// we prefer to keep the triangle inside which the point projects, even if it's (numerically) slightly farther
+							betterCandidate = true;
+						}
+						else if (pointProjectsInsideTriangle[j] && !nearestPointInsideTriangle && (absDistToTri - absPreviousDist >= std::numeric_limits<ScalarType>::epsilon()))
+						{
+							// we prefer to keep the triangle inside which the point projects, even if it's (numerically) slightly farther
+							betterCandidate = false;
+						}
+						else if (!pointProjectsInsideTriangle[j] && !nearestPointInsideTriangle && (std::abs(absDistToTri - absPreviousDist) <= std::numeric_limits<ScalarType>::epsilon()))
+						{
+							// if the point projects 'outside' of both triangles, then we keep the triangle which is the most 'orthogonal'
+							betterCandidate = (absDotProd > absDotProducts[j]);
+						}
+						else
+						{
+							// we keep the 'closest' triangle
+							betterCandidate = absDistToTri < absPreviousDist;
+						}
+					}
+
+					if (betterCandidate)
+					{
+						Yk.setPointScalarValue(j, params.flipNormals ? -distToTri : distToTri);
+						pointProjectsInsideTriangle[j] = nearestPointInsideTriangle;
+						absDotProducts[j] = absDotProd;
+
+						if (params.CPSet)
+						{
+							//Closest Point Set: save the nearest point and nearest triangle as well
+							unsigned pointIndex = Yk.getPointGlobalIndex(j);
+							assert(_nearestPoint);
+							*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+							params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
+						}
+					}
+				}
+			}
+			else // non-robust (old version)
+			{
+				for (unsigned j = 0; j < remainingPoints; ++j)
+				{
+					//compute the distance to the triangle
+					ScalarType distToTri = DistanceComputationTools::computePoint2TriangleDistance(Yk.getPoint(j),
+						&tri,
+						true,
+						_nearestPoint);
+
+					ScalarType previousDist = Yk.getPointScalarValue(j);
+
+					//keep it if it's smaller
+					if (!ScalarField::ValidValue(previousDist) || std::abs(distToTri) < std::abs(previousDist))
+					{
+						Yk.setPointScalarValue(j, params.flipNormals ? -distToTri : distToTri);
+						if (params.CPSet)
+						{
+							//Closest Point Set: save the nearest point and nearest triangle as well
+							unsigned pointIndex = Yk.getPointGlobalIndex(j);
+							assert(_nearestPoint);
+							*const_cast<CCVector3*>(params.CPSet->getPoint(pointIndex)) = *_nearestPoint;
+							params.CPSet->setPointScalarValue(pointIndex, static_cast<ScalarType>(triIndex));
+						}
 					}
 				}
 			}
@@ -808,10 +894,11 @@ static void ComparePointsAndTriangles(	ReferenceCloud& Yk,
 			}
 		}
 	}
+
+	return true;
 }
 
-
-int ComputeMaxNeighborhoodLength(ScalarType maxSearchDist, PointCoordinateType cellSize)
+static int ComputeMaxNeighborhoodLength(ScalarType maxSearchDist, PointCoordinateType cellSize)
 {
 	return static_cast<int>(ceil(maxSearchDist / cellSize + static_cast<ScalarType>((sqrt(2.0) - 1.0) / 2)));
 }
@@ -849,6 +936,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 		//skip this cell if the process is aborted / has failed
 		return;
 	}
+
 	if (!s_multiThreadingWrapper.intersection_MT)
 	{
 		assert(false);
@@ -966,7 +1054,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	{
 		//coordinates of the current point
 		const CCVector3 *tempPt = Yk.getCurrentPointCoordinates();
-		//distance du bord le plus proche = taille de la cellule - distance la plus grande par rapport au centre de la cellule
+		//distance to the nearest border = size of the cell - max distance tp the celle center
 		minDists[j] = DgmOctree::ComputeMinDistanceToCellBorder(*tempPt, cellLength, cellCenter);
 		Yk.forwardIterator();
 	}
@@ -1102,14 +1190,20 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 			}
 		}
 
-		ComparePointsAndTriangles(	Yk,
-									remainingPoints,
-									s_multiThreadingWrapper.intersection_MT->mesh(),
-									trianglesToTest,
-									trianglesToTestCount,
-									minDists,
-									maxRadius,
-									s_multiThreadingWrapper.params_MT );
+		if (false == ComparePointsAndTriangles(	Yk,
+												remainingPoints,
+												s_multiThreadingWrapper.intersection_MT->mesh(),
+												trianglesToTest,
+												trianglesToTestCount,
+												minDists,
+												maxRadius,
+												s_multiThreadingWrapper.params_MT) )
+		{
+			//not enough memory
+			s_multiThreadingWrapper.cellFunc_success = false;
+			s_multiThreadingWrapper.cellFunc_MT_results = DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+			return;
+		}
 	}
 
 	//Save the bit mask
@@ -1122,7 +1216,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	}
 }
 
-#endif
+#endif // ENABLE_CLOUD2MESH_DIST_MT
 
 struct BoundedSearchParams
 {
@@ -1371,14 +1465,17 @@ static int ComputeNeighborhood2MeshDistancesWithOctree(	const GridAndMeshInterse
 			}
 		}
 
-		ComparePointsAndTriangles(	Yk,
-									remainingPoints,
-									intersection.mesh(),
-									ttt.trianglesToTest,
-									ttt.trianglesToTestCount,
-									minDists,
-									maxRadius,
-									params);
+		if (false == ComparePointsAndTriangles(	Yk,
+												remainingPoints,
+												intersection.mesh(),
+												ttt.trianglesToTest,
+												ttt.trianglesToTestCount,
+												minDists,
+												maxRadius,
+												params) )
+		{
+			return DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
+		}
 	}
 
 	return DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS;
@@ -1532,10 +1629,10 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 			params.multiThread = false;
 		}
 	}
-#endif
+#endif // CC_CORE_LIB_USES_QT_CONCURRENT
 
 	if (!params.multiThread)
-#endif
+#endif // ENABLE_CLOUD2MESH_DIST_MT
 	{
 		const GenericIndexedMesh* mesh = intersection.mesh();
 		if (!mesh)
@@ -1732,7 +1829,7 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		}
 		return (s_multiThreadingWrapper.cellFunc_success ? DISTANCE_COMPUTATION_RESULTS::SUCCESS : s_multiThreadingWrapper.cellFunc_MT_results);
 	}
-#endif
+#endif // ENABLE_CLOUD2MESH_DIST_MT
 }
 
 //convert all 'distances' (squared in fact) to their square root
@@ -1906,10 +2003,17 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 // http://www.geometrictools.com/
 ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVector3* P,
 																	const GenericTriangle* theTriangle,
-																	bool signedDistances,
-																	CCVector3* nearestP/*=nullptr*/)
+																	bool signedDistance,
+																	CCVector3* nearestP/*=nullptr*/,
+																	bool* nearestPInside/*=nullptr*/,
+																	double* dotProd/*=nullptr*/)
 {
 	assert(P && theTriangle);
+
+	if (nearestPInside)
+	{
+		*nearestPInside = false;
+	}
 
 	const CCVector3* A = theTriangle->_getA();
 	const CCVector3* B = theTriangle->_getB();
@@ -1931,7 +2035,7 @@ ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVect
 	double t0  = a01 * b1 - a11 * b0;
 	double t1  = a01 * b0 - a00 * b1;
 
-	if (t0 + t1 <= det)
+	if (t0 + t1 <= det) // regions 0, 3, 4 and 5
 	{
 		if (t0 < 0)
 		{
@@ -2001,11 +2105,16 @@ ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVect
 		}
 		else  // region 0, interior
 		{
+			if (nearestPInside)
+			{
+				*nearestPInside = true;
+			}
+
 			t0 /= det;
 			t1 /= det;
 		}
 	}
-	else
+	else // regions 1, 2 and 6
 	{
 		double tmp0;
 		double tmp1;
@@ -2110,24 +2219,40 @@ ScalarType DistanceComputationTools::computePoint2TriangleDistance(	const CCVect
 	}
 
 	//point on the plane (relative to A)
-	CCVector3d Q = t0 * AB + t1 * AC;
+	CCVector3d AQ = t0 * AB + t1 * AC;
+	CCVector3d QP = AP - AQ;
 
 	if (nearestP)
 	{
 		//if requested we also output the nearest point
-		*nearestP = *A + Q.toPC();
+		*nearestP = *A + AQ.toPC();
 	}
 
-	double squareDist = (Q - AP).norm2();
-	if (signedDistances)
+	double squareDist = QP.norm2();
+	if (signedDistance)
 	{
 		ScalarType d = static_cast<ScalarType>(sqrt(squareDist));
 
 		//triangle normal
 		CCVector3d N = AB.cross(AC);
 
-		//we test the sign of the cross product of the triangle normal and the vector AP
-		return (AP.dot(N) < 0 ? -d : d);
+		//we test the sign of the cross product of the triangle normal and the vector QP
+		double dp = QP.dot(N);
+
+		if (dotProd)
+		{
+			double norm2 = N.norm2() * QP.norm2();
+			if (norm2 > std::numeric_limits<double>::epsilon())
+			{
+				*dotProd = dp / sqrt(norm2);
+			}
+			else
+			{
+				*dotProd = (dp >= 0.0 ? 1.0 : -1.0);
+			}
+		}
+
+		return (dp < 0.0 ? -d : d);
 	}
 	else
 	{
@@ -2178,7 +2303,14 @@ ScalarType DistanceComputationTools::computePoint2LineSegmentDistSquared(const C
 // Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and Cone-Spheres.
 // The modifications from the paper are to compute the closest distance when the point is interior to the cone.
 // http://liris.cnrs.fr/Documents/Liris-1297.pdf
-int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersist* cloud, const CCVector3& coneP1, const CCVector3& coneP2, const PointCoordinateType coneR1, const PointCoordinateType coneR2, bool signedDistances/*=true*/, bool solutionType/*=false*/, double* rms/*=nullptr*/)
+int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersist* cloud,
+														const CCVector3& coneP1,
+														const CCVector3& coneP2,
+														const PointCoordinateType coneR1,
+														const PointCoordinateType coneR2,
+														bool signedDistances/*=true*/,
+														bool solutionType/*=false*/,
+														double* rms/*=nullptr*/)
 {
 	if (!cloud)
 	{

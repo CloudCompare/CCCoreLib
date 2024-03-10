@@ -180,6 +180,11 @@ namespace CCCoreLib
 			**/
 			PointCloud* CPSet;
 
+			//! Whether to compute distances in a robust way (trying to detect edge cases)
+			/** Computation will be slightly slower, and a little bit more memory will be required
+			**/
+			bool robust;
+
 			//! Default constructor
 			Cloud2MeshDistancesComputationParams()
 				: octreeLevel(0)
@@ -190,6 +195,7 @@ namespace CCCoreLib
 				, multiThread(true)
 				, maxThreadCount(0)
 				, CPSet(nullptr)
+				, robust(true)
 			{}
 		};
 
@@ -271,17 +277,21 @@ namespace CCCoreLib
 		//! Computes the distance between a point and a triangle
 		/** \warning if not signed, the returned distance is SQUARED!
 
-			\param P				a 3D point
-			\param theTriangle		a 3D triangle
-			\param signedDistances	whether to compute the signed or positive (SQUARED) distance
-			\param nearestP			optional: returns the nearest point on the triangle
+			\param[in]  P				a 3D point
+			\param[in]  theTriangle		a 3D triangle
+			\param[in]  signedDistance	whether to compute the signed or positive (SQUARED) distance
+			\param[out] nearestP		optional: returns the nearest point on the triangle
+			\param[out] nearestPInside	optional: whether the nearest point (= projection) falls inside the triangle
+			\param[out] dotProd			optional: if signedDistance is true, the dot product between the point and the triangle normal
 			
 			\return the distance between the point and the triangle
 		**/
 		static ScalarType computePoint2TriangleDistance(const CCVector3* P,
 														const GenericTriangle* theTriangle,
-														bool signedDistances,
-														CCVector3* nearestP = nullptr);
+														bool signedDistance,
+														CCVector3* nearestP = nullptr,
+														bool* nearestPInside = nullptr,
+														double* dotProd = nullptr);
 
 		//! Computes the (signed) distance between a point and a plane
 		/** \param P				a 3D point
