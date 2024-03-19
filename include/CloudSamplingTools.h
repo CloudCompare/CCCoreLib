@@ -143,6 +143,24 @@ namespace CCCoreLib
 														DgmOctree* octree = nullptr,
 														GenericProgressCallback* progressCb = nullptr);
 
+		//! Resamples a point cloud (process based on inter point distance)
+		/** The cloud is resampled so that there is no point nearer than a given distance to other points
+			It works by picking a reference point, removing all points which are to close to this point, and repeating these two steps until the result is reached
+			\param cloud the point cloud to resample
+			\param minDistance the distance under which a point in the resulting cloud cannot have any neighbour
+			\param modParams parameters of the subsampling behavior modulation with a scalar field (optional)
+			\param octree associated octree if available
+			\param markers per-point marker for filtered-in points (required to be size of cloud)
+			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\return a reference cloud corresponding to the resampling 'selection'
+		**/
+		static size_t resampleCloudSpatially(	GenericIndexedCloudPersist* cloud,
+												PointCoordinateType minDistance,
+												const SFModulationParams& modParams,
+												char* markers,
+												DgmOctree* octree = nullptr,
+												GenericProgressCallback* progressCb = nullptr);
+
 		//! Statistical Outliers Removal (SOR) filter
 		/** This filter removes points based on their mean distance to their distance (by comparing it to the average distance of all points to their neighbors).
 			It is equivalent to PCL StatisticalOutlierRemoval filter (see http://pointclouds.org/documentation/tutorials/statistical_outlier.php)
