@@ -24,7 +24,6 @@ namespace CCCoreLib
 	class GenericIndexedCloudPersist;
 	class GenericProgressCallback;
 	class NormalizedProgress;
-	struct MultiThreadingWrapper;
 
 	//! The octree structure used throughout the library
 	/** Implements the GenericOctree interface.
@@ -361,7 +360,7 @@ namespace CCCoreLib
 		explicit DgmOctree(GenericIndexedCloudPersist* cloud);
 
 		//! DgmOctree destructor
-		~DgmOctree() override;
+		~DgmOctree() override = default;
 
 		//! Clears the octree
 		virtual void clear();
@@ -1215,8 +1214,39 @@ namespace CCCoreLib
 		//! Std. dev. of cell population per level of subdivision
 		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL + 1];
 
+		//! Octree cell description helper struct
+		struct octreeCellDesc
+		{
+			DgmOctree::CellCode truncatedCode;
+			unsigned i1, i2;
+			unsigned char level;
+		};
+
+		//! Structure containing objects needed to run octree operations in parallel
+		struct MultiThreadingWrapper
+		{
+			octreeCellFunc cellFunc = nullptr;
+			bool cellFuncSuccess = true;
+			DgmOctree* octree = nullptr;
+			GenericProgressCallback* progressCb = nullptr;
+			NormalizedProgress* normProgressCb = nullptr;
+			void** userParams = nullptr;
+
+			void reset()
+			{
+				cellFunc = nullptr;
+				cellFuncSuccess = true;
+				octree = nullptr;
+				normProgressCb = nullptr;
+				progressCb = nullptr;
+				userParams = nullptr;
+			}
+
+			void launchOctreeCellFunc(const octreeCellDesc& desc);
+		};
+
 		//! Multi-threading wrapper structure
-		MultiThreadingWrapper* m_MT_wrapper;
+		MultiThreadingWrapper m_MT_wrapper;
 
 		//! Whether the octree build is in progress
 		std::atomic<bool> m_buildInProgress;

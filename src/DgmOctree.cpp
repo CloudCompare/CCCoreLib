@@ -14,7 +14,6 @@
 //system
 #include <cstdio>
 #include <utility>
-#include <memory>
 
 //DGM: tests in progress
 //#define COMPUTE_NN_SEARCH_STATISTICS
@@ -111,93 +110,6 @@ namespace CCCoreLib
 		//DgmOctree::CellCode masks[DgmOctree::MAX_OCTREE_LEVEL + 1];
 	};
 	static MonoDimensionalCellCodes PRE_COMPUTED_POS_CODES;
-
-#ifdef ENABLE_MT_OCTREE
-
-	//! Octree cell description helper struct
-	struct octreeCellDesc
-	{
-		DgmOctree::CellCode truncatedCode;
-		unsigned i1, i2;
-		unsigned char level;
-	};
-
-	//! Structure containing objects needed to run octree operations in parallel
-	struct MultiThreadingWrapper
-	{
-		DgmOctree::octreeCellFunc cellFunc = nullptr;
-		bool cellFuncSuccess = true;
-		DgmOctree* octree = nullptr;
-		GenericProgressCallback* progressCb = nullptr;
-		std::unique_ptr<NormalizedProgress> normProgressCb{ nullptr };
-		void** userParams = nullptr;
-
-		void reset()
-		{
-			cellFunc = nullptr;
-			cellFuncSuccess = true;
-			octree = nullptr;
-			normProgressCb.reset();
-			progressCb = nullptr;
-			userParams = nullptr;
-		}
-
-		void launchOctreeCellFunc(const octreeCellDesc& desc)
-		{
-			//skip cell if process is aborted/has failed
-			if (!cellFuncSuccess)
-			{
-				return;
-			}
-
-			if (!octree)
-			{
-				// structure is invalid
-				assert(false);
-				return;
-			}
-
-			const DgmOctree::cellsContainer& pointsAndCodes = octree->pointsAndTheirCellCodes();
-
-			//cell descriptor
-			DgmOctree::octreeCell cell(octree);
-			cell.level = desc.level;
-			cell.index = desc.i1;
-			cell.truncatedCode = desc.truncatedCode;
-			if (cell.points->reserve(desc.i2 - desc.i1 + 1))
-			{
-				for (unsigned i = desc.i1; i <= desc.i2; ++i)
-				{
-					cell.points->addPointIndex(pointsAndCodes[i].theIndex);
-				}
-
-				cellFuncSuccess &= (*cellFunc)(cell, userParams, normProgressCb.get());
-
-				if (normProgressCb)
-				{
-					QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
-				}
-			}
-			else
-			{
-				cellFuncSuccess = false;
-			}
-
-			if (!cellFuncSuccess)
-			{
-				if (progressCb)
-				{
-					if (progressCb->textCanBeEdited())
-					{
-						// display a message to make clear that the cancel order has been acknowledged!
-						progressCb->setInfo("Cancelling...");
-					}
-				}
-			}
-		}
-	};
-
-#endif
 }
 
 using namespace CCCoreLib;
@@ -269,27 +181,68 @@ bool DgmOctree::MultiThreadSupport()
 /*		  EVERYTHING ELSE!		  */
 /**********************************/
 
+void DgmOctree::MultiThreadingWrapper::launchOctreeCellFunc(const octreeCellDesc& desc)
+{
+	//skip cell if process is aborted/has failed
+	if (!cellFuncSuccess)
+	{
+		return;
+	}
+
+	if (!octree)
+	{
+		// structure is invalid
+		assert(false);
+		return;
+	}
+
+	const DgmOctree::cellsContainer& pointsAndCodes = octree->pointsAndTheirCellCodes();
+
+	//cell descriptor
+	DgmOctree::octreeCell cell(octree);
+	cell.level = desc.level;
+	cell.index = desc.i1;
+	cell.truncatedCode = desc.truncatedCode;
+	if (cell.points->reserve(desc.i2 - desc.i1 + 1))
+	{
+		for (unsigned i = desc.i1; i <= desc.i2; ++i)
+		{
+			cell.points->addPointIndex(pointsAndCodes[i].theIndex);
+		}
+
+		cellFuncSuccess &= (*cellFunc)(cell, userParams, normProgressCb);
+
+		if (normProgressCb)
+		{
+			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+		}
+	}
+	else
+	{
+		cellFuncSuccess = false;
+	}
+
+	if (!cellFuncSuccess)
+	{
+		if (progressCb)
+		{
+			if (progressCb->textCanBeEdited())
+			{
+				// display a message to make clear that the cancel order has been acknowledged!
+				progressCb->setInfo("Cancelling...");
+			}
+		}
+	}
+}
+
 DgmOctree::DgmOctree(GenericIndexedCloudPersist* cloud)
 	: m_theAssociatedCloud(cloud)
 	, m_numberOfProjectedPoints(0)
 	, m_nearestPow2(0)
-	, m_MT_wrapper(nullptr)
 {
 	clear();
 
-#ifdef ENABLE_MT_OCTREE
-	m_MT_wrapper = new MultiThreadingWrapper;
-#endif
-
 	assert(m_theAssociatedCloud);
-}
-
-DgmOctree::~DgmOctree()
-{
-#ifdef ENABLE_MT_OCTREE
-	delete m_MT_wrapper;
-	m_MT_wrapper = nullptr;
-#endif
 }
 
 void DgmOctree::clear()
@@ -3244,16 +3197,11 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		cells.push_back(cellDesc);
 
 		//prepare the static wrapper
-		if (!m_MT_wrapper)
-		{
-			assert(false);
-			return 0;
-		}
-		m_MT_wrapper->reset();
-		m_MT_wrapper->cellFunc = func;
-		m_MT_wrapper->octree = this;
-		m_MT_wrapper->progressCb = progressCb;
-		m_MT_wrapper->userParams = additionalParameters;
+		m_MT_wrapper.reset();
+		m_MT_wrapper.cellFunc = func;
+		m_MT_wrapper.octree = this;
+		m_MT_wrapper.progressCb = progressCb;
+		m_MT_wrapper.userParams = additionalParameters;
 
 		//progress notification
 		if (progressCb)
@@ -3279,7 +3227,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			}
 
 			progressCb->update(0);
-			m_MT_wrapper->normProgressCb.reset(new NormalizedProgress(progressCb, m_theAssociatedCloud->size()));
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, m_theAssociatedCloud->size());
 			progressCb->start();
 #ifndef __APPLE__
 			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
@@ -3295,7 +3243,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper->launchOctreeCellFunc(desc); });
+		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); });
 #elif defined(CC_CORE_LIB_USES_TBB)
 		tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
 		tbb::parallel_for(tbb::blocked_range<int>(0, cells.size()),
@@ -3303,7 +3251,7 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			{
 				for (auto i = r.begin(); i < r.end(); ++i)
 				{
-					m_MT_wrapper->launchOctreeCellFunc(cells[i]);
+					m_MT_wrapper.launchOctreeCellFunc(cells[i]);
 				}
 			});
 #endif
@@ -3328,12 +3276,17 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		}
 
 		//if something went wrong, we clear everything and return 0!
-		if (!m_MT_wrapper->cellFuncSuccess)
+		if (!m_MT_wrapper.cellFuncSuccess)
 		{
 			cells.clear();
 		}
 
-		m_MT_wrapper->reset();
+		if (m_MT_wrapper.normProgressCb)
+		{
+			delete m_MT_wrapper.normProgressCb;
+			m_MT_wrapper.normProgressCb = nullptr;
+		}
+		m_MT_wrapper.reset();
 
 		return static_cast<unsigned>(cells.size());
 	}
@@ -3847,16 +3800,11 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		}
 
 		//prepare the static wrapper
-		if (!m_MT_wrapper)
-		{
-			assert(false);
-			return 0;
-		}
-		m_MT_wrapper->reset();
-		m_MT_wrapper->cellFunc = func;
-		m_MT_wrapper->octree = this;
-		m_MT_wrapper->progressCb = progressCb;
-		m_MT_wrapper->userParams = additionalParameters;
+		m_MT_wrapper.reset();
+		m_MT_wrapper.cellFunc = func;
+		m_MT_wrapper.octree = this;
+		m_MT_wrapper.progressCb = progressCb;
+		m_MT_wrapper.userParams = additionalParameters;
 
 		//progress notification
 		if (progressCb)
@@ -3885,7 +3833,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 				progressCb->setInfo(buffer);
 			}
 			progressCb->update(0);
-			m_MT_wrapper->normProgressCb.reset(new NormalizedProgress(progressCb, static_cast<unsigned>(cells.size())));
+			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, static_cast<unsigned>(cells.size()));
 			progressCb->start();
 		}
 
@@ -3899,7 +3847,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 #ifdef CC_CORE_LIB_USES_QT_CONCURRENT
 		// QtConcurrent takes precedence when both Qt and TBB are available
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
-		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper->launchOctreeCellFunc(desc); } );
+		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
 #elif defined(CC_CORE_LIB_USES_TBB)
 		// Otherwise we use TBB if we can
 		tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
@@ -3908,7 +3856,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			{
 				for (auto i = r.begin(); i < r.end(); ++i)
 				{
-					m_MT_wrapper->launchOctreeCellFunc(cells[i]);
+					m_MT_wrapper.launchOctreeCellFunc(cells[i]);
 				}
 			});
 #endif
@@ -3934,12 +3882,17 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		}
 
 		//if something went wrong, we clear everything and return 0!
-		if (!m_MT_wrapper->cellFuncSuccess)
+		if (!m_MT_wrapper.cellFuncSuccess)
 		{
 			cells.resize(0);
 		}
 
-		m_MT_wrapper->reset();
+		if (m_MT_wrapper.normProgressCb)
+		{
+			delete m_MT_wrapper.normProgressCb;
+			m_MT_wrapper.normProgressCb = nullptr;
+		}
+		m_MT_wrapper.reset();
 
 		return static_cast<unsigned>(cells.size());
 	}
