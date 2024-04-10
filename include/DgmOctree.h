@@ -349,7 +349,7 @@ namespace CCCoreLib
 			- (NormalizedProgress*) optional (normalized) progress callback
 			- return success
 		**/
-		using octreeCellFunc = bool (*)(const octreeCell &, void **, NormalizedProgress *);
+		using octreeCellFunc = bool (*)(const octreeCell&, void**, NormalizedProgress*);
 
 		/******************************/
 		/**          METHODS         **/
@@ -1114,7 +1114,7 @@ namespace CCCoreLib
 
 		//! Computes statistics about cells for a given level of subdivision
 		/** This method requires some computation, therefore it shouldn't be
-		called too often.
+			called too often.
 			\param level the level of subdivision
 		**/
 		void computeCellsStatistics(unsigned char level);
@@ -1128,9 +1128,9 @@ namespace CCCoreLib
 			\param level the level of subdivision
 		**/
 		void getNeighborCellsAround(const Tuple3i& cellPos,
-			cellIndexesContainer &neighborCellsIndexes,
-			int neighbourhoodLength,
-			unsigned char level) const;
+									cellIndexesContainer &neighborCellsIndexes,
+									int neighbourhoodLength,
+									unsigned char level) const;
 
 		//! Gets point in the neighbourhing cells of a specific cell
 		/** \warning May throw a std::bad_alloc exception if memory is insufficient.
@@ -1138,9 +1138,9 @@ namespace CCCoreLib
 			\param neighbourhoodLength the new distance (in terms of cells) at which to look for neighbour cells
 			\param getOnlyPointsWithValidScalar whether to ignore points having an invalid associated scalar value
 		**/
-		void getPointsInNeighbourCellsAround(NearestNeighboursSearchStruct &nNSS,
-			int neighbourhoodLength,
-			bool getOnlyPointsWithValidScalar = false) const;
+		void getPointsInNeighbourCellsAround(	NearestNeighboursSearchStruct &nNSS,
+												int neighbourhoodLength,
+												bool getOnlyPointsWithValidScalar = false) const;
 
 		//! Returns the index of a given cell represented by its code
 		/** Same algorithm as the other "getCellIndex" method, but in an optimized form.
@@ -1215,7 +1215,7 @@ namespace CCCoreLib
 		//! Std. dev. of cell population per level of subdivision
 		double m_stdDevCellPopulation[MAX_OCTREE_LEVEL + 1];
 
-		//! Multithreading wrapper
+		//! Multi-threading wrapper structure
 		MultiThreadingWrapper* m_MT_wrapper;
 
 		//! Whether the octree build is in progress
