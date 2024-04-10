@@ -278,9 +278,8 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 		progressCb->update(0);
 	}
 
-	void* additionalParameters[2] = {	reinterpret_cast<void*>(&sigma),
-										reinterpret_cast<void*>(&sigmaSF)
-									};
+	void* additionalParameters[2] {	reinterpret_cast<void*>(&sigma),
+									reinterpret_cast<void*>(&sigmaSF) };
 
 	bool success = true;
 
@@ -298,10 +297,9 @@ bool ScalarFieldTools::applyScalarFieldGaussianFilter(PointCoordinateType sigma,
 	return success;
 }
 
-//FONCTION "CELLULAIRE" DE CALCUL DU FILTRE GAUSSIEN (PAR PROJECTION SUR LE PLAN AUX MOINDRES CARRES)
-//DETAIL DES PARAMETRES ADDITIONNELS (2) :
-// [0] -> (PointCoordinateType*) sigma : gauss function sigma
-// [1] -> (PointCoordinateType*) sigmaSF : used when in "bilateral modality" - if -1 pure gaussian filtering is performed
+// Additional parameters:
+// [0] -> (PointCoordinateType*) sigma: Gaussian filter sigma
+// [1] -> (PointCoordinateType*) sigmaSF: Bilateral filter sigma (if > 0)
 bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& cell,
 													void** additionalParameters,
 													NormalizedProgress* nProgress/*=nullptr*/)
@@ -312,7 +310,7 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 
 	//we use only the squared value of sigma
 	PointCoordinateType sigma2 = 2*sigma*sigma;
-	PointCoordinateType radius = 3*sigma; //2.5 sigma > 99%
+	PointCoordinateType radius = 3*sigma; //3*sigma > 99.7%
 
 	//we use only the squared value of sigmaSF
 	PointCoordinateType sigmaSF2 = 2*sigmaSF*sigmaSF;
@@ -348,73 +346,59 @@ bool ScalarFieldTools::computeCellGaussianFilter(	const DgmOctree::octreeCell& c
 
 	const GenericIndexedCloudPersist* cloud = cell.points->getAssociatedCloud();
 
-	//Pure Gaussian Filtering
-	if (sigmaSF == -1)
+	bool bilateralFilter = (sigmaSF > 0);
+
+	for (unsigned i = 0; i < n; ++i) //for each point in cell
 	{
-		for (unsigned i = 0; i < n; ++i) //for each point in cell
+		ScalarType queryValue = 0;
+		if (bilateralFilter)
 		{
-			//we get the points inside a spherical neighbourhood (radius: '3*sigma')
-			cell.points->getPoint(i,nNSS.queryPoint);
-			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (k)!
-			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS,radius,false);
+			queryValue = cell.points->getPointScalarValue(i); //scalar of the query point
 
-			//each point adds a contribution weighted by its distance to the sphere center
-			it = nNSS.pointsInNeighbourhood.begin();
-			double meanValue = 0.0;
-			double wSum = 0.0;
-			for (unsigned j = 0; j < k; ++j, ++it)
+			// check that the query SF value is valid, otherwise no need to compute anything
+			if (!ScalarField::ValidValue(queryValue))
 			{
-				double weight = exp(-(it->squareDistd) / sigma2); //PDF: -exp(-(x-mu)^2/(2*sigma^2))
-				ScalarType val = cloud->getPointScalarValue(it->pointIndex);
-				//scalar value must be valid
-				if (ScalarField::ValidValue(val))
-				{
-					meanValue += static_cast<double>(val) * weight;
-					wSum += weight;
-				}
+				cell.points->setPointScalarValue(i, NAN_VALUE);
+				continue;
 			}
-
-			ScalarType newValue = (wSum > 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
-
-			cell.points->setPointScalarValue(i, newValue);
-
-			if (nProgress && !nProgress->oneStep())
-				return false;
 		}
-	}
-	//Bilateral Filtering using the second sigma parameters on values (when given)
-	else
-	{
-		for (unsigned i = 0; i < n; ++i) //for each point in cell
+
+		//we get the points inside a spherical neighbourhood (radius: '3*sigma')
+		cell.points->getPoint(i, nNSS.queryPoint);
+		//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (k)!
+		unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, radius, false);
+
+		//each point adds a contribution weighted by its distance to the sphere center
+		it = nNSS.pointsInNeighbourhood.begin();
+		double meanValue = 0.0;
+		double wSum = 0.0;
+		for (unsigned j = 0; j < k; ++j, ++it)
 		{
-			ScalarType queryValue = cell.points->getPointScalarValue(i); //scalar of the query point
+			double weight = exp(-(it->squareDistd) / sigma2); //PDF: -exp(-(x-mu)^2/(2*sigma^2))
 
-			//we get the points inside a spherical neighbourhood (radius: '3*sigma')
-			cell.points->getPoint(i, nNSS.queryPoint);
-			//warning: there may be more points at the end of nNSS.pointsInNeighbourhood than the actual nearest neighbors (k)!
-			unsigned k = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, radius, false);
+			ScalarType val = cloud->getPointScalarValue(it->pointIndex);
 
-			//each point adds a contribution weighted by its distance to the sphere center
-			it = nNSS.pointsInNeighbourhood.begin();
-			double meanValue = 0.0;
-			double wSum = 0.0;
-			for (unsigned j = 0; j < k; ++j, ++it)
+			//scalar value must be valid
+			if (!ScalarField::ValidValue(val))
 			{
-				ScalarType val = cloud->getPointScalarValue(it->pointIndex);
-				ScalarType dSF = queryValue - val;
-				double weight = exp(-(it->squareDistd) / sigma2) * exp(-(dSF*dSF) / sigmaSF2);
-				//scalar value must be valid
-				if (ScalarField::ValidValue(val))
-				{
-					meanValue += static_cast<double>(val) * weight;
-					wSum += weight;
-				}
+				continue;
 			}
 
-			cell.points->setPointScalarValue(i, wSum > 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
+			if (bilateralFilter)
+			{
+				ScalarType dSF = queryValue - val;
+				weight *= exp(-(dSF*dSF) / sigmaSF2);
+			}
 
-			if (nProgress && !nProgress->oneStep())
-				return false;
+			meanValue += val * weight;
+			wSum += weight;
+		}
+
+		cell.points->setPointScalarValue(i, wSum != 0.0 ? static_cast<ScalarType>(meanValue / wSum) : NAN_VALUE);
+
+		if (nProgress && !nProgress->oneStep())
+		{
+			return false;
 		}
 	}
 
