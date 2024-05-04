@@ -94,6 +94,7 @@ namespace CCCoreLib
 		//! Scalar field name
 		char m_name[256];
 
+	private:
 		//! Minimum value
 		ScalarType m_minVal;
 		//! Maximum value
