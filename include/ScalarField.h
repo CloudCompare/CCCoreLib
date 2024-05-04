@@ -78,7 +78,7 @@ namespace CCCoreLib
 		inline ScalarType& getValue(std::size_t index) { return at(index); }
 		inline const ScalarType& getValue(std::size_t index) const { return at(index); }
 		inline void setValue(std::size_t index, ScalarType value) { at(index) = value; }
-		inline void addElement(ScalarType value) { emplace_back(value); }
+		inline void addElement(ScalarType value) { push_back(value); }
 		inline unsigned currentSize() const { return static_cast<unsigned>(size()); }
 		inline void swap(std::size_t i1, std::size_t i2) { std::swap(at(i1), at(i2)); }
 
