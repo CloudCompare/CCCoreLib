@@ -55,9 +55,9 @@ namespace CCCoreLib
 			PointCoordinateType norm2 = res2.norm(); // should equal 0
 			PointCoordinateType norm3 = res3.norm(); // should equal 0
 
-			if (	abs(norm1) > 1.0e-5
-				||	abs(norm2) > 1.0e-5
-				||	abs(norm3) > 1.0e-5 )
+			if (	std::abs(norm1) > 1.0e-5
+				||	std::abs(norm2) > 1.0e-5
+				||	std::abs(norm3) > 1.0e-5 )
 			{
 				return false;
 			}
