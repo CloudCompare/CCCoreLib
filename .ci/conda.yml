@@ -4,5 +4,5 @@ channels:
 dependencies:
   - cgal=5.*
   - ninja
-  - qt=5.12.*
-  - tbb-devel=2020.*
+  - qt=5.15.*
+  - tbb-devel=2021.*
