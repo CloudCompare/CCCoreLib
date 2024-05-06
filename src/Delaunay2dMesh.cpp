@@ -69,7 +69,9 @@ bool Delaunay2dMesh::buildMesh(	const std::vector<CCVector2>& points2D,
 	//We define a vertex_base with info. The "info" (std::size_t) allow us to keep track of the original point index.
 	using Vb = CGAL::Triangulation_vertex_base_with_info_2<std::size_t, K>;
 	using Fb = CGAL::Constrained_triangulation_face_base_2<K>;
-	using Itag = CGAL::No_intersection_tag; //This tag could ben changed if we decide to handle intersection
+	// This tag could be changed if we decide to handle more complex intersections
+	// for now it allows to handle basic ones without adding steiner points
+	using Itag = CGAL::No_constraint_intersection_requiring_constructions_tag;
 	using Tds = CGAL::Triangulation_data_structure_2<Vb, Fb>;
 	using CDT = CGAL::Constrained_Delaunay_triangulation_2<K, Tds, Itag>;
 	using cgalPoint = CDT::Point;
