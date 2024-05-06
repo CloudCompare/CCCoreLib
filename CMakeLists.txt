@@ -195,7 +195,7 @@ endif()
 
 # CGAL (optional)
 if ( CCCORELIB_USE_CGAL )
-	find_package( CGAL REQUIRED )
+	find_package( CGAL 5.1 REQUIRED )
 
 	if( WIN32 )
 		# Need to force the visibility of these variables so that we can use them later
