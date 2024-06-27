@@ -3077,9 +3077,9 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 		}
 
 		//search the max element of the tail
-		std::size_t maxPos = pos-1;
-		if (maxPos != 0)
+		if (pos > 1)
 		{
+			std::size_t maxPos = pos - 1;
 			std::size_t maxIndex = maxPos;
 			for (std::size_t j = 0; j < maxPos; ++j)
 				if (tail[j] < tail[maxIndex])
@@ -3261,11 +3261,11 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 																DgmOctree* compOctree/*=nullptr*/,
 																DgmOctree* refOctree/*=nullptr*/)
 {
-	if (!comparedCloud)
+	if (nullptr == comparedCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	if (!referenceCloud)
+	if (nullptr == referenceCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_REFERENCECLOUD;
 	}
@@ -3278,12 +3278,20 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_OCTREE_LEVEL_GT_MAX_OCTREE_LEVEL;
 	}
 	//compute octrees with the same bounding-box
-	DgmOctree *octreeA = compOctree;
-	DgmOctree *octreeB = refOctree;
+	DgmOctree* octreeA = compOctree;
+	DgmOctree* octreeB = refOctree;
 	if (synchronizeOctrees(comparedCloud, referenceCloud, octreeA, octreeB, maxSearchDist, progressCb) != SYNCHRONIZED)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_SYNCHRONIZE_OCTREES_FAILURE;
 	}
+	if (nullptr == octreeA || nullptr == octreeB)
+	{
+		assert(false);
+		delete octreeA;
+		delete octreeB;
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_INTERNAL;
+	}
+
 	const int* minIndexesA = octreeA->getMinFillIndexes(octreeLevel);
 	const int* maxIndexesA = octreeA->getMaxFillIndexes(octreeLevel);
 	const int* minIndexesB = octreeB->getMinFillIndexes(octreeLevel);
@@ -3355,10 +3363,14 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 		if (!octreeA->getCellIndexes(octreeLevel, theIndexes))
 		{
 			//not enough memory
-			if (!compOctree)
+			if (nullptr == compOctree)
+			{
 				delete octreeA;
-			if (!refOctree)
+			}
+			if (nullptr == refOctree)
+			{
 				delete octreeB;
+			}
 			return DISTANCE_COMPUTATION_RESULTS::ERROR_GET_CELL_INDEXES_FAILURE;
 		}
 
@@ -3385,6 +3397,14 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 			{
 				if (!octreeA->getPointsInCellByCellIndex(&Yk, theIndex, octreeLevel))
 				{
+					if (nullptr == compOctree)
+					{
+						delete octreeA;
+					}
+					if (nullptr == refOctree)
+					{
+						delete octreeB;
+					}
 					return DISTANCE_COMPUTATION_RESULTS::ERROR_EXECUTE_GET_POINTS_IN_CELL_BY_INDEX_FAILURE;
 				}
 				for (unsigned j = 0; j < Yk.size(); ++j)
@@ -3401,12 +3421,12 @@ int DistanceComputationTools::computeApproxCloud2CloudDistance( GenericIndexedCl
 		result = DISTANCE_COMPUTATION_RESULTS::ERROR_INIT_DISTANCE_TRANSFORM_GRID_FAILURE;
 	}
 
-	if (!compOctree)
+	if (nullptr == compOctree)
 	{
 		delete octreeA;
 		octreeA = nullptr;
 	}
-	if (!refOctree)
+	if (nullptr == refOctree)
 	{
 		delete octreeB;
 		octreeB = nullptr;

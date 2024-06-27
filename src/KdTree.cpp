@@ -199,7 +199,9 @@ bool KDTree::findNearestNeighbour(	const PointCoordinateType* queryPoint,
 									ScalarType maxDist)
 {
 	if (m_root == nullptr)
+	{
 		return false;
+	}
 
 	maxDist *= maxDist;
 
@@ -211,6 +213,12 @@ bool KDTree::findNearestNeighbour(	const PointCoordinateType* queryPoint,
 			cellPtr = cellPtr->leSon;
 		else
 			cellPtr = cellPtr->gSon;
+
+		if (nullptr == cellPtr)
+		{
+			//internal inconsitency detected
+			return false;
+		}
 	}
 
 	//Once we've found the cell containing the query point, the nearest neighbour has great chances to lie in this cell
@@ -259,7 +267,9 @@ bool KDTree::findNearestNeighbourWithMaxDist(	const PointCoordinateType* queryPo
 												ScalarType maxDist)
 {
 	if (m_root == nullptr)
+	{
 		return false;
+	}
 
 	maxDist *= maxDist;
 
@@ -271,6 +281,12 @@ bool KDTree::findNearestNeighbourWithMaxDist(	const PointCoordinateType* queryPo
 			cellPtr = cellPtr->leSon;
 		else
 			cellPtr = cellPtr->gSon;
+
+		if (nullptr == cellPtr)
+		{
+			//internal inconsitency detected
+			return false;
+		}
 	}
 
 	//Once we've found the cell containing the query point, the nearest neighbour has great chances to lie in this cell

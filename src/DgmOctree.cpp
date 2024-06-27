@@ -3777,7 +3777,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			cellDesc.i2 = cellDesc.i1 + (elements - 1);
 			cells.push_back(cellDesc);
 			popSum += static_cast<unsigned long long>(elements);
-			popSum2 += static_cast<unsigned long long>(elements*elements);
+			popSum2 += static_cast<unsigned long long>(elements)*static_cast<unsigned long long>(elements);
 			if (maxPop < elements)
 			{
 				maxPop = elements;

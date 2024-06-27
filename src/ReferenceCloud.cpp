@@ -29,7 +29,7 @@ void ReferenceCloud::clear(bool releaseMemory/*=false*/)
 	else
 		m_theIndexes.clear();
 
-	invalidateBoundingBox();
+	invalidateBoundingBoxInternal(false);
 	m_mutex.unlock();
 }
 
@@ -103,7 +103,7 @@ bool ReferenceCloud::addPointIndex(unsigned globalIndex)
 		m_mutex.unlock();
 		return false;
 	}
-	invalidateBoundingBox();
+	invalidateBoundingBoxInternal(false);
 
 	m_mutex.unlock();
 	return true;
@@ -139,7 +139,7 @@ bool ReferenceCloud::addPointIndex(unsigned firstIndex, unsigned lastIndex)
 		m_theIndexes[pos++] = firstIndex;
 	}
 
-	invalidateBoundingBox();
+	invalidateBoundingBoxInternal(false);
 	m_mutex.unlock();
 
 	return true;
@@ -223,8 +223,23 @@ bool ReferenceCloud::add(const ReferenceCloud& cloud)
 		m_theIndexes[currentSize + i] = cloud.m_theIndexes[i];
 	}
 
-	invalidateBoundingBox();
+	invalidateBoundingBoxInternal(false);
 
 	m_mutex.unlock();
 	return true;
+}
+
+void ReferenceCloud::invalidateBoundingBoxInternal(bool threadSafe)
+{
+	if (threadSafe)
+	{
+		m_mutex.lock();
+	}
+
+	m_bbox.setValidity(false);
+
+	if (threadSafe)
+	{
+		m_mutex.unlock();
+	}
 }

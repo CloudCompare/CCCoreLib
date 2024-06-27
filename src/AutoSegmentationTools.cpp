@@ -21,14 +21,14 @@ int AutoSegmentationTools::labelConnectedComponents(GenericIndexedCloudPersist* 
 													GenericProgressCallback* progressCb/*=nullptr*/,
 													DgmOctree* inputOctree/*=nullptr*/)
 {
-	if (!theCloud)
+	if (nullptr == theCloud)
 	{
 		return -1;
 	}
 
 	//compute octree if none was provided
 	DgmOctree* theOctree = inputOctree;
-	if (!theOctree)
+	if (nullptr == theOctree)
 	{
 		theOctree = new DgmOctree(theCloud);
 		if (theOctree->build(progressCb) < 1)
@@ -48,9 +48,10 @@ int AutoSegmentationTools::labelConnectedComponents(GenericIndexedCloudPersist* 
 	int result = theOctree->extractCCs(level, sixConnexity, progressCb);
 
 	//remove octree if it was not provided as input
-	if (theOctree && !inputOctree)
+	if (nullptr == inputOctree)
 	{
 		delete theOctree;
+		theOctree = nullptr;
 	}
 
 	return result;
@@ -153,8 +154,10 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 	//on calcule le gradient (va ecraser le champ des distances)
 	if (ScalarFieldTools::computeScalarFieldGradient(theCloud, radius, true, true, progressCb, theOctree) < 0)
 	{
-		if (!inputOctree)
+		if (nullptr == inputOctree)
+		{
 			delete theOctree;
+		}
 		return false;
 	}
 
@@ -176,7 +179,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		int result = fm->init(theCloud, theOctree, octreeLevel);
 		if (result < 0)
 		{
-			if (!inputOctree)
+			if (nullptr == inputOctree)
 			{
 				delete theOctree;
 			}
@@ -204,9 +207,12 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		ScalarType d = theCloud->getPointScalarValue(0);
 		if (!theDists->resizeSafe(numberOfPoints, true, d))
 		{
-			if (!inputOctree)
+			if (nullptr == inputOctree)
+			{
 				delete theOctree;
+			}
 			theDists->release();
+			delete fm;
 			return false;
 		}
 	}
@@ -317,13 +323,10 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 	theDists->release();
 	theDists = nullptr;
 
-	if (fm)
-	{
-		delete fm;
-		fm = nullptr;
-	}
+	delete fm;
+	fm = nullptr;
 
-	if (theOctree && !inputOctree)
+	if (nullptr == inputOctree)
 	{
 		delete theOctree;
 		theOctree = nullptr;
