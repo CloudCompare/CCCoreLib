@@ -137,11 +137,11 @@ SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 	if (!count)
 		return SquareMatrixd();
 
-	//we get centroid
+	//compute the centroid
 	const CCVector3* G = getGravityCenter();
 	assert(G);
 
-	//we build up covariance matrix
+	//build up the covariance matrix
 	double mXX = 0.0;
 	double mYY = 0.0;
 	double mZZ = 0.0;
@@ -161,7 +161,7 @@ SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 		mYZ += static_cast<double>(P.y)*P.z;
 	}
 
-	//symmetry
+	//fill some elments by symmetry
 	SquareMatrixd covMat(3);
 	covMat.clear();
 	covMat.m_values[0][0] = mXX / count;
