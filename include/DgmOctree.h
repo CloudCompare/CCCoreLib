@@ -987,6 +987,7 @@ namespace CCCoreLib
 				- '-1' = no cells (input)
 				- '-2' = not enough memory
 				- '-3' = no CC found
+				- '-4' = process cancelled by user
 		**/
 		int extractCCs(	const cellCodesContainer& cellCodes,
 						unsigned char level,
@@ -1006,6 +1007,7 @@ namespace CCCoreLib
 				- '-1' = no cells (input)
 				- '-2' = not enough memory
 				- '-3' = no CC found
+				- '-4' = process cancelled by user
 		**/
 		int extractCCs(	unsigned char level,
 						bool sixConnexity,

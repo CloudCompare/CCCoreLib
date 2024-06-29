@@ -1940,7 +1940,7 @@ bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud* modelCloud,
 	}
 	else
 	{
-		transforms = tarray;
+		transforms = std::move(tarray);
 	}
 
 	return true;

@@ -2572,7 +2572,9 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 {
 	std::size_t numberOfCells = cellCodes.size();
 	if (numberOfCells == 0) //no cells!
+	{
 		return -1;
+	}
 
 	//filled octree cells
 	std::vector<IndexAndCodeExt> ccCells;
@@ -2848,11 +2850,17 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 			}
 
 			if (counter == numberOfCells)
+			{
 				break;
+			}
 
 			std::swap(slice, oldSlice);
 
-			nprogress.oneStep();
+			if (!nprogress.oneStep())
+			{
+				//Cancelled by user
+				return -4;
+			}
 		}
 	}
 
