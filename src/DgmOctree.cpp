@@ -2944,7 +2944,7 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 		ReferenceCloud Y(m_theAssociatedCloud);
 		for (std::size_t i = 0; i < numberOfCells; i++)
 		{
-			assert(cellIndexToLabel[i] < static_cast<int>(numberOfCells)+2);
+			assert(cellIndexToLabel[i] < static_cast<int>(numberOfCells) + 2);
 
 			const int& label = equivalentLabels[cellIndexToLabel[i]];
 			assert(label > 0);
@@ -2957,7 +2957,11 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 				Y.forwardIterator();
 			}
 
-			nprogress.oneStep();
+			if (!nprogress.oneStep())
+			{
+				//Cancelled by user
+				return -4;
+			}
 		}
 
 		if (progressCb)
