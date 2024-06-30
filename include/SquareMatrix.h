@@ -127,13 +127,13 @@ namespace CCCoreLib
 		inline Scalar* row(unsigned index) { return m_values[index]; }
 
 		//! Sets a particular matrix value
-		void inline setValue(unsigned row, unsigned column, Scalar value)
+		inline void setValue(unsigned row, unsigned column, Scalar value)
 		{
 			m_values[row][column] = value;
 		}
 
 		//! Returns a specific matrix value
-		Scalar inline getValue(unsigned row, unsigned column) const
+		inline Scalar getValue(unsigned row, unsigned column) const
 		{
 			return m_values[row][column];
 		}
