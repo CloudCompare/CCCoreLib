@@ -57,12 +57,12 @@ namespace CCCoreLib
 			}
 		}
 
-		//! "From OpenGl" constructor (float version)
+		//! "From OpenGL" constructor (float version)
 		/** The matrix dimension is automatically set to 4.
-			It can be forced to 3 (size_3 = true). In this
-			case, only the rotation part will be 'imported'.
-			\param M16f a table of 16 floats (OpenGL float transformation matrix)
-			\param rotationOnly consider only the roation part (3x3 matrix)
+			It can be forced to 3 (rotationOnly = true). In this case,
+			only the rotation part (3x3 upper-left part) will be copied.
+			\param M16f			a table of 16 floats (column-wise 4x4 matrix)
+			\param rotationOnly	to copy only the roation part (3x3 upper-left part of the input matrix)
 		**/
 		SquareMatrixTpl(const float M16f[], bool rotationOnly = false)
 		{
@@ -78,10 +78,10 @@ namespace CCCoreLib
 
 		//! "From OpenGl" constructor (double version)
 		/** The matrix dimension is automatically set to 4.
-			It can be forced to 3 (size_3 = true). In this
-			case, only the rotation part will be 'imported'.
-			\param M16d a table of 16 floats (OpenGL double transformation matrix)
-			\param rotationOnly consider only the roation part (3x3 matrix)
+			It can be forced to 3 (rotationOnly = true). In this case,
+			only the rotation part (3x3 upper-left part) will be copied.
+			\param M16d			a table of 16 doubles (column-wise 4x4 matrix)
+			\param rotationOnly	to copy only the roation part (3x3 upper-left part of the input matrix)
 		**/
 		SquareMatrixTpl(const double M16d[], bool rotationOnly = false)
 		{
@@ -114,43 +114,42 @@ namespace CCCoreLib
 		**/
 		void invalidate()
 		{
-			delete [] m_underlyingData;
-			m_underlyingData = nullptr;
+			delete[] m_data;
+			m_data = nullptr;
 
-			delete [] m_values;
+			delete[] m_values;
 			m_values = nullptr;
 
 			m_matrixSize = 0;
-			matrixSquareSize = 0;
 		}
-
-		//! The matrix rows
-		/** public for easy/fast access
-		**/
-		Scalar** m_values = nullptr;
 
 		//! Returns pointer to matrix row
 		inline Scalar* row(unsigned index) { return m_values[index]; }
 
 		//! Sets a particular matrix value
-		void inline setValue(unsigned row, unsigned column, Scalar value)
+		inline void setValue(unsigned row, unsigned column, Scalar value)
 		{
 			m_values[row][column] = value;
 		}
 
-		//! Returns a particular matrix value
-		Scalar inline getValue(unsigned row, unsigned column) const
+		//! Returns a specific matrix value
+		inline Scalar getValue(unsigned row, unsigned column) const
 		{
 			return m_values[row][column];
 		}
 
 		//! Matrix copy operator
+		/** \warning Sets an invalid/zero matrix if out of memory
+		*/
 		SquareMatrixTpl& operator = (const SquareMatrixTpl& B)
 		{
 			if (m_matrixSize != B.size())
 			{
 				invalidate();
-				init(B.size());
+				if (false == init(B.size()))
+				{
+					return *this;
+				}
 			}
 
 			for (unsigned r = 0; r < m_matrixSize; r++)
@@ -533,10 +532,10 @@ namespace CCCoreLib
 		**/
 		void initFromQuaternion(const float q[])
 		{
-			double qd[4] = { static_cast<double>(q[0]),
-							 static_cast<double>(q[1]),
-							 static_cast<double>(q[2]),
-							 static_cast<double>(q[3]) };
+			double qd[4] {	static_cast<double>(q[0]),
+							static_cast<double>(q[1]),
+							static_cast<double>(q[2]),
+							static_cast<double>(q[3]) };
 
 			initFromQuaternion(qd);
 		}
@@ -544,13 +543,19 @@ namespace CCCoreLib
 		//! Creates a rotation matrix from a quaternion (double version)
 		/** Quaternion is composed of 4 values: an angle (cos(alpha/2))
 			and an axis (sin(alpha/2)*unit vector).
+			\warning the matrix size will be forced to 3x3
 			\param q normalized quaternion (w,x,y,z)
 		**/
 		void initFromQuaternion(const double q[])
 		{
-			if (m_matrixSize == 0)
-				if (!init(3))
-					return;
+			if (m_matrixSize != 3)
+			{
+				invalidate();
+			}
+			if (m_matrixSize == 0 && !init(3))
+			{
+				return;
+			}
 			assert(m_matrixSize == 3);
 
 			double q00 = q[0] * q[0];
@@ -567,12 +572,12 @@ namespace CCCoreLib
 			m_values[0][0] = static_cast<Scalar>(q00 + q11 - q22 - q33);
 			m_values[1][1] = static_cast<Scalar>(q00 - q11 + q22 - q33);
 			m_values[2][2] = static_cast<Scalar>(q00 - q11 - q22 + q33);
-			m_values[0][1] = static_cast<Scalar>(2.0*(q12 - q03));
-			m_values[1][0] = static_cast<Scalar>(2.0*(q12 + q03));
-			m_values[0][2] = static_cast<Scalar>(2.0*(q13 + q02));
-			m_values[2][0] = static_cast<Scalar>(2.0*(q13 - q02));
-			m_values[1][2] = static_cast<Scalar>(2.0*(q23 - q01));
-			m_values[2][1] = static_cast<Scalar>(2.0*(q23 + q01));
+			m_values[0][1] = static_cast<Scalar>(2.0 * (q12 - q03));
+			m_values[1][0] = static_cast<Scalar>(2.0 * (q12 + q03));
+			m_values[0][2] = static_cast<Scalar>(2.0 * (q13 + q02));
+			m_values[2][0] = static_cast<Scalar>(2.0 * (q13 - q02));
+			m_values[1][2] = static_cast<Scalar>(2.0 * (q23 - q01));
+			m_values[2][1] = static_cast<Scalar>(2.0 * (q23 + q01));
 		}
 
 		//! Converts rotation matrix to quaternion
@@ -756,10 +761,13 @@ namespace CCCoreLib
 			}
 
 			// Build the output U, S and V matrices
-			S.init(m_matrixSize);
+			if (	!S.init(m_matrixSize)
+				||	!U.init(m_matrixSize)
+				||	!V.init(m_matrixSize))
+			{
+				return false;
+			}
 			S.clear();
-			U.init(m_matrixSize);
-			V.init(m_matrixSize);
 			{
 				// for each eigen value
 				for (unsigned j = 0; j < m_matrixSize; j++)
@@ -790,26 +798,46 @@ namespace CCCoreLib
 		**/
 		bool init(unsigned size)
 		{
-			m_matrixSize = size;
-			matrixSquareSize = m_matrixSize*m_matrixSize;
-
-			if ( size == 0 )
+			if (m_matrixSize == size)
 			{
+				// matrix already initialized with the right size
+				return true;
+			}
+			else if (m_matrixSize != 0)
+			{
+				// matrix already initialized with the wrong size
+				invalidate();
+			}
+			assert(m_matrixSize == 0);
+
+			if (size == 0)
+			{
+				// nothing to do
 				return true;
 			}
 
-			m_values = new Scalar*[m_matrixSize]{};
-			m_underlyingData = new Scalar[matrixSquareSize]{};
-
-			if ( (m_values == nullptr) || (m_underlyingData == nullptr) )
+			m_values = new Scalar*[size];
+			if (nullptr == m_values)
 			{
+				// not enough memory
 				return false;
 			}
 
-			for (unsigned i = 0; i < m_matrixSize; i++)
+			m_data = new Scalar[size * size];
+			if (nullptr == m_data)
 			{
-				m_values[i] = m_underlyingData + (i * m_matrixSize);
+				// not enough memory
+				delete[] m_values;
+				m_values = nullptr;
+				return false;
 			}
+
+			for (unsigned i = 0; i < size; i++)
+			{
+				m_values[i] = m_data + (i * size);
+			}
+
+			m_matrixSize = size;
 
 			return true;
 		}
@@ -825,7 +853,7 @@ namespace CCCoreLib
 			Scalar** subMat = new Scalar*[matSize - 1];
 			if (subMat)
 			{
-				double subDet = 0;
+				double subDet = 0.0;
 				double sign = 1.0;
 
 				for (unsigned row = 0; row < matSize; row++)
@@ -1124,16 +1152,20 @@ namespace CCCoreLib
 			}
 		}
 
+	public: //members
+
+		//! The matrix rows
+		/** public for easy/fast access
+		**/
+		Scalar** m_values = nullptr;
+
 	private: //members
 
 		//! Matrix size
-		unsigned m_matrixSize;
-
-		//! Matrix square-size
-		unsigned matrixSquareSize;
+		unsigned m_matrixSize = 0;
 
 		//! Stores the actual data, indexed by m_values
-		Scalar	*m_underlyingData = nullptr;
+		Scalar* m_data = nullptr;
 	};
 
 	//! Default CC square matrix type (PointCoordinateType)

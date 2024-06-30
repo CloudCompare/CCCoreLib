@@ -16,18 +16,18 @@ DgmOctreeReferenceCloud::DgmOctreeReferenceCloud(DgmOctree::NeighboursSet* assoc
 
 void DgmOctreeReferenceCloud::computeBB()
 {
-	//empty cloud?!
 	unsigned count = size();
-	if (count)
+	if (count == 0)
 	{
-		m_bbMin = m_bbMax = CCVector3(0,0,0);
+		//empty cloud?!
+		m_bbMin = m_bbMax = CCVector3(0, 0, 0);
 		return;
 	}
 
 	//initialize BBox with first point
 	m_bbMin = m_bbMax = *m_set->at(0).point;
 
-	for (unsigned i=1; i<count; ++i)
+	for (unsigned i = 1; i < count; ++i)
 	{
 		const CCVector3& P = *m_set->at(i).point;
 		//X boundaries

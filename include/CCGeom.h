@@ -46,10 +46,14 @@ public:
 
 	//! Returns vector square norm
 	inline Type norm2() const { return (x*x) + (y*y); }
+	//! Returns vector square norm (forces double precision output)
+	inline double norm2d() const { return (static_cast<double>(x)*x) + (static_cast<double>(y)*y); }
 	//! Returns vector norm
-	inline Type norm() const { return std::sqrt(norm2()); }
+	inline Type norm() const { return static_cast<Type>(normd()); }
+	//! Returns vector norm (forces double precision output)
+	inline double normd() const { return std::sqrt(norm2d()); }
 	//! Sets vector norm to unity
-	inline void normalize() { Type n = norm2(); if (n > 0) *this /= std::sqrt(n); }
+	inline void normalize() { Type n = norm(); if (n >= std::numeric_limits<Type>::epsilon()) *this /= n; }
 
 	//! Dot product
 	inline Type dot(const Vector2Tpl& v) const { return (x*v.x) + (y*v.y); }
@@ -188,16 +192,16 @@ public:
 	inline Type dot(const Vector3Tpl& v) const { return x*v.x + y*v.y + z*v.z; }
 	//! Cross product
 	inline Vector3Tpl cross(const Vector3Tpl &v) const { return Vector3Tpl((y*v.z) - (z*v.y), (z*v.x) - (x*v.z), (x*v.y) - (y*v.x)); }
-	//! Returns vector square norm
-	inline Type norm2() const { return x*x + y*y + z*z; }
-	//! Returns vector square norm (forces double precision output)
-	inline double norm2d() const { return static_cast<double>(x)*x + static_cast<double>(y)*y + static_cast<double>(z)*z; }
+	//! Returns vector squared norm
+	inline Type norm2() const { return (x*x) + (y*y) + (z*z); }
+	//! Returns vector squared norm (forces double precision output)
+	inline double norm2d() const { return (static_cast<double>(x)*x) + (static_cast<double>(y)*y) + (static_cast<double>(z)*z); }
 	//! Returns vector norm
-	inline Type norm() const { return static_cast<Type>(std::sqrt(norm2d())); }
+	inline Type norm() const { return static_cast<Type>(normd()); }
 	//! Returns vector norm (forces double precision output)
 	inline double normd() const { return std::sqrt(norm2d()); }
 	//! Sets vector norm to unity
-	inline void normalize() { Type n = norm(); if (n > std::numeric_limits<Type>::epsilon()) *this /= n; }
+	inline void normalize() { Type n = norm(); if (n >= std::numeric_limits<Type>::epsilon()) *this /= n; }
 	//! Returns a normalized vector which is orthogonal to this one
 	inline Vector3Tpl orthogonal() const { Vector3Tpl ort; vorthogonal(u, ort.u); return ort; }
 

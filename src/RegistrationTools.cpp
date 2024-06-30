@@ -611,7 +611,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					if (inputModelMesh)
 					{
 						unsigned triIndex = static_cast<unsigned>(data.CPSetPlain->getPointScalarValue(i));
-						assert(triIndex >= 0 && triIndex < inputModelMesh->size());
+						assert(triIndex < inputModelMesh->size());
 						inputModelMesh->interpolateNormals(triIndex, *data.CPSetPlain->getPoint(i), Nm);
 					}
 					else
@@ -1940,7 +1940,7 @@ bool FPCSRegistrationTools::FilterCandidates(	GenericIndexedCloud* modelCloud,
 	}
 	else
 	{
-		transforms = tarray;
+		transforms = std::move(tarray);
 	}
 
 	return true;

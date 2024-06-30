@@ -2572,7 +2572,9 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 {
 	std::size_t numberOfCells = cellCodes.size();
 	if (numberOfCells == 0) //no cells!
+	{
 		return -1;
+	}
 
 	//filled octree cells
 	std::vector<IndexAndCodeExt> ccCells;
@@ -2848,11 +2850,17 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 			}
 
 			if (counter == numberOfCells)
+			{
 				break;
+			}
 
 			std::swap(slice, oldSlice);
 
-			nprogress.oneStep();
+			if (!nprogress.oneStep())
+			{
+				//Cancelled by user
+				return -4;
+			}
 		}
 	}
 
@@ -2936,7 +2944,7 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 		ReferenceCloud Y(m_theAssociatedCloud);
 		for (std::size_t i = 0; i < numberOfCells; i++)
 		{
-			assert(cellIndexToLabel[i] < static_cast<int>(numberOfCells)+2);
+			assert(cellIndexToLabel[i] < static_cast<int>(numberOfCells) + 2);
 
 			const int& label = equivalentLabels[cellIndexToLabel[i]];
 			assert(label > 0);
@@ -2949,7 +2957,11 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 				Y.forwardIterator();
 			}
 
-			nprogress.oneStep();
+			if (!nprogress.oneStep())
+			{
+				//Cancelled by user
+				return -4;
+			}
 		}
 
 		if (progressCb)
@@ -3777,7 +3789,7 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			cellDesc.i2 = cellDesc.i1 + (elements - 1);
 			cells.push_back(cellDesc);
 			popSum += static_cast<unsigned long long>(elements);
-			popSum2 += static_cast<unsigned long long>(elements*elements);
+			popSum2 += static_cast<unsigned long long>(elements)*static_cast<unsigned long long>(elements);
 			if (maxPop < elements)
 			{
 				maxPop = elements;

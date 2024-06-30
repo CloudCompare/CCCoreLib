@@ -83,7 +83,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 	}
 
 	DgmOctree* octree = inputOctree;
-	if (!octree)
+	if (nullptr == octree)
 	{
 		//try to build the octree if none was provided
 		octree = new DgmOctree(cloud);
@@ -101,7 +101,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 	unsigned char level = octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(kernelRadius);
 
 	//parameters
-	void* additionalParameters[] =
+	void* additionalParameters[]
 	{
 		static_cast<void*>(&c),
 		static_cast<void*>(&subOption),
@@ -122,7 +122,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 		result = ProcessFailed;
 	}
 
-	if (octree && !inputOctree)
+	if (nullptr == inputOctree)
 	{
 		delete octree;
 		octree = nullptr;
@@ -586,22 +586,19 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cl
 {
 	assert(cloud);
 	unsigned n = (cloud ? cloud->size() : 0);
-	if (n==0)
+	if (n == 0)
 		return SquareMatrixd();
-
-	SquareMatrixd covMat(3);
-	covMat.clear();
 
 	//gravity center
 	CCVector3 G = (_gravityCenter ?  CCVector3(_gravityCenter) : ComputeGravityCenter(cloud));
 
 	//cross sums (we use doubles to avoid overflow)
-	double mXX = 0;
-	double mYY = 0;
-	double mZZ = 0;
-	double mXY = 0;
-	double mXZ = 0;
-	double mYZ = 0;
+	double mXX = 0.0;
+	double mYY = 0.0;
+	double mZZ = 0.0;
+	double mXY = 0.0;
+	double mXZ = 0.0;
+	double mYZ = 0.0;
 
 	cloud->placeIteratorAtBeginning();
 	for (unsigned i = 0; i < n; ++i)
@@ -617,12 +614,14 @@ SquareMatrixd GeometricalAnalysisTools::ComputeCovarianceMatrix(GenericCloud* cl
 		mYZ += static_cast<double>(P.y*P.z);
 	}
 
-	covMat.m_values[0][0] = mXX / static_cast<double>(n);
-	covMat.m_values[0][0] = mYY / static_cast<double>(n);
-	covMat.m_values[0][0] = mZZ / static_cast<double>(n);
-	covMat.m_values[1][0] = covMat.m_values[0][1] = mXY / static_cast<double>(n);
-	covMat.m_values[2][0] = covMat.m_values[0][2] = mXZ / static_cast<double>(n);
-	covMat.m_values[2][1] = covMat.m_values[1][2] = mYZ / static_cast<double>(n);
+	SquareMatrixd covMat(3);
+	covMat.clear();
+	covMat.m_values[0][0] = mXX / n;
+	covMat.m_values[1][1] = mYY / n;
+	covMat.m_values[2][2] = mZZ / n;
+	covMat.m_values[1][0] = covMat.m_values[0][1] = mXY / n;
+	covMat.m_values[2][0] = covMat.m_values[0][2] = mXZ / n;
+	covMat.m_values[2][1] = covMat.m_values[1][2] = mYZ / n;
 
 	return covMat;
 }

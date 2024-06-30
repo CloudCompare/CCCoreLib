@@ -10,12 +10,16 @@
 using namespace CCCoreLib;
 
 ScalarField::ScalarField(const char* name/*=nullptr*/)
+	: m_minVal{ 0 }
+	, m_maxVal{ 0 }
 {
 	setName(name);
 }
 
 ScalarField::ScalarField(const ScalarField& sf)
 	: std::vector<ScalarType>(sf)
+	, m_minVal{ 0 }
+	, m_maxVal{ 0 }
 {
 	setName(sf.m_name);
 }

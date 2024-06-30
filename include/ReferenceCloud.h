@@ -160,7 +160,12 @@ namespace CCCoreLib
 		bool add(const ReferenceCloud& cloud);
 
 		//! Invalidates the bounding-box
-		inline void invalidateBoundingBox() { m_bbox.setValidity(false); }
+		inline void invalidateBoundingBox() { invalidateBoundingBoxInternal(true); }
+
+	protected:
+
+		//! Invalidates the bounding-box (internal version)
+		void invalidateBoundingBoxInternal(bool threadSafe);
 
 	protected:
 
