@@ -298,6 +298,8 @@ ReferenceCloud* CloudSamplingTools::resampleCloudSpatially(GenericIndexedCloudPe
 			{
 				//all SF values are NAN?!
 				modParamsEnabled = false;
+				unsigned char defaultLevel = octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(minDistance);
+				bestOctreeLevel.push_back(defaultLevel);
 			}
 			else
 			{
