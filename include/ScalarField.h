@@ -53,7 +53,7 @@ namespace CCCoreLib
 		CC_CORE_LIB_API virtual void computeMinAndMax();
 
 		//! Returns whether a scalar value is valid or not
-		static inline bool ValidValue(ScalarType value) { return value == value; } //'value == value' fails for NaN values
+		static inline bool ValidValue(ScalarType value) { return std::isfinite(value); }
 
 		//! Sets the value as 'invalid' (i.e. CCCoreLib::NAN_VALUE)
 		inline void flagValueAsInvalid(std::size_t index) { at(index) = NaN(); }
