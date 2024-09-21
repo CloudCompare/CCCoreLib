@@ -548,7 +548,7 @@ namespace CCCoreLib
 		**/
 		void initFromQuaternion(const double q[])
 		{
-			if (m_matrixSize != 3)
+			if (m_matrixSize != 0 && m_matrixSize != 3)
 			{
 				invalidate();
 			}
@@ -803,7 +803,8 @@ namespace CCCoreLib
 				// matrix already initialized with the right size
 				return true;
 			}
-			else if (m_matrixSize != 0)
+
+			if (m_matrixSize != 0)
 			{
 				// matrix already initialized with the wrong size
 				invalidate();
@@ -812,18 +813,17 @@ namespace CCCoreLib
 
 			if (size == 0)
 			{
-				// nothing to do
 				return true;
 			}
 
-			m_values = new Scalar*[size];
+			m_values = new Scalar*[size]{};
 			if (nullptr == m_values)
 			{
 				// not enough memory
 				return false;
 			}
 
-			m_data = new Scalar[size * size];
+			m_data = new Scalar[size * size]{};
 			if (nullptr == m_data)
 			{
 				// not enough memory
