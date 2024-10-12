@@ -586,52 +586,52 @@ namespace CCCoreLib
 			\param q quaternion (w,x,y,z)
 			\return success
 		**/
-		bool toQuaternion(double q[/*4*/])
+		bool toQuaternion(double q[/*4*/], bool forceNormalization = true)
 		{
 			if (m_matrixSize != 3)
 				return false;
 
-			double dTrace = static_cast<double>(m_values[0][0])
-					+ static_cast<double>(m_values[1][1])
-					+ static_cast<double>(m_values[2][2])
-					+ 1.0;
+			double trace = m_values[0][0];
+			trace += m_values[1][1];
+			trace += m_values[2][2];
+			//trace +=  1.0;	// see https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/ethan.htm
 
-			double w, x, y, z;	//quaternion
-			if (dTrace > 1.0e-6)
+			double w = 0.0, x = 0.0, y = 0.0, z = 0.0, n4 = 0.0;
+			if (trace >= std::numeric_limits<ScalarType>::epsilon())
 			{
-				double S = 2.0 * sqrt(dTrace);
-				x = (m_values[2][1] - m_values[1][2]) / S;
-				y = (m_values[0][2] - m_values[2][0]) / S;
-				z = (m_values[1][0] - m_values[0][1]) / S;
-				w = 0.25 * S;
+				x = m_values[2][1] - m_values[1][2];
+				y = m_values[0][2] - m_values[2][0];
+				z = m_values[1][0] - m_values[0][1];
+				w = trace + 1.0;
+				n4 = w;
 			}
 			else if (m_values[0][0] > m_values[1][1] && m_values[0][0] > m_values[2][2])
 			{
-				double S = sqrt(1.0 + m_values[0][0] - m_values[1][1] - m_values[2][2]) * 2.0;
-				x = 0.25 * S;
-				y = (m_values[1][0] + m_values[0][1]) / S;
-				z = (m_values[0][2] + m_values[2][0]) / S;
-				w = (m_values[2][1] - m_values[1][2]) / S;
+				x = 1.0 + m_values[0][0] - m_values[1][1] - m_values[2][2];
+				y = m_values[1][0] + m_values[0][1];
+				z = m_values[0][2] + m_values[2][0];
+				w = m_values[2][1] - m_values[1][2];
+				n4 = x;
 			}
 			else if (m_values[1][1] > m_values[2][2])
 			{
-				double S = sqrt(1.0 + m_values[1][1] - m_values[0][0] - m_values[2][2]) * 2.0;
-				x = (m_values[1][0] + m_values[0][1]) / S;
-				y = 0.25 * S;
-				z = (m_values[2][1] + m_values[1][2]) / S;
-				w = (m_values[0][2] - m_values[2][0]) / S;
+				x = m_values[1][0] + m_values[0][1];
+				y = 1.0 + m_values[1][1] - m_values[0][0] - m_values[2][2];
+				z = m_values[2][1] + m_values[1][2];
+				w = m_values[0][2] - m_values[2][0];
+				n4 = y;
 			}
 			else
 			{
-				double S = sqrt(1.0 + m_values[2][2] - m_values[0][0] - m_values[1][1]) * 2.0;
-				x = (m_values[0][2] + m_values[2][0]) / S;
-				y = (m_values[2][1] + m_values[1][2]) / S;
-				z = 0.25 * S;
-				w = (m_values[1][0] - m_values[0][1]) / S;
+				x = m_values[0][2] + m_values[2][0];
+				y = m_values[2][1] + m_values[1][2];
+				z = 1.0 + m_values[2][2] - m_values[0][0] - m_values[1][1];
+				w = m_values[1][0] - m_values[0][1];
+				n4 = z;
 			}
 
 			// normalize the quaternion if the matrix is not a clean rigid body matrix or if it has scaler information.
-			double len = sqrt(w*w + x*x + y*y + z*z);
+			double len = sqrt(forceNormalization ? w*w + x*x + y*y + z*z : n4);
 			if (len != 0)
 			{
 				q[0] = w / len;
