@@ -4,11 +4,7 @@
 #pragma once
 
 //Local
-#include "CCCoreLib.h"
-#include "CCTypes.h"
-
-//system
-#include <vector>
+#include "ScalarField.h"
 
 namespace CCCoreLib
 {
@@ -39,8 +35,40 @@ namespace CCCoreLib
 		**/
 		virtual bool isValid() const { return m_isValid; }
 
-		//! Scalar values container
-		using ScalarContainer = std::vector<ScalarType>;
+		//! Scalar values container interface
+		struct ScalarContainer
+		{
+			virtual size_t size() const = 0;
+			virtual ScalarType getValue(size_t index) const = 0;
+		};
+
+		//! Wrapper of a CCCoreLib's scalar field as a Scalar values container
+		struct SFAsScalarContainer : ScalarContainer
+		{
+			SFAsScalarContainer(const ScalarField& sf)
+				: ScalarContainer()
+				, m_sf(sf)
+			{}
+
+			inline size_t size() const override { return m_sf.size(); }
+			inline ScalarType getValue(size_t index) const override { return m_sf.getValue(index); }
+
+			const CCCoreLib::ScalarField& m_sf;
+		};
+
+		//! Wrapper of a std::vector as a Scalar values container
+		struct VectorAsScalarContainer : ScalarContainer
+		{
+			VectorAsScalarContainer(const std::vector<ScalarType>& vector)
+				: ScalarContainer()
+				, m_vector(vector)
+			{}
+
+			inline size_t size() const override { return m_vector.size(); }
+			inline ScalarType getValue(size_t index) const override { return m_vector[index]; }
+
+			const std::vector<ScalarType>& m_vector;
+		};
 
 		//! Computes the distribution parameters from a set of values
 		/**	\param values a set of scalar values

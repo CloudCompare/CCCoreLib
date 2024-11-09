@@ -12,6 +12,7 @@
 
 //System
 #include <algorithm>
+#include <memory>
 
 using namespace CCCoreLib;
 
@@ -151,7 +152,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		}
 	}
 
-	//on calcule le gradient (va ecraser le champ des distances)
+	//we compute the gradient (may overwrite the distances SF)
 	if (ScalarFieldTools::computeScalarFieldGradient(theCloud, radius, true, true, progressCb, theOctree) < 0)
 	{
 		if (nullptr == inputOctree)
@@ -161,7 +162,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		return false;
 	}
 
-	//et on lisse le resultat
+	//we optionally smooth the result
 	if (applyGaussianFilter)
 	{
 		ScalarFieldTools::applyScalarFieldGaussianFilter(radius / 3, theCloud, -1, progressCb, theOctree);
@@ -170,8 +171,8 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 	unsigned seedPoints = 0;
 	unsigned numberOfSegmentedLists = 0;
 
-	//on va faire la propagation avec le FastMarching();
-	FastMarchingForPropagation* fm = new FastMarchingForPropagation();
+	//start the FastMarching front propagation
+	std::unique_ptr<FastMarchingForPropagation> fm(new FastMarchingForPropagation());
 	{
 		fm->setJumpCoef(50.0);
 		fm->setDetectionThreshold(alpha);
@@ -183,7 +184,6 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 			{
 				delete theOctree;
 			}
-			delete fm;
 			return false;
 		}
 	}
@@ -212,7 +212,6 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 				delete theOctree;
 			}
 			theDists->release();
-			delete fm;
 			return false;
 		}
 	}
@@ -226,19 +225,23 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		ScalarType maxDist = NAN_VALUE;
 
 		//on cherche la premiere distance superieure ou egale a "minSeedDist"
-		while (begin<numberOfPoints)
+		while (begin < numberOfPoints)
 		{
-			const CCVector3 *thePoint = theCloud->getPoint(begin);
-			const ScalarType& theDistance = theDists->at(begin);
+			const CCVector3* thePoint = theCloud->getPoint(begin);
+			const ScalarType theDistance = theDists->getValue(begin);
 			++begin;
 
-			//FIXME DGM: what happens if SF is negative?!
-			if (theCloud->getPointScalarValue(begin) >= 0 && theDistance >= minSeedDist)
+			if (	(theCloud->getPointScalarValue(begin) >= 0)
+				&&	(theDistance >= minSeedDist) )
 			{
 				maxDist = theDistance;
 				startPoint = *thePoint;
 				maxDistIndex = begin;
 				break;
+			}
+			else
+			{
+				//FIXME DGM: what happens if SF is negative?!
 			}
 		}
 
@@ -252,9 +255,10 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		for (unsigned i = begin; i < numberOfPoints; ++i)
 		{
 			const CCVector3 *thePoint = theCloud->getPoint(i);
-			const ScalarType& theDistance = theDists->at(i);
+			const ScalarType theDistance = theDists->getValue(i);
 
-			if ((theCloud->getPointScalarValue(i) >= 0.0) && (theDistance > maxDist))
+			if (	(theCloud->getPointScalarValue(i) >= 0.0)
+				&&	(theDistance > maxDist) )
 			{
 				maxDist = theDistance;
 				startPoint = *thePoint;
@@ -317,14 +321,11 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 
 	for (unsigned i = 0; i < numberOfPoints; ++i)
 	{
-		theCloud->setPointScalarValue(i, theDists->at(i));
+		theCloud->setPointScalarValue(i, theDists->getValue(i));
 	}
 
 	theDists->release();
 	theDists = nullptr;
-
-	delete fm;
-	fm = nullptr;
 
 	if (nullptr == inputOctree)
 	{

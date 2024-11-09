@@ -76,7 +76,7 @@ namespace CCCoreLib
 	};
 	
 	//! Min number of points to compute local models (see CC_LOCAL_MODEL_TYPES)
-	constexpr unsigned CC_LOCAL_MODEL_MIN_SIZE[] = {
+	constexpr unsigned CC_LOCAL_MODEL_MIN_SIZE[] {
 		1,	//!< for single point model (i.e. no model ;)
 		3,	//!< for least Square best fitting plane
 		3,	//!< for Delaunay triangulation (2.5D)

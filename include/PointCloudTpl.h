@@ -92,9 +92,27 @@ namespace CCCoreLib
 			}
 
 			unsigned n = size();
-			for (unsigned i = 0; i < n; ++i)
+
+			if (0 != n)
 			{
-				action(m_points[i], (*currentOutScalarFieldArray)[i]);
+				double previousOffset = currentOutScalarFieldArray->getOffset();
+				if (n == currentOutScalarFieldArray->size())
+				{
+					// if we are going to change ALL the values, we can also apply the functor on the offset
+					double firstValue = currentOutScalarFieldArray->getValue(0);
+					action(m_points.front(), firstValue);
+					if (ScalarField::ValidValue(firstValue))
+					{
+						currentOutScalarFieldArray->setOffset(firstValue);
+					}
+				}
+
+				for (unsigned i = 0; i < n; ++i)
+				{
+					ScalarType value = previousOffset + currentOutScalarFieldArray->getLocalValue(i); // warning, the offset has been changed, we can't use getValue anymore
+					action(m_points[i], value);
+					currentOutScalarFieldArray->setValue(i, value);
+				}
 			}
 		}
 
@@ -244,7 +262,7 @@ namespace CCCoreLib
 					//if something fails, we restore the previous size for already processed SFs!
 					for (std::size_t j = 0; j < i; ++j)
 					{
-						m_scalarFields[j]->resize(oldCount);
+						m_scalarFields[j]->resizeSafe(oldCount);
 						m_scalarFields[j]->computeMinAndMax();
 					}
 					//we can assume that newNumberOfPoints > oldCount, so it should always be ok
@@ -348,23 +366,25 @@ namespace CCCoreLib
 		/** \param index a scalar field index
 			\return a pointer to a string structure (null-terminated array of characters), or 0 if the index is invalid.
 		**/
-		const char* getScalarFieldName(int index) const
+		const std::string getScalarFieldName(int index) const
 		{
-			return (index >= 0 && index < static_cast<int>(m_scalarFields.size()) ? m_scalarFields[index]->getName() : 0);
+			return (index >= 0 && index < static_cast<int>(m_scalarFields.size()) ? m_scalarFields[index]->getName() : std::string{});
 		}
 
 		//! Returns the index of a scalar field represented by its name
 		/** \param name a scalar field name
 			\return an index (-1 if the scalar field couldn't be found)
 		**/
-		int getScalarFieldIndexByName(const char* name) const
+		int getScalarFieldIndexByName(const std::string& name) const
 		{
 			std::size_t sfCount = m_scalarFields.size();
 			for (std::size_t i = 0; i < sfCount; ++i)
 			{
 				//we don't accept two SF with the same name!
-				if (strcmp(m_scalarFields[i]->getName(), name) == 0)
+				if (0 == m_scalarFields[i]->getName().compare(name))
+				{
 					return static_cast<int>(i);
+				}
 			}
 
 			return -1;
@@ -414,7 +434,7 @@ namespace CCCoreLib
 			\param uniqueName scalar field name (must be unique)
 			\return index of this new scalar field (or -1 if an error occurred)
 		**/
-		virtual int addScalarField(const char* uniqueName)
+		virtual int addScalarField(const std::string& uniqueName)
 		{
 			//we don't accept two SF with the same name!
 			if (getScalarFieldIndexByName(uniqueName) >= 0)
@@ -455,7 +475,7 @@ namespace CCCoreLib
 			\param newName new name
 			\return success
 		**/
-		bool renameScalarField(int index, const char* newName)
+		bool renameScalarField(int index, const std::string& newName)
 		{
 			if (getScalarFieldIndexByName(newName) < 0)
 			{
