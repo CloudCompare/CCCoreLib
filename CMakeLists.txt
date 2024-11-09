@@ -29,10 +29,6 @@ option( CCCORELIB_SHARED
 	"Compile CCCoreLib as a shared library"
 	ON
 )
-option( CCCORELIB_SCALAR_DOUBLE
-	"Define ScalarType as double (instead of float)"
-	OFF
-)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -118,18 +114,6 @@ target_compile_definitions( CCCoreLib
 	PRIVATE
 		"$<$<CONFIG:DEBUG>:CC_DEBUG>"
 )
-
-if ( CCCORELIB_SCALAR_DOUBLE )
-	target_compile_definitions( CCCoreLib
-		PUBLIC
-			CC_CORE_LIB_USES_DOUBLE
-	)
-else()
-	target_compile_definitions( CCCoreLib
-		PUBLIC
-			CC_CORE_LIB_USES_FLOAT
-	)
-endif()
 
 # Nanoflann
 option(NANOFLANN_BUILD_BENCHMARKS "" OFF)

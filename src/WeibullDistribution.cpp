@@ -166,22 +166,23 @@ bool WeibullDistribution::computeParameters(const ScalarContainer& values)
 	ScalarType minValue = 0;
 	ScalarType maxValue = 0;
 	bool firstValue = true;
-	for (ScalarType s : values)
+	for (size_t i = 0; i < values.size(); ++i)
 	{
-		if (!ScalarField::ValidValue(s))
+		ScalarType v = values.getValue(i);
+		if (!ScalarField::ValidValue(v))
 			continue;
 
 		if (firstValue)
 		{
-			minValue = maxValue = s;
+			minValue = maxValue = v;
 			firstValue = false;
 		}
 		else
 		{
-			if (s < minValue)
-				minValue = s;
-			else if (s > maxValue)
-				maxValue = s;
+			if (v < minValue)
+				minValue = v;
+			else if (v > maxValue)
+				maxValue = v;
 		}
 	}
 
@@ -199,14 +200,16 @@ bool WeibullDistribution::computeParameters(const ScalarContainer& values)
 
 	double a = FindGRoot(values, minValue, valueRange);
 	if (a < 0.0)
+	{
 		return false;
+	}
 
 	//we can compute b
 	double b = 0;
 	unsigned counter = 0;
 	for (size_t i = 0; i < n; ++i)
 	{
-		ScalarType v = values[i];
+		ScalarType v = values.getValue(i);
 		if (ScalarField::ValidValue(v)) //we ignore NaN values
 		{
 			if (v >= minValue)
@@ -217,7 +220,9 @@ bool WeibullDistribution::computeParameters(const ScalarContainer& values)
 		}
 	}
 	if (counter == 0)
+	{
 		return false;
+	}
 
 	return setParameters(	static_cast<ScalarType>(a),
 							static_cast<ScalarType>(valueRange * pow(b / counter, 1.0 / a)),
@@ -228,7 +233,9 @@ double WeibullDistribution::computeP(ScalarType _x) const
 {
 	double x = static_cast<double>(_x - m_valueShift) / m_b;
 	if (x < 0)
+	{
 		return 0;
+	}
 
 	double xp = pow(x, m_a - 1.0);
 	return (static_cast<double>(m_a) / m_b) * xp * exp(-xp*x);
@@ -242,9 +249,13 @@ double WeibullDistribution::computePfromZero(ScalarType x) const
 double WeibullDistribution::computeP(ScalarType x1, ScalarType x2) const
 {
 	if (x1 < m_valueShift)
+	{
 		x1 = m_valueShift;
+	}
 	if (x2 < m_valueShift)
+	{
 		return 0;
+	}
 	//pi = computeP(minV+(ScalarType(k)+0.5)*step)*step;
 	//...instead we take the sampling into account and then integrate
 	return exp(-pow(static_cast<double>(x1 - m_valueShift) / m_b, static_cast<double>(m_a))) - exp(-pow(static_cast<double>(x2 - m_valueShift) / m_b, static_cast<double>(m_a)));
@@ -256,7 +267,9 @@ double WeibullDistribution::ComputeG(const ScalarContainer& values, double r, Sc
 
 	//a & n should be strictly positive!
 	if (r <= 0.0 || n == 0)
+	{
 		return 1.0; //a positive value means that ComputeG failed
+	}
 
 	double p = 0;
 	double q = 0;
@@ -266,7 +279,7 @@ double WeibullDistribution::ComputeG(const ScalarContainer& values, double r, Sc
 
 	for (unsigned i = 0; i < n; ++i)
 	{
-		ScalarType v = values[i];
+		ScalarType v = values.getValue(i);
 		if (ScalarField::ValidValue(v)) //we ignore NaN values
 		{
 			double v0 = static_cast<double>(v) - valueShift;

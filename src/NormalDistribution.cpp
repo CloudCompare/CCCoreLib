@@ -122,8 +122,9 @@ bool NormalDistribution::computeParameters(const ScalarContainer& values)
 	double stddev2 = 0.0;
 	unsigned counter = 0;
 
-	for (ScalarType v : values)
+	for (size_t i = 0; i< values.size(); ++i)
 	{
+		ScalarType v = values.getValue(i);
 		if (ScalarField::ValidValue(v))
 		{
 			mean += v;
@@ -155,8 +156,9 @@ bool NormalDistribution::computeRobustParameters(const ScalarContainer& values, 
 	double mean = 0.0;
 	double stddev2 = 0.0;
 
-	for (ScalarType v : values)
+	for (size_t i = 0; i < values.size(); ++i)
 	{
+		ScalarType v = values.getValue(i);
 		if (static_cast<double>(std::abs(v - m_mu)) < maxStddev)
 		{
 			mean += v;

@@ -468,31 +468,61 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					{
 						filteredData.cloud->addPointIndex(data.cloud->getPointGlobalIndex(i));
 						if (filteredData.CPSetRef)
+						{
 							filteredData.CPSetRef->addPointIndex(data.CPSetRef->getPointGlobalIndex(i));
+						}
 						else if (filteredData.CPSetPlain)
+						{
 							filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+						}
 						if (filteredData.weights)
+						{
 							filteredData.weights->addElement(data.weights->getValue(i));
+						}
 					}
 				}
 
 				//resize should be ok as we have called reserve first
 				filteredData.cloud->resize(filteredData.cloud->size()); //should always be ok as current size < pointCount
 				if (filteredData.CPSetRef)
-					filteredData.CPSetRef->resize(filteredData.CPSetRef->size());
+				{
+					if (!filteredData.CPSetRef->resize(filteredData.CPSetRef->size()))
+					{
+						result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+						break;
+					}
+				}
 				else if (filteredData.CPSetPlain)
-					filteredData.CPSetPlain->resize(filteredData.CPSetPlain->size());
+				{
+					if (!filteredData.CPSetPlain->resize(filteredData.CPSetPlain->size()))
+					{
+						result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+						break;
+					}
+				}
 				if (filteredData.weights)
-					filteredData.weights->resize(filteredData.weights->currentSize());
+				{
+					if (!filteredData.weights->resizeSafe(filteredData.weights->currentSize()))
+					{
+						result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+						break;
+					}
+				}
 
 				//replace old structures by new ones
 				cloudGarbage.destroy(data.cloud);
 				if (data.CPSetRef)
+				{
 					cloudGarbage.destroy(data.CPSetRef);
+				}
 				else if (data.CPSetPlain)
+				{
 					cloudGarbage.destroy(data.CPSetPlain);
+				}
 				if (data.weights)
+				{
 					sfGarbage.destroy(data.weights);
+				}
 				data = filteredData;
 
 				pointOrderHasBeenChanged = true;
@@ -502,7 +532,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//shall we ignore/remove some points based on their distance?
 		DataCloud trueData;
 		unsigned pointCount = data.cloud->size();
-		if (maxOverlapCount != 0 && pointCount > maxOverlapCount)
+		if (	(0 != maxOverlapCount)
+			&&	(pointCount > maxOverlapCount) )
 		{
 			assert(overlapDistances.size() >= pointCount);
 			for (unsigned i = 0; i < pointCount; ++i)
@@ -573,11 +604,29 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			//resize should be ok as we have called reserve first
 			filteredData.cloud->resize(filteredData.cloud->size()); //should always be ok as current size < pointCount
 			if (filteredData.CPSetRef)
-				filteredData.CPSetRef->resize(filteredData.CPSetRef->size());
+			{
+				if (!filteredData.CPSetRef->resize(filteredData.CPSetRef->size()))
+				{
+					result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+					break;
+				}
+			}
 			else if (filteredData.CPSetPlain)
-				filteredData.CPSetPlain->resize(filteredData.CPSetPlain->size());
+			{
+				if (!filteredData.CPSetPlain->resize(filteredData.CPSetPlain->size()))
+				{
+					result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+					break;
+				}
+			}
 			if (filteredData.weights)
-				filteredData.weights->resize(filteredData.weights->currentSize());
+			{
+				if (!filteredData.weights->resizeSafe(filteredData.weights->currentSize()))
+				{
+					result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+					break;
+				}
+			}
 
 			//(temporarily) replace old structures by new ones
 			trueData = data;

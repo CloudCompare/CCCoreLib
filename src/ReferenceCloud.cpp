@@ -159,12 +159,10 @@ void ReferenceCloud::forEach(genericPointAction action)
 	unsigned count = size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const unsigned& index = m_theIndexes[i];
+		unsigned index = m_theIndexes[i];
 		ScalarType d = m_theAssociatedCloud->getPointScalarValue(index);
-		ScalarType d2 = d;
-		action(*m_theAssociatedCloud->getPointPersistentPtr(index), d2);
-		if (d != d2)
-			m_theAssociatedCloud->setPointScalarValue(index, d2);
+		action(*m_theAssociatedCloud->getPointPersistentPtr(index), d);
+		m_theAssociatedCloud->setPointScalarValue(index, d);
 	}
 }
 

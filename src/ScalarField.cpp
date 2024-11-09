@@ -9,31 +9,46 @@
 
 using namespace CCCoreLib;
 
-ScalarField::ScalarField(const char* name/*=nullptr*/)
-	: m_minVal{ 0 }
-	, m_maxVal{ 0 }
+ScalarField::ScalarField(const std::string& name/*=std::string()*/)
+	: m_name{ }
+	, m_offset{ 0.0 }
+	, m_offsetHasBeenSet{ false }
+	, m_localMinVal{ 0.0f }
+	, m_localMaxVal{ 0.0f }
 {
 	setName(name);
 }
 
 ScalarField::ScalarField(const ScalarField& sf)
-	: std::vector<ScalarType>(sf)
-	, m_minVal{ 0 }
-	, m_maxVal{ 0 }
+	: std::vector<float>(sf)
+	, m_name{ sf.m_name }
+	, m_offset{ sf.m_offset }
+	, m_offsetHasBeenSet{ sf.m_offsetHasBeenSet }
+	, m_localMinVal{ sf.m_localMinVal }
+	, m_localMaxVal{ sf.m_localMaxVal }
 {
-	setName(sf.m_name);
 }
 
-void ScalarField::setName(const char* name)
+void ScalarField::setName(const std::string& name)
 {
-	if (name)
-		strncpy(m_name, name, 255);
+	if (name.empty())
+	{
+		m_name = "Undefined";
+	}
 	else
-		strcpy(m_name, "Undefined");
+	{
+		m_name = name;
+	}
 }
 
 std::size_t ScalarField::countValidValues() const
 {
+	if (false == std::isfinite(m_offset))
+	{
+		// special case: if the offset is invalid, all values become invalid!
+		return size();
+	}
+
 	std::size_t count = 0;
 
 	for (std::size_t i = 0; i < size(); ++i)
@@ -48,7 +63,7 @@ std::size_t ScalarField::countValidValues() const
 	return count;
 }
 
-void ScalarField::computeMeanAndVariance(ScalarType &mean, ScalarType* variance) const
+void ScalarField::computeMeanAndVariance(ScalarType& mean, ScalarType* variance) const
 {
 	double _mean = 0.0;
 	double _std2 = 0.0;
@@ -56,8 +71,8 @@ void ScalarField::computeMeanAndVariance(ScalarType &mean, ScalarType* variance)
 
 	for (std::size_t i = 0; i < size(); ++i)
 	{
-		const ScalarType& val = at(i);
-		if (ValidValue(val))
+		float val = at(i);
+		if (std::isfinite(val))
 		{
 			_mean += val;
 			_std2 += static_cast<double>(val) * val;
@@ -68,13 +83,16 @@ void ScalarField::computeMeanAndVariance(ScalarType &mean, ScalarType* variance)
 	if (count)
 	{
 		_mean /= count;
-		mean = static_cast<ScalarType>(_mean);
+		mean = _mean;
 
 		if (variance)
 		{
 			_std2 = std::abs(_std2 / count - _mean*_mean);
 			*variance = static_cast<ScalarType>(_std2);
 		}
+
+		mean += m_offset; // only after the standard deviation has been calculated!
+
 	}
 	else
 	{
@@ -105,9 +123,24 @@ bool ScalarField::resizeSafe(std::size_t count, bool initNewElements/*=false*/, 
 	try
 	{
 		if (initNewElements)
-			resize(count, valueForNewElements);
+		{
+			float fillValueF = 0.0f;
+			if (m_offsetHasBeenSet)
+			{
+				fillValueF = static_cast<float>(valueForNewElements - m_offset);
+			}
+			else
+			{
+				// if the offset has not been set yet, we use the first value by default
+				setOffset(valueForNewElements);
+			}
+
+			resize(count, fillValueF);
+		}
 		else
+		{
 			resize(count);
+		}
 	}
 	catch (const std::bad_alloc&)
 	{
