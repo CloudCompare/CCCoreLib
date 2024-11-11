@@ -974,32 +974,37 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	return result;
 }
 
-bool HornRegistrationTools::FindAbsoluteOrientation(GenericCloud* lCloud,
-													GenericCloud* rCloud,
+bool HornRegistrationTools::FindAbsoluteOrientation(GenericCloud* toBeAlignedPoints,
+													GenericCloud* referencePoints,
 													ScaledTransformation& trans,
 													bool fixedScale/*=false*/)
 {
-	return RegistrationProcedure(lCloud, rCloud, trans, !fixedScale);
+	return RegistrationProcedure(toBeAlignedPoints, referencePoints, trans, !fixedScale);
 }
 
-double HornRegistrationTools::ComputeRMS(GenericCloud* lCloud,
-										 GenericCloud* rCloud,
-										 const ScaledTransformation& trans)
+double RegistrationTools::ComputeRMS(GenericCloud* toBeAlignedPoints,
+									 GenericCloud* referencePoints,
+									 const ScaledTransformation& trans)
 {
-	assert(rCloud && lCloud);
-	if (!rCloud || !lCloud || rCloud->size() != lCloud->size() || rCloud->size() < 3)
+	assert(referencePoints && toBeAlignedPoints);
+	if (	!referencePoints
+		||	!toBeAlignedPoints
+		||	referencePoints->size() != toBeAlignedPoints->size()
+		||	referencePoints->size() < 3 )
+	{
 		return false;
+	}
 
 	double rms = 0.0;
 
-	rCloud->placeIteratorAtBeginning();
-	lCloud->placeIteratorAtBeginning();
-	unsigned count = rCloud->size();
+	referencePoints->placeIteratorAtBeginning();
+	toBeAlignedPoints->placeIteratorAtBeginning();
+	unsigned count = referencePoints->size();
 
 	for (unsigned i = 0; i < count; i++)
 	{
-		const CCVector3* Ri = rCloud->getNextPoint();
-		const CCVector3* Li = lCloud->getNextPoint();
+		const CCVector3* Ri = referencePoints->getNextPoint();
+		const CCVector3* Li = toBeAlignedPoints->getNextPoint();
 		CCVector3 Lit = trans.apply(*Li);
 
 		rms += (*Ri - Lit).norm2();
