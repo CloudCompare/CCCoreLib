@@ -120,7 +120,10 @@ option(NANOFLANN_BUILD_BENCHMARKS "" OFF)
 option(NANOFLANN_BUILD_EXAMPLES "" OFF)
 option(NANOFLANN_BUILD_TESTS "" OFF)
 add_subdirectory( extern/nanoflann EXCLUDE_FROM_ALL )
-target_link_libraries( CCCoreLib PUBLIC nanoflann::nanoflann )
+target_link_libraries( CCCoreLib
+	PUBLIC
+		nanoflann::nanoflann
+)
 
 # Windows-specific flags
 if ( WIN32 )
@@ -161,12 +164,12 @@ if ( CCCORELIB_USE_TBB )
 		if ( ${TBB_VERSION} VERSION_GREATER 2021.0.0 )
 			target_link_libraries( CCCoreLib
 				PUBLIC
-				TBB::tbb
+					TBB::tbb
 			)
 		else()
 			target_link_libraries( CCCoreLib
 				PUBLIC
-				${TBB_IMPORTED_TARGETS}
+					${TBB_IMPORTED_TARGETS}
 			)
 		endif()
 		target_compile_definitions( CCCoreLib
@@ -221,15 +224,15 @@ if ( CCCORELIB_USE_QT_CONCURRENT )
 		REQUIRED
 	)
 
-    set_target_properties( CCCoreLib PROPERTIES
-        AUTOMOC OFF
-        AUTORCC OFF
-        AUTOUIC OFF
-    )
+	set_target_properties( CCCoreLib PROPERTIES
+		AUTOMOC OFF
+		AUTORCC OFF
+		AUTOUIC OFF
+	)
 
 	target_link_libraries( CCCoreLib
 		PUBLIC
-            Qt5::Concurrent
+			Qt5::Concurrent
 	)
 
 	target_compile_definitions( CCCoreLib

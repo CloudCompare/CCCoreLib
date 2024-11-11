@@ -49,6 +49,18 @@ namespace CCCoreLib
 											const CCVector3& referenceGravityCenter,
 											ScaledTransformation& outTrans );
 
+		//! Computes RMS between two clouds given a transformation and a scale
+		/** Warning: both clouds must have the same size (and at least 3 points)
+			RMS = Sqrt ( Sum( square_norm( Pr - s*R*Pl+T ) ) / count )
+			\param lCloud left cloud {Pl}
+			\param rCloud right cloud {Pr}
+			\param trans transformation: Pr = s.R.Pl + T
+			\return RMS (or -1.0 if an error occurred)
+		**/
+		static double ComputeRMS(	GenericCloud* lCloud,
+									GenericCloud* rCloud,
+									const ScaledTransformation& trans);
+
 	protected:
 
 		//! ICP Registration procedure with optional scale estimation
@@ -92,32 +104,18 @@ namespace CCCoreLib
 	{
 	public:
 
-		//! Returns "absolute orientation" (scale + transformation) between two set of (unordered) points
-		/** Warning: both clouds must have the same size (and at least 3 points)
-			Output transformation is from the left (L) to the right (R) coordinate system
-			\param lCloud left cloud {Pl}
-			\param rCloud right cloud {Pr}
-			\param trans resulting transformation: Pr = s.R.Pl + T
-			\param fixedScale force scale parameter to 1.0
+		//! Returns the transformation (scale + transformation) between two sets of (unordered) points
+		/** \warning Both clouds must have the same size (and at least 3 points)
+			\param[in] toBeAlignedPoints the points to be aligned
+			\param[in] referencePoints the fixed/static points
+			\param[out] trans resulting transformation: Pr = s.R.Pl + T
+			\param[in] fixedScale force scale parameter to 1.0
 			\return success
 		**/
-		static bool FindAbsoluteOrientation(GenericCloud* lCloud,
-											GenericCloud* rCloud,
+		static bool FindAbsoluteOrientation(GenericCloud* toBeAlignedPoints,
+											GenericCloud* referencePoints,
 											ScaledTransformation& trans,
 											bool fixedScale = false);
-
-		//! Computes RMS between two clouds given a transformation and a scale
-		/** Warning: both clouds must have the same size (and at least 3 points)
-			RMS = Sqrt ( Sum( square_norm( Pr - s*R*Pl+T ) ) / count )
-			\param lCloud left cloud {Pl}
-			\param rCloud right cloud {Pr}
-			\param trans transformation: Pr = s.R.Pl + T
-			\return RMS (or -1.0 if an error occurred)
-		**/
-		static double ComputeRMS(	GenericCloud* lCloud,
-									GenericCloud* rCloud,
-									const ScaledTransformation& trans);
-
 	};
 
 	//! ICP point cloud registration algorithm (Besl et al.).
