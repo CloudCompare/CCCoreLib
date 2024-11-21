@@ -67,8 +67,17 @@ namespace CCCoreLib
 		**/
 		inline void setOffset(double offset)
 		{
+			assert(std::isfinite(offset));
+
 			m_offsetHasBeenSet = true;
 			m_offset = offset;
+		}
+
+		//! Resets the offset
+		inline void resetOffset()
+		{
+			m_offsetHasBeenSet = false;
+			m_offset = 0.0;
 		}
 
 		//! Clears the scalar field
@@ -105,13 +114,38 @@ namespace CCCoreLib
 		inline void fill(ScalarType fillValue = 0)
 		{
 			float fillValueF = 0.0f;
-			if (m_offsetHasBeenSet)
+			if (std::isfinite(fillValue))
 			{
-				fillValueF = static_cast<float>(fillValue - m_offset);
+				if (fillValue == 0)
+				{
+					// special case: filling with zeros
+					// (it doesn't really give an idea of what the optimal offset is)
+					resetOffset();
+
+					//fillValueF = 0.0f; // already set
+				}
+				else
+				{
+					if (m_offsetHasBeenSet)
+					{
+						fillValueF = static_cast<float>(fillValue - m_offset);
+					}
+					else
+					{
+						// if the offset has not been set yet, we use the first finite value by default
+						setOffset(fillValue);
+
+						//fillValueF = 0.0f; // already set
+					}
+				}
 			}
 			else
 			{
-				setOffset(fillValue);
+				// special case: filling with NaN or +/-inf values
+				// (it doesn't really give an idea of what the optimal offset is)
+				resetOffset();
+
+				fillValueF = static_cast<float>(fillValue); // NaN/-inf/+inf should be maintained
 			}
 
 			if (empty())
@@ -140,12 +174,20 @@ namespace CCCoreLib
 		{
 			if (m_offsetHasBeenSet)
 			{
+				// use the already set offset
 				(*this)[index] = static_cast<float>(value - m_offset);
+			}
+			else if (std::isfinite(value))
+			{
+				// if the offset has not been set yet, we use the
+				// first finite value as offset by default
+				setOffset(value);
+				(*this)[index] = 0.0f;
 			}
 			else
 			{
-				setOffset(value);
-				(*this)[index] = 0.0f;
+				// we can't set an offset
+				(*this)[index] = static_cast<float>(value); // NaN/-inf/+inf should be maintained
 			}
 		}
 
@@ -153,13 +195,20 @@ namespace CCCoreLib
 		{
 			if (m_offsetHasBeenSet)
 			{
+				// use the already set offset
 				push_back(static_cast<float>(value - m_offset));
+			}
+			else if (std::isfinite(value))
+			{
+				// if the offset has not been set yet, we use the
+				// first finite value as offset by default
+				setOffset(value);
+				push_back(0.0f);
 			}
 			else
 			{
-				// if the offset has not been set yet, we use the first value by default
-				setOffset(value);
-				push_back(0.0f);
+				// we can't set an offset
+				push_back(static_cast<float>(value)); // NaN/-inf/+inf should be maintained
 			}
 		}
 
