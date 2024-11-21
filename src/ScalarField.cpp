@@ -122,17 +122,35 @@ bool ScalarField::resizeSafe(std::size_t count, bool initNewElements/*=false*/, 
 {
 	try
 	{
-		if (initNewElements)
+		if (initNewElements && count > size())
 		{
 			float fillValueF = 0.0f;
-			if (m_offsetHasBeenSet)
+			if (std::isfinite(valueForNewElements))
 			{
-				fillValueF = static_cast<float>(valueForNewElements - m_offset);
+				if (m_offsetHasBeenSet)
+				{
+					// use the already set offset
+					fillValueF = static_cast<float>(valueForNewElements - m_offset);
+				}
+				else // if the offset has not been set yet...
+				{
+					if (valueForNewElements == 0)
+					{
+						// special case: filling with zeros
+						// (it doesn't really give an idea of what the optimal offset is)
+						m_offset = 0.0;
+					}
+					else
+					{
+						// we use the first finite value as offset by default
+						setOffset(valueForNewElements);
+					}
+				}
 			}
 			else
 			{
-				// if the offset has not been set yet, we use the first value by default
-				setOffset(valueForNewElements);
+				// special case: filling with NaN or +/-inf values
+				fillValueF = static_cast<float>(valueForNewElements); // NaN/-inf/+inf should be maintained
 			}
 
 			resize(count, fillValueF);
