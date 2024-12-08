@@ -134,17 +134,8 @@ bool ScalarField::resizeSafe(std::size_t count, bool initNewElements/*=false*/, 
 				}
 				else // if the offset has not been set yet...
 				{
-					if (valueForNewElements == 0)
-					{
-						// special case: filling with zeros
-						// (it doesn't really give an idea of what the optimal offset is)
-						m_offset = 0.0;
-					}
-					else
-					{
-						// we use the first finite value as offset by default
-						setOffset(valueForNewElements);
-					}
+					// we use the first finite value as offset by default
+					setOffset(valueForNewElements);
 				}
 			}
 			else
