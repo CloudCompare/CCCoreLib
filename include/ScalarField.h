@@ -116,27 +116,16 @@ namespace CCCoreLib
 			float fillValueF = 0.0f;
 			if (std::isfinite(fillValue))
 			{
-				if (fillValue == 0)
+				if (m_offsetHasBeenSet)
 				{
-					// special case: filling with zeros
-					// (it doesn't really give an idea of what the optimal offset is)
-					resetOffset();
-
-					//fillValueF = 0.0f; // already set
+					fillValueF = static_cast<float>(fillValue - m_offset);
 				}
 				else
 				{
-					if (m_offsetHasBeenSet)
-					{
-						fillValueF = static_cast<float>(fillValue - m_offset);
-					}
-					else
-					{
-						// if the offset has not been set yet, we use the first finite value by default
-						setOffset(fillValue);
+					// if the offset has not been set yet, we use the first finite value by default
+					setOffset(fillValue);
 
-						//fillValueF = 0.0f; // already set
-					}
+					//fillValueF = 0.0f; // already set
 				}
 			}
 			else
