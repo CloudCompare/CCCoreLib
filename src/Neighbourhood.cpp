@@ -326,22 +326,23 @@ bool Neighbourhood::computeQuadric()
 	const PointCoordinateType nxx = lsPlane[0]*lsPlane[0];
 	const PointCoordinateType nyy = lsPlane[1]*lsPlane[1];
 	const PointCoordinateType nzz = lsPlane[2]*lsPlane[2];
-	if (nxx > nyy)
-	{
-		if (nxx > nzz)
-		{
-			//as x is the "normal" direction, we use (y,z) as the base plane
-			idx.x = 1/*y*/; idx.y = 2/*z*/; idx.z = 0/*x*/;
-		}
-	}
-	else
-	{
-		if (nyy > nzz)
-		{
-			//as y is the "normal" direction, we use (z,x) as the base plane
-			idx.x = 2/*z*/; idx.y = 0/*x*/; idx.z = 1/*y*/;
-		}
-	}
+
+	//if (nxx > nyy)
+	//{
+	//	if (nxx > nzz)
+	//	{
+	//		//as x is the "normal" direction, we use (y,z) as the base plane
+	//		idx.x = 1/*y*/; idx.y = 2/*z*/; idx.z = 0/*x*/;
+	//	}
+	//}
+	//else
+	//{
+	//	if (nyy > nzz)
+	//	{
+	//		//as y is the "normal" direction, we use (z,x) as the base plane
+	//		idx.x = 2/*z*/; idx.y = 0/*x*/; idx.z = 1/*y*/;
+	//	}
+	//}
 
 	//compute the A matrix and b vector
 	std::vector<float> A;
@@ -365,11 +366,44 @@ bool Neighbourhood::computeQuadric()
 		float* _b = b.data();
 		for (unsigned i = 0; i < count; ++i)
 		{
-			CCVector3 P = *m_associatedCloud->getPoint(i) - *G;
+			//CCVector3 P = *m_associatedCloud->getPoint(i) - *G;
+			//============Rotation axis====================
+			CCVector3 axis;
+			axis.x = -lsPlane[1];
+			axis.y = lsPlane[0];
+			axis.z = 0;
+			
+			float numerator = lsPlane[0]*0+ lsPlane[1] * 0+ lsPlane[2] * 1;
+			float denominator = sqrt(0 + 0 + 1)*sqrt(nxx+nyy+nzz);
+			float alpha;
+			alpha = std::acos(numerator/ denominator);
 
-			float lX = static_cast<float>(P.u[idx.x]);
-			float lY = static_cast<float>(P.u[idx.y]);
-			float lZ = static_cast<float>(P.u[idx.z]);
+			CCVector3 t;
+			t.x = t.y = t.z = 0;
+
+			double* m_mat = Neighbourhood::initFromParameters(alpha, -axis, t);
+
+			const CCVector3* PP = m_associatedCloud->getPoint(i);
+
+			CCVector3 dP;
+			dP.x = PP->x - G->x;
+			dP.y = PP->y - G->y;
+			dP.z = PP->z - G->z;
+
+			CCVector3 P;
+			P.x = m_mat[0] * dP.x+ m_mat[4] * dP.y+ m_mat[8] * dP.z;
+			P.y = m_mat[1] * dP.x + m_mat[5] * dP.y + m_mat[9] * dP.z;
+			P.z = m_mat[2] * dP.x + m_mat[6] * dP.y + m_mat[10] * dP.z;
+			float lX = static_cast<float>(P.x);
+			float lY = static_cast<float>(P.y);
+			float lZ = static_cast<float>(P.z);
+
+			delete m_mat;
+			//=============end==========
+
+			//float lX = static_cast<float>(P.u[idx.x]);
+			//float lY = static_cast<float>(P.u[idx.y]);
+			//float lZ = static_cast<float>(P.u[idx.z]);
 
 			*_A++ = 1.0f;
 			*_A++ = lX;
@@ -1037,4 +1071,54 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 	}
 
 	return NAN_VALUE;
+}
+
+//! Inits transformation from a rotation axis, an angle and a translation
+/** \param[in] alpha_rad rotation angle (in radians)
+\param[in] axis3D rotation axis
+\param[in] t3D translation
+**/
+double* Neighbourhood::initFromParameters(double alpha_rad, const Vector3Tpl<double>& axis3D, const Vector3Tpl<double>& t3D)
+{
+	double cos_t = cos(alpha_rad);
+	double sin_t = sin(alpha_rad);
+	double inv_cos_t = static_cast<double>(1) - cos_t;
+
+	//normalize rotation axis
+	Vector3Tpl<double> uAxis3D = axis3D;
+	uAxis3D.normalize();
+
+	const double& l1 = uAxis3D.x;
+	const double& l2 = uAxis3D.y;
+	const double& l3 = uAxis3D.z;
+
+	double l1_inv_cos_t = l1 * inv_cos_t;
+	double l3_inv_cos_t = l3 * inv_cos_t;
+
+	double* m_mat=new double[16];
+	//1st column
+	m_mat[0] = cos_t + l1 * l1_inv_cos_t;
+	m_mat[1] = l2 * l1_inv_cos_t + l3 * sin_t;
+	m_mat[2] = l3 * l1_inv_cos_t - l2 * sin_t;
+	m_mat[3] = 0;
+
+	//2nd column
+	m_mat[4] = l2 * l1_inv_cos_t - l3 * sin_t;
+	m_mat[5] = cos_t + l2 * l2*inv_cos_t;
+	m_mat[6] = l2 * l3_inv_cos_t + l1 * sin_t;
+	m_mat[7] = 0;
+
+	//3rd column
+	m_mat[8] = l3 * l1_inv_cos_t + l2 * sin_t;
+	m_mat[9] = l2 * l3_inv_cos_t - l1 * sin_t;
+	m_mat[10] = cos_t + l3 * l3_inv_cos_t;
+	m_mat[11] = 0;
+
+	//4th column
+	m_mat[12] = t3D.x;
+	m_mat[13] = t3D.y;
+	m_mat[14] = t3D.z;
+	m_mat[15] = static_cast<double>(1);
+
+	return m_mat;
 }
