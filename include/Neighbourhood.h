@@ -279,6 +279,10 @@ namespace CCCoreLib
 		//! Returns the set 'radius' (i.e. the distance between the gravity center and the its farthest point)
 		PointCoordinateType computeLargestRadius();
 
+		double* initFromParameters(double alpha_rad,
+			const Vector3Tpl<double>& axis3D,
+			const Vector3Tpl<double>& t3D);
+
 	protected:
 
 		//! 2.5D Quadric equation
