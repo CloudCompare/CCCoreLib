@@ -109,18 +109,15 @@ public:
 
 	//! Constructor
 	QuadricLocalModel(	const PointCoordinateType eq[6],
-						unsigned char X,
-						unsigned char Y,
-						unsigned char Z,
-						CCVector3 gravityCenter,
+						const SquareMatrix& localOrientation,
+						const CCVector3& gravityCenter,
 						const CCVector3 &center,
 						PointCoordinateType squaredRadius )
 		: LocalModel(center, squaredRadius)
-		, m_X(X)
-		, m_Y(Y)
-		, m_Z(Z)
+		, m_localOrientation(localOrientation)
 		, m_gravityCenter(gravityCenter)
 	{
+		m_localOrientationInv = m_localOrientation.inv();
 		memcpy(m_eq, eq, sizeof(PointCoordinateType) * 6);
 	}
 
@@ -130,31 +127,31 @@ public:
 	//inherited from LocalModel
 	ScalarType computeDistanceFromModelToPoint(const CCVector3* _P, CCVector3* nearestPoint = nullptr) const override
 	{
-		CCVector3 P = *_P - m_gravityCenter;
+		CCVector3 Plocal = m_localOrientation * (*_P - m_gravityCenter);
 
-		//height = h0 + h1.x + h2.y + h3.x^2 + h4.x.y + h5.y^2
-		PointCoordinateType z = m_eq[0] + m_eq[1] * P.u[m_X] + m_eq[2] * P.u[m_Y] + m_eq[3] * P.u[m_X] * P.u[m_X] + m_eq[4] * P.u[m_X] * P.u[m_Y] + m_eq[5] * P.u[m_Y] * P.u[m_Y];
+		PointCoordinateType z =   m_eq[0]
+								+ m_eq[1] * Plocal.x
+								+ m_eq[2] * Plocal.y
+								+ m_eq[3] * Plocal.x * Plocal.x
+								+ m_eq[4] * Plocal.x * Plocal.y
+								+ m_eq[5] * Plocal.y * Plocal.y;
 
 		if (nearestPoint)
 		{
-			nearestPoint->u[m_X] = P.u[m_X];
-			nearestPoint->u[m_Y] = P.u[m_Y];
-			nearestPoint->u[m_Z] = z;
+			*nearestPoint = m_localOrientationInv * CCVector3(Plocal.x, Plocal.y, z);
 		}
 
-		return static_cast<ScalarType>(std::abs(P.u[m_Z] - z));
+		return static_cast<ScalarType>(std::abs(Plocal.z - z));
 	}
 
 protected:
 
 	//! Quadric equation
 	PointCoordinateType m_eq[6];
-	//! Height function first dimension (0=X, 1=Y, 2=Z)
-	unsigned char m_X;
-	//! Height function second dimension (0=X, 1=Y, 2=Z)
-	unsigned char m_Y;
-	//! Height function third dimension (0=X, 1=Y, 2=Z)
-	unsigned char m_Z;
+	//! Quadric local 'orientation' system
+	SquareMatrix m_localOrientation;
+	//! Quadric local 'orientation' system (inverse)
+	SquareMatrix m_localOrientationInv;
 	//! Model gravity center
 	CCVector3 m_gravityCenter;
 
@@ -202,17 +199,15 @@ LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 
 		case QUADRIC:
 		{
-			Tuple3ub dims;
-			const PointCoordinateType* eq = subset.getQuadric(&dims);
+			SquareMatrix toLocalCS;
+			const PointCoordinateType* eq = subset.getQuadric(&toLocalCS);
 			if (eq)
 			{
 				return new QuadricLocalModel(	eq,
-												dims.x,
-												dims.y,
-												dims.z,
+												toLocalCS,
 												*subset.getGravityCenter(), //should be ok as the quadric computation succeeded!
 												center,
-												squaredRadius);
+												squaredRadius );
 			}
 		}
 			break;

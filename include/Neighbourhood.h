@@ -10,7 +10,6 @@
 #include "GenericIndexedCloudPersist.h"
 #include "SquareMatrix.h"
 
-
 namespace CCCoreLib
 {
 	class GenericIndexedMesh;
@@ -260,11 +259,12 @@ namespace CCCoreLib
 		//! Returns the best interpolating 2.5D quadric
 		/** Returns an array of the form [a,b,c,d,e,f] such as:
 				Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
-			\warning: 'X','Y' and 'Z' are output in dims (optional):
-				dims = [index(X),index(Y),index(Z)] where: 0=x, 1=y, 2=z
+			\warning: 'X','Y' and 'Z' are implicitly expressed in a local coordinate system (see 'toLocalCS')
+			\param[out] toLocalOrientation	optional 3x3 matrix to convert the points to the local coordinate/orientation system in which the Quadric is expressed
+											(point coordinates should already be expressed relative to the gravity center)
 			\return nullptr if computation failed
 		**/
-		const PointCoordinateType* getQuadric(Tuple3ub* dims = nullptr);
+		const PointCoordinateType* getQuadric(SquareMatrix* localOrientation = nullptr);
 
 		//! Computes the best interpolating quadric (Least-square)
 		/** \param[out] quadricEquation an array of 10 coefficients [a,b,c,d,e,f,g,l,m,n] such as
@@ -279,10 +279,6 @@ namespace CCCoreLib
 		//! Returns the set 'radius' (i.e. the distance between the gravity center and the its farthest point)
 		PointCoordinateType computeLargestRadius();
 
-		double* initFromParameters(double alpha_rad,
-			const Vector3Tpl<double>& axis3D,
-			const Vector3Tpl<double>& t3D);
-
 	protected:
 
 		//! 2.5D Quadric equation
@@ -292,11 +288,10 @@ namespace CCCoreLib
 		**/
 		PointCoordinateType m_quadricEquation[6];
 
-		//! 2.5D Quadric equation dimensions
-		/** Array (index(X),index(Y),index(Z)) where: 0=x, 1=y, 2=z
-			Only valid if 'structuresValidity & QUADRIC != 0'.
+		//! 2.5D Quadric equation local coordinate/orientation system
+		/** Only valid if 'structuresValidity & QUADRIC != 0'.
 		**/
-		Tuple3ub m_quadricEquationDirections;
+		SquareMatrix m_quadricEquationOrientation;
 
 		//! Least-square best fitting plane parameters
 		/** Array [a,b,c,d] such that ax+by+cz = d
