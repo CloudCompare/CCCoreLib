@@ -41,6 +41,9 @@ namespace CCCoreLib
 		//! Forwards global iterator
 		inline void forwardIterator() { ++m_globalIterator; }
 
+		//! Returns a given point descriptor
+		inline const DgmOctree::PointDescriptor& getPointDescriptor(unsigned pointIndex) const { assert(pointIndex < size()); return m_set->at(pointIndex); }
+
 	protected:
 
 		//! Computes the cloud bounding-box (internal)
