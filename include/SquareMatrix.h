@@ -417,7 +417,7 @@ namespace CCCoreLib
 					//we scale the matrix to make the pivot equal to 1
 					if (tempM[i][i] != 1.0)
 					{
-						const Scalar& tmpVal = tempM[i][i];
+						const Scalar tmpVal = tempM[i][i];
 						for (unsigned k = i; k < 2 * m_matrixSize; ++k)
 							tempM[i][k] /= tmpVal;
 					}
@@ -427,7 +427,7 @@ namespace CCCoreLib
 					{
 						if (tempM[j][i] != 0)
 						{
-							const Scalar& tmpVal = tempM[j][i];
+							const Scalar tmpVal = tempM[j][i];
 							for (unsigned k = i; k < 2 * m_matrixSize; k++)
 								tempM[j][k] -= tempM[i][k] * tmpVal;
 						}
@@ -443,7 +443,7 @@ namespace CCCoreLib
 					{
 						if (tempM[j][i] != 0)
 						{
-							const Scalar& tmpVal = tempM[j][i];
+							const Scalar tmpVal = tempM[j][i];
 							for (unsigned k = i; k < 2 * m_matrixSize; k++)
 								tempM[j][k] -= tempM[i][k] * tmpVal;
 						}
