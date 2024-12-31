@@ -15,12 +15,10 @@
 //System
 #include <algorithm>
 
-
 using namespace CCCoreLib;
 
 Neighbourhood::Neighbourhood(GenericIndexedCloudPersist* associatedCloud)
-	: m_quadricEquationDirections(0, 1, 2)
-	, m_structuresValidity(FLAG_DEPRECATED)
+	: m_structuresValidity(FLAG_DEPRECATED)
 	, m_associatedCloud(associatedCloud)
 {
 	memset(m_quadricEquation,  0, sizeof(PointCoordinateType)*6);
@@ -88,16 +86,16 @@ const CCVector3* Neighbourhood::getLSPlaneNormal()
 	return ((m_structuresValidity & FLAG_LS_PLANE) ? m_lsPlaneVectors + 2 : nullptr);
 }
 
-const PointCoordinateType* Neighbourhood::getQuadric(Tuple3ub* dims/*=nullptr*/)
+const PointCoordinateType* Neighbourhood::getQuadric(SquareMatrix* toLocalOrientation/*=nullptr*/)
 {
 	if (!(m_structuresValidity & FLAG_QUADRIC))
 	{
 		computeQuadric();
 	}
 
-	if (dims)
+	if (toLocalOrientation)
 	{
-		*dims = m_quadricEquationDirections;
+		*toLocalOrientation = m_quadricEquationOrientation;
 	}
 
 	return ((m_structuresValidity & FLAG_QUADRIC) ? m_quadricEquation : nullptr);
@@ -105,7 +103,7 @@ const PointCoordinateType* Neighbourhood::getQuadric(Tuple3ub* dims/*=nullptr*/)
 
 void Neighbourhood::computeGravityCenter()
 {
-	//invalidate previous centroid (if any)
+	//invalidate the previous centroid (if any)
 	m_structuresValidity &= (~FLAG_GRAVITY_CENTER);
 
 	assert(m_associatedCloud);
@@ -114,8 +112,8 @@ void Neighbourhood::computeGravityCenter()
 		return;
 
 	//sum
-	CCVector3d Psum(0,0,0);
-	for (unsigned i=0; i<count; ++i)
+	CCVector3d Psum(0, 0, 0);
+	for (unsigned i = 0; i < count; ++i)
 	{
 		const CCVector3* P = m_associatedCloud->getPoint(i);
 		Psum.x += P->x;
@@ -123,11 +121,9 @@ void Neighbourhood::computeGravityCenter()
 		Psum.z += P->z;
 	}
 
-	setGravityCenter( {
-						  static_cast<PointCoordinateType>(Psum.x / count),
-						  static_cast<PointCoordinateType>(Psum.y / count),
-						  static_cast<PointCoordinateType>(Psum.z / count)
-					  } );
+	setGravityCenter( {	static_cast<PointCoordinateType>(Psum.x / count),
+						static_cast<PointCoordinateType>(Psum.y / count),
+						static_cast<PointCoordinateType>(Psum.z / count) } );
 }
 
 SquareMatrixd Neighbourhood::computeCovarianceMatrix()
@@ -137,7 +133,7 @@ SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 	if (!count)
 		return SquareMatrixd();
 
-	//compute the centroid
+	//get the centroid
 	const CCVector3* G = getGravityCenter();
 	assert(G);
 
@@ -190,7 +186,7 @@ PointCoordinateType Neighbourhood::computeLargestRadius()
 	}
 
 	double maxSquareDist = 0;
-	for (unsigned i=0; i<pointCount; ++i)
+	for (unsigned i = 0; i < pointCount; ++i)
 	{
 		const CCVector3* P = m_associatedCloud->getPoint(i);
 		const double d2 = (*P-*G).norm2();
@@ -222,7 +218,7 @@ bool Neighbourhood::computeLeastSquareBestFittingPlane()
 	{
 		SquareMatrixd covMat = computeCovarianceMatrix();
 
-		//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
+		//we determine the plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
 		SquareMatrixd eigVectors;
 		std::vector<double> eigValues;
 		if (!Jacobi<double>::ComputeEigenValuesAndVectors(covMat, eigVectors, eigValues, true))
@@ -305,48 +301,60 @@ bool Neighbourhood::computeQuadric()
 
 	assert(m_associatedCloud);
 	if (!m_associatedCloud)
+	{
 		return false;
+	}
 
 	unsigned count = m_associatedCloud->size();
 
 	static_assert(CC_LOCAL_MODEL_MIN_SIZE[QUADRIC] >= 5, "Invalid CC_LOCAL_MODEL_MIN_SIZE size");
 	if (count < CC_LOCAL_MODEL_MIN_SIZE[QUADRIC])
+	{
 		return false;
+	}
 
 	const PointCoordinateType* lsPlane = getLSPlane();
 	if (!lsPlane)
+	{
 		return false;
+	}
 
-	//we get centroid (should already be up-to-date - see computeCovarianceMatrix)
+	//we get the centroid (should already be up-to-date - see computeCovarianceMatrix)
 	const CCVector3* G = getGravityCenter();
 	assert(G);
 
-	//get the best projection axis
-	Tuple3ub idx(0/*x*/,1/*y*/,2/*z*/); //default configuration: z is the "normal" direction, we use (x,y) as the base plane
-	const PointCoordinateType nxx = lsPlane[0]*lsPlane[0];
-	const PointCoordinateType nyy = lsPlane[1]*lsPlane[1];
-	const PointCoordinateType nzz = lsPlane[2]*lsPlane[2];
+	//transform the local coordinate system so that the LS plane normal direction becomes 'Z'
+	SquareMatrix toLocalOrientation(3);
+	{
+		CCVector3 Z(lsPlane);
+		Z.normalize();
+		//CCVector3 Y = Z.orthogonal(); // DGM: the curvature estimate higlhy depends on the orientation of X or Y.
+										// Therefore, using a 'stable' orientation gives better results.
+		CCVector3 Y(-Z.y, Z.x, 0);
+		if (Y.norm() < 0.1) // still, we can't use a too small Y vector as it will add too much noise
+		{
+			Y = CCVector3(0.0, Z.z, -Z.y);
+		}
+		CCVector3 X = Y.cross(Z);
+		X.normalize();
+		Y = Z.cross(X);
 
-	//if (nxx > nyy)
-	//{
-	//	if (nxx > nzz)
-	//	{
-	//		//as x is the "normal" direction, we use (y,z) as the base plane
-	//		idx.x = 1/*y*/; idx.y = 2/*z*/; idx.z = 0/*x*/;
-	//	}
-	//}
-	//else
-	//{
-	//	if (nyy > nzz)
-	//	{
-	//		//as y is the "normal" direction, we use (z,x) as the base plane
-	//		idx.x = 2/*z*/; idx.y = 0/*x*/; idx.z = 1/*y*/;
-	//	}
-	//}
+		toLocalOrientation.setValue(0, 0, X.x);
+		toLocalOrientation.setValue(1, 0, X.y);
+		toLocalOrientation.setValue(2, 0, X.z);
+		toLocalOrientation.setValue(0, 1, Y.x);
+		toLocalOrientation.setValue(1, 1, Y.y);
+		toLocalOrientation.setValue(2, 1, Y.z);
+		toLocalOrientation.setValue(0, 2, Z.x);
+		toLocalOrientation.setValue(1, 2, Z.y);
+		toLocalOrientation.setValue(2, 2, Z.z);
+
+		toLocalOrientation.transpose(); // transposed is equivalent to inverse for a 3x3 rotation matrix
+	}
 
 	//compute the A matrix and b vector
-	std::vector<float> A;
-	std::vector<float> b;
+	std::vector<double> A;
+	std::vector<double> b;
 	try
 	{
 		A.resize(6 * count, 0);
@@ -358,178 +366,76 @@ bool Neighbourhood::computeQuadric()
 		return false;
 	}
 
-	float lmax2 = 0; //max (squared) dimension
+	double lmax2 = 0; //max (squared) dimension
 
-	//for all points
+	//for every points
 	{
-		float* _A = A.data();
-		float* _b = b.data();
+		double* _A = A.data();
+		double* _b = b.data();
 		for (unsigned i = 0; i < count; ++i)
 		{
-			//CCVector3 P = *m_associatedCloud->getPoint(i) - *G;
-			//============Rotation axis====================
-			CCVector3 axis;
-			axis.x = -lsPlane[1];
-			axis.y = lsPlane[0];
-			axis.z = 0;
-			
-			float numerator = lsPlane[0]*0+ lsPlane[1] * 0+ lsPlane[2] * 1;
-			float denominator = sqrt(0 + 0 + 1)*sqrt(nxx+nyy+nzz);
-			float alpha;
-			alpha = std::acos(numerator/ denominator);
+			CCVector3 l = toLocalOrientation * (*m_associatedCloud->getPoint(i) - *G);
 
-			CCVector3 t;
-			t.x = t.y = t.z = 0;
-
-			double* m_mat = Neighbourhood::initFromParameters(alpha, -axis, t);
-
-			const CCVector3* PP = m_associatedCloud->getPoint(i);
-
-			CCVector3 dP;
-			dP.x = PP->x - G->x;
-			dP.y = PP->y - G->y;
-			dP.z = PP->z - G->z;
-
-			CCVector3 P;
-			P.x = m_mat[0] * dP.x+ m_mat[4] * dP.y+ m_mat[8] * dP.z;
-			P.y = m_mat[1] * dP.x + m_mat[5] * dP.y + m_mat[9] * dP.z;
-			P.z = m_mat[2] * dP.x + m_mat[6] * dP.y + m_mat[10] * dP.z;
-			float lX = static_cast<float>(P.x);
-			float lY = static_cast<float>(P.y);
-			float lZ = static_cast<float>(P.z);
-
-			delete m_mat;
-			//=============end==========
-
-			//float lX = static_cast<float>(P.u[idx.x]);
-			//float lY = static_cast<float>(P.u[idx.y]);
-			//float lZ = static_cast<float>(P.u[idx.z]);
-
-			*_A++ = 1.0f;
-			*_A++ = lX;
-			*_A++ = lY;
-			*_A = lX*lX;
+			*_A++ = 1.0;
+			*_A++ = l.x;
+			*_A++ = l.y;
+			*_A = static_cast<double>(l.x)*l.y;
 			//by the way, we track the max 'X' squared dimension
-			if (*_A > lmax2)
-				lmax2 = *_A;
+			lmax2 = std::max(lmax2, *_A);
+
 			++_A;
-			*_A++ = lX*lY;
-			*_A = lY*lY;
+			*_A++ = static_cast<double>(l.x)*l.y;
+			*_A = static_cast<double>(l.y)*l.y;
 			//by the way, we track the max 'Y' squared dimension
-			if (*_A > lmax2)
-				lmax2 = *_A;
+			lmax2 = std::max(lmax2, *_A);
 			++_A;
 
-			*_b++ = lZ;
-			lZ *= lZ;
+			*_b++ = l.z;
 			//and don't forget to track the max 'Z' squared dimension as well
-			if (lZ > lmax2)
-				lmax2 = lZ;
+			lmax2 = std::max(lmax2, static_cast<double>(l.z)*l.z);
 		}
 	}
 
 	//conjugate gradient initialization
 	//we solve tA.A.X=tA.b
-	ConjugateGradient<6,double> cg;
+	ConjugateGradient<6, double> cg;
 	const SquareMatrixd& tAA = cg.A();
 	double* tAb = cg.b();
 
 	//compute tA.A and tA.b
 	{
-		for (unsigned i=0; i<6; ++i)
+		for (unsigned i = 0; i < 6; ++i)
 		{
 			//tA.A part
-			for (unsigned j=i; j<6; ++j)
+			for (unsigned j = i; j < 6; ++j)
 			{
-				double tmp = 0;
-				float* _Ai = &(A[i]);
-				float* _Aj = &(A[j]);
+				double tAASum = 0.0;
+				const double* _Ai = A.data() + i;
+				const double* _Aj = A.data() + j;
 				for (unsigned k = 0; k < count; ++k, _Ai += 6, _Aj += 6)
 				{
-					//tmp += A[(6*k)+i] * A[(6*k)+j];
-					tmp += static_cast<double>(*_Ai) * static_cast<double>(*_Aj);
+					//tAASum += A[(6*k)+i] * A[(6*k)+j];
+					tAASum += (*_Ai) * (*_Aj);
 				}
-				tAA.m_values[j][i] = tAA.m_values[i][j] = tmp;
+				tAA.m_values[j][i] = tAA.m_values[i][j] = tAASum;
 			}
 
 			//tA.b part
 			{
-				double tmp = 0;
-				float* _Ai = &(A[i]);
-				for (unsigned k = 0; k<count; ++k, _Ai += 6)
+				double tAbSum = 0.0;
+				const double* _Ai = A.data() + i;
+				for (unsigned k = 0; k < count; ++k, _Ai += 6)
 				{
-					//tmp += A[(6*k)+i]*b[k];
-					tmp += static_cast<double>(*_Ai) * static_cast<double>(b[k]);
+					//tAbSum += A[(6*k)+i]*b[k];
+					tAbSum += (*_Ai) * b[k];
 				}
-				tAb[i] = tmp;
+				tAb[i] = tAbSum;
 			}
 		}
-
-#if 0
-		//trace tA.A and tA.b to a file
-		FILE* f = nullptr;
-		fopen_s(&f, "CG_trace.txt", "wt");
-		if (f)
-		{
-			fprintf_s(f, "lmax2 = %3.12f\n", lmax2);
-
-			{
-				float Amin = 0, Amax = 0;
-				Amin = Amax = A[0];
-				for (unsigned i = 1; i < 6 * count; ++i)
-				{
-					Amin = std::min(A[i], Amin);
-					Amax = std::max(A[i], Amax);
-				}
-				fprintf_s(f, "A in [%3.12f ; %3.12f]\n", Amin, Amax);
-			}
-			{
-				float bmin = 0, bmax = 0;
-				bmin = bmax = b[0];
-				for (unsigned i = 1; i < count; ++i)
-				{
-					bmin = std::min(b[i], bmin);
-					bmax = std::max(b[i], bmax);
-				}
-				fprintf_s(f, "b in [%3.12f ; %3.12f]\n", bmin, bmax);
-			}
-
-			fprintf_s(f, "tA.A\n");
-			for (unsigned i = 0; i<6; ++i)
-			{
-				for (unsigned j = 0; j < 6; ++j)
-				{
-					fprintf_s(f, "%3.12f ", tAA.m_values[i][j]);
-				}
-				fprintf_s(f, "\n");
-			}
-
-			//tA.b part
-			fprintf_s(f, "tA.b\n");
-			for (unsigned i = 0; i<6; ++i)
-			{
-				fprintf_s(f, "%3.12f ", tAb[i]);
-			}
-			fprintf_s(f, "\n");
-
-			fclose(f);
-		}
-#endif
 	}
 
-	//first guess for X: plane equation (a0.x+a1.y+a2.z=a3 --> z = a3/a2 - a0/a2.x - a1/a2.y)
-	double X0[6] = {static_cast<double>(/*lsPlane[3]/lsPlane[idx.z]*/0), //DGM: warning, points have already been recentred around the gravity center! So forget about a3
-					static_cast<double>(-lsPlane[idx.x]/lsPlane[idx.z]),
-					static_cast<double>(-lsPlane[idx.y]/lsPlane[idx.z]),
-					0,
-					0,
-					0 };
-
-	//special case: a0 = a1 = a2 = 0! //happens for perfectly flat surfaces!
-	if (X0[1] == 0 && X0[2] == 0)
-	{
-		X0[0] = 1.0;
-	}
+	//first guess for X
+	double X0[6] {	0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 	//init. conjugate gradient
 	cg.initConjugateGradient(X0);
@@ -537,24 +443,23 @@ bool Neighbourhood::computeQuadric()
 	//conjugate gradient iterations
 	{
 		const double convergenceThreshold = lmax2 * 1.0e-8;  //max. error for convergence = 1e-8 of largest cloud dimension (empirical!)
-		for (unsigned i=0; i<1500; ++i)
+		for (unsigned i = 0; i < 1500; ++i)
 		{
 			double lastError = cg.iterConjugateGradient(X0);
-			if (lastError < convergenceThreshold) //converged
+			if (lastError < convergenceThreshold)
+			{
+				//CG has converged
 				break;
+			}
 		}
 	}
-	//fprintf(fp,"X%i=(%f,%f,%f,%f,%f,%f)\n",i,X0[0],X0[1],X0[2],X0[3],X0[4],X0[5]);
-	//fprintf(fp,"lastError=%E/%E\n",lastError,convergenceThreshold);
-	//fclose(fp);
-
 	//output
 	{
-		for (unsigned i=0; i<6; ++i)
+		for (unsigned i = 0; i < 6; ++i)
 		{
 			m_quadricEquation[i] = static_cast<PointCoordinateType>(X0[i]);
 		}
-		m_quadricEquationDirections = idx;
+		m_quadricEquationOrientation = toLocalOrientation;
 
 		m_structuresValidity |= FLAG_QUADRIC;
 	}
@@ -574,7 +479,7 @@ bool Neighbourhood::compute3DQuadric(double quadricEquation[10])
 	//computes a 3D quadric of the form ax2 +by2 +cz2 + 2exy + 2fyz + 2gzx + 2lx + 2my + 2nz + d = 0
 	//"THREE-DIMENSIONAL SURFACE CURVATURE ESTIMATION USING QUADRIC SURFACE PATCHES", I. Douros & B. Buxton, University College London
 
-	//we get centroid
+	//we get the centroid
 	const CCVector3* G = getGravityCenter();
 	assert(G);
 
@@ -721,38 +626,49 @@ GenericIndexedMesh* Neighbourhood::triangulateOnPlane( bool duplicateVertices,
 
 GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsigned nStepY)
 {
-	if (nStepX<2 || nStepY<2)
+	if (!m_associatedCloud)
+	{
+		assert(false);
 		return nullptr;
+	}
+
+	if (nStepX < 2 || nStepY < 2)
+	{
+		return nullptr;
+	}
 
 	//qaudric fit
 	const PointCoordinateType* Q = getQuadric(); //Q: Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
 	if (!Q)
+	{
 		return nullptr;
+	}
 
-	const PointCoordinateType& a = Q[0];
-	const PointCoordinateType& b = Q[1];
-	const PointCoordinateType& c = Q[2];
-	const PointCoordinateType& d = Q[3];
-	const PointCoordinateType& e = Q[4];
-	const PointCoordinateType& f = Q[5];
+	assert(m_quadricEquationOrientation.size() == 3);
 
-	const unsigned char X = m_quadricEquationDirections.x;
-	const unsigned char Y = m_quadricEquationDirections.y;
-	const unsigned char Z = m_quadricEquationDirections.z;
+	const PointCoordinateType a = Q[0];
+	const PointCoordinateType b = Q[1];
+	const PointCoordinateType c = Q[2];
+	const PointCoordinateType d = Q[3];
+	const PointCoordinateType e = Q[4];
+	const PointCoordinateType f = Q[5];
 
 	//gravity center (should be ok if the quadric is ok)
 	const CCVector3* G = getGravityCenter();
 	assert(G);
 
 	//bounding box
-	CCVector3 bbMin;
-	CCVector3 bbMax;
-	m_associatedCloud->getBoundingBox(bbMin, bbMax);
-	CCVector3 bboxDiag = bbMax - bbMin;
+	BoundingBox bb;
+	for (unsigned i = 0; i < m_associatedCloud->size(); ++i)
+	{
+		CCVector3 P = m_quadricEquationOrientation * (*m_associatedCloud->getPoint(i) - *G);
+		bb.add(P);
+	}
+	CCVector3 bboxDiag = bb.getDiagVec();
 
 	//Sample points on Quadric and triangulate them!
-	const PointCoordinateType spanX = bboxDiag.u[X];
-	const PointCoordinateType spanY = bboxDiag.u[Y];
+	const PointCoordinateType spanX = bboxDiag.x;
+	const PointCoordinateType spanY = bboxDiag.y;
 	const PointCoordinateType stepX = spanX / (nStepX - 1);
 	const PointCoordinateType stepY = spanY / (nStepY - 1);
 
@@ -770,32 +686,35 @@ GenericIndexedMesh* Neighbourhood::triangulateFromQuadric(unsigned nStepX, unsig
 		return nullptr;
 	}
 
+	SquareMatrix toGlobalOrientation = m_quadricEquationOrientation.inv();
+
 	for (unsigned x = 0; x < nStepX; ++x)
 	{
 		CCVector3 P;
-		P.x = bbMin[X] + stepX * x - G->u[X];
+		P.x = bb.minCorner().x + stepX * x;
 		for (unsigned y = 0; y < nStepY; ++y)
 		{
-			P.y = bbMin[Y] + stepY * y - G->u[Y];
-			P.z = a + b * P.x + c * P.y + d * P.x*P.x + e * P.x*P.y + f * P.y*P.y;
+			P.y = bb.minCorner().y + stepY * y;
+			P.z = a
+				+ b * P.x
+				+ c * P.y
+				+ d * P.x * P.x
+				+ e * P.x * P.y
+				+ f * P.y * P.y;
 
-			CCVector3 Pc;
-			Pc.u[X] = P.x;
-			Pc.u[Y] = P.y;
-			Pc.u[Z] = P.z;
-			Pc += *G;
+			CCVector3 Pc = toGlobalOrientation * P + *G;
 
 			vertices->addPoint(Pc);
 
-			if (x>0 && y>0)
+			if (x != 0 && y != 0)
 			{
 				const unsigned iA = (x - 1) * nStepY + y - 1;
 				const unsigned iB = iA + 1;
 				const unsigned iC = iA + nStepY;
 				const unsigned iD = iB + nStepY;
 
-				quadMesh->addTriangle(iA,iC,iB);
-				quadMesh->addTriangle(iB,iC,iD);
+				quadMesh->addTriangle(iA, iC, iB);
+				quadMesh->addTriangle(iB, iC, iD);
 			}
 		}
 	}
@@ -973,49 +892,48 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			//we get 2D1/2 quadric parameters
 			const PointCoordinateType* H = getQuadric();
 			if (!H)
+			{
 				return NAN_VALUE;
+			}
 
-			//compute centroid
+			//compute gravity center
 			const CCVector3* G = getGravityCenter();
-
-			//we compute curvature at the input neighbour position + we recenter it by the way
-			const CCVector3 Q(P - *G);
-
-			const unsigned char X = m_quadricEquationDirections.x;
-			const unsigned char Y = m_quadricEquationDirections.y;
+			
+			//we compute curvature at the input neighbour position
+			const CCVector3 Q = m_quadricEquationOrientation * (P - *G);
 
 			//z = a+b.x+c.y+d.x^2+e.x.y+f.y^2
-			//const PointCoordinateType& a = H[0];
-			const PointCoordinateType& b = H[1];
-			const PointCoordinateType& c = H[2];
-			const PointCoordinateType& d = H[3];
-			const PointCoordinateType& e = H[4];
-			const PointCoordinateType& f = H[5];
+			//const PointCoordinateType a = H[0];
+			const double b = H[1];
+			const double c = H[2];
+			const double d = H[3];
+			const double e = H[4];
+			const double f = H[5];
 
 			//See "CURVATURE OF CURVES AND SURFACES – A PARABOLIC APPROACH" by ZVI HAR’EL
-			const PointCoordinateType  fx	= b + (d*2) * Q.u[X] + (e  ) * Q.u[Y];	// b+2d*X+eY
-			const PointCoordinateType  fy	= c + (e  ) * Q.u[X] + (f*2) * Q.u[Y];	// c+2f*Y+eX
-			const PointCoordinateType  fxx	= d*2;									// 2d
-			const PointCoordinateType  fyy	= f*2;									// 2f
-			const PointCoordinateType& fxy	= e;									// e
+			const double fx	= b + (d*2) * Q.x + (e  ) * Q.y;	// b+2d*X+eY
+			const double fy	= c + (e  ) * Q.x + (f*2) * Q.y;	// c+2f*Y+eX
+			const double fxx	= d*2;							// 2d
+			const double fyy	= f*2;							// 2f
+			const double fxy	= e;							// e
 
-			const PointCoordinateType fx2 = fx*fx;
-			const PointCoordinateType fy2 = fy*fy;
-			const PointCoordinateType q = (1 + fx2 + fy2);
+			const double fx2 = fx*fx;
+			const double fy2 = fy*fy;
+			const double q = (1 + fx2 + fy2);
 
 			switch (cType)
 			{
 				case GAUSSIAN_CURV:
 				{
 					//to sign the curvature, we need a normal!
-					const PointCoordinateType K = std::abs(fxx*fyy - fxy * fxy) / (q*q);
+					const double K = std::abs(fxx*fyy - fxy * fxy) / (q*q);
 					return static_cast<ScalarType>(K);
 				}
 
 				case MEAN_CURV:
 				{
 					//to sign the curvature, we need a normal!
-					const PointCoordinateType H2 = std::abs(((1 + fx2)*fyy - 2 * fx*fy*fxy + (1 + fy2)*fxx)) / (2 * sqrt(q)*q);
+					const double H2 = std::abs(((1 + fx2)*fyy - 2 * fx*fy*fxy + (1 + fy2)*fxx)) / (2 * sqrt(q)*q);
 					return static_cast<ScalarType>(H2);
 				}
 
@@ -1024,7 +942,7 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 					break;
 			}
 		}
-			break;
+		break;
 
 		case NORMAL_CHANGE_RATE:
 		{
@@ -1064,61 +982,14 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			const double eMin = std::min(std::min(e.x, e.y), e.z);
 			return static_cast<ScalarType>(eMin / sum);
 		}
-			break;
+		break;
 
 		default:
+		{
 			assert(false);
+		}
+		break;
 	}
 
 	return NAN_VALUE;
-}
-
-//! Inits transformation from a rotation axis, an angle and a translation
-/** \param[in] alpha_rad rotation angle (in radians)
-\param[in] axis3D rotation axis
-\param[in] t3D translation
-**/
-double* Neighbourhood::initFromParameters(double alpha_rad, const Vector3Tpl<double>& axis3D, const Vector3Tpl<double>& t3D)
-{
-	double cos_t = cos(alpha_rad);
-	double sin_t = sin(alpha_rad);
-	double inv_cos_t = static_cast<double>(1) - cos_t;
-
-	//normalize rotation axis
-	Vector3Tpl<double> uAxis3D = axis3D;
-	uAxis3D.normalize();
-
-	const double& l1 = uAxis3D.x;
-	const double& l2 = uAxis3D.y;
-	const double& l3 = uAxis3D.z;
-
-	double l1_inv_cos_t = l1 * inv_cos_t;
-	double l3_inv_cos_t = l3 * inv_cos_t;
-
-	double* m_mat=new double[16];
-	//1st column
-	m_mat[0] = cos_t + l1 * l1_inv_cos_t;
-	m_mat[1] = l2 * l1_inv_cos_t + l3 * sin_t;
-	m_mat[2] = l3 * l1_inv_cos_t - l2 * sin_t;
-	m_mat[3] = 0;
-
-	//2nd column
-	m_mat[4] = l2 * l1_inv_cos_t - l3 * sin_t;
-	m_mat[5] = cos_t + l2 * l2*inv_cos_t;
-	m_mat[6] = l2 * l3_inv_cos_t + l1 * sin_t;
-	m_mat[7] = 0;
-
-	//3rd column
-	m_mat[8] = l3 * l1_inv_cos_t + l2 * sin_t;
-	m_mat[9] = l2 * l3_inv_cos_t - l1 * sin_t;
-	m_mat[10] = cos_t + l3 * l3_inv_cos_t;
-	m_mat[11] = 0;
-
-	//4th column
-	m_mat[12] = t3D.x;
-	m_mat[13] = t3D.y;
-	m_mat[14] = t3D.z;
-	m_mat[15] = static_cast<double>(1);
-
-	return m_mat;
 }
