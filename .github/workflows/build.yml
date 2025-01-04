@@ -4,14 +4,13 @@ on: [ push, pull_request ]
 
 jobs:
   build:
-    name: ${{ matrix.config.name }} SCALAR_DOUBLE=${{ matrix.scalar_double }}
+    name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     strategy:
       fail-fast: false
       matrix:
-        scalar_double: ["OFF", "ON"]
         config:
           - {
               name: "Windows MSVC",
@@ -35,10 +34,10 @@ jobs:
       - name: Install Dependencies
         uses: conda-incubator/setup-miniconda@v3
         with:
+          architecture: ${{ matrix.config.os == 'macos-latest' && 'arm64' || 'x64' }}
           activate-environment: CCCoreLib
           auto-activate-base: false
           environment-file: .ci/conda.yml
-          mamba-version: '*'
 
       - name: Configure MSVC console (Windows)
         if: matrix.config.os == 'windows-latest'
@@ -65,7 +64,6 @@ jobs:
           -G "${{ matrix.config.generator }}" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_PREFIX_PATH="$CONDA_LIB_DIR" \
-          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} \
           -DCCCORELIB_USE_CGAL=FALSE \
           -DCCCORELIB_USES_TBB=TRUE \
           .
@@ -82,8 +80,7 @@ jobs:
           -B cccorelib-build \
           -G "${{ matrix.config.generator }}" \
           -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$CONDA_LIB_DIR" \
-          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }} \
+          -DCMAKE_PREFIX_PATH="$CONDA_LIB_DIR" \
           -DCCCORELIB_USE_CGAL=FALSE \
           -DCCCORELIB_USES_TBB=TRUE \
           .
@@ -92,19 +89,18 @@ jobs:
         run: cmake --build cccorelib-build --parallel
 
   ubuntu-build:
-    name: Ubuntu ${{ matrix.compiler }} SCALAR_DOUBLE=${{ matrix.scalar_double }}
+    name: Ubuntu ${{ matrix.compiler }}
     runs-on: ubuntu-22.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     strategy:
       fail-fast: false
       matrix:
-        scalar_double: [ "OFF", "ON" ]
         compiler: ["GCC", "Clang"]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -138,7 +134,6 @@ jobs:
           -S .
           -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DCCCORELIB_SCALAR_DOUBLE=${{ matrix.scalar_double }}
           -DCCCORELIB_USE_CGAL=TRUE
           -DCCCORELIB_USES_TBB=TRUE
           .

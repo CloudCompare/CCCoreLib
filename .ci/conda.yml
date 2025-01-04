@@ -2,7 +2,7 @@ name: CCCoreLib
 channels:
   - conda-forge
 dependencies:
-  - cgal=5.*
   - ninja
   - qt=5.15.*
+  - cgal=5.*
   - tbb-devel=2021.*
