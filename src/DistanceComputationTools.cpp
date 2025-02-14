@@ -32,7 +32,15 @@
 //enables multi-threading handling with TBB
 #define ENABLE_CLOUD2MESH_DIST_MT
 #include <mutex>
-#include <tbb/parallel_for.h>
+#ifndef Q_MOC_RUN
+#if defined(emit)
+	#undef emit
+	#include <tbb/parallel_for.h>
+	#define emit // restore the macro definition of "emit", as it was defined in gtmetamacros.h
+#else
+	#include <tbb/parallel_for.h>
+#endif // defined(emit)
+#endif // Q_MOC_RUN
 #else
 //Note that there is the case CC_DEBUG=OFF and neither TBB nor Qt
 #undef ENABLE_CLOUD2MESH_DIST_MT
