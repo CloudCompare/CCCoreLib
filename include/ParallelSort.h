@@ -17,7 +17,15 @@
 
 #elif CC_CORE_LIB_USES_TBB
 
+   #ifndef Q_MOC_RUN
+   #if defined(emit)
+      #undef emit
+      #include <tbb/parallel_sort.h>
+      #define emit // restore the macro definition of "emit", as it was defined in gtmetamacros.h
+   #else
    #include <tbb/parallel_sort.h>
+   #endif // defined(emit)
+   #endif // Q_MOC_RUN
 
    #define ParallelSort tbb::parallel_sort
 
