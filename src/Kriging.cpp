@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
-// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
+// Copyright Â© EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 #include "../include/Kriging.h"
 
 //System
 #include <algorithm>
-#include <array>
 #include <assert.h>
 #include <map>
 #include <random>
@@ -93,7 +92,7 @@ public:
 		}
 
 		// Now solve upper triangular (transpose of lower triangular) * x = y with back substitution.
-		// Note that x can be solved in place using the existing y vector.  No need to allocate 
+		// Note that x can be solved in place using the existing y vector.  No need to allocate
 		// another vector.
 		for (int i = static_cast<int>(b.size()) - 1; i >= 0; i--)
 		{
@@ -193,7 +192,7 @@ public:
 		// The rows of this matrix have been permutated during the decomposition process.  The
 		// m_rowPermutation indicates the proper row order.
 
-		// The lower diagonal matrix only includes elements below the diagonal with diagonal 
+		// The lower diagonal matrix only includes elements below the diagonal with diagonal
 		// elements set to 1.
 
 		// The upper diagonal matrix is fully specified.
@@ -599,7 +598,7 @@ Kriging::KrigeParams Kriging::computeDefaultParameters() const
 {
 	// Note: Determination of sill and range are only rough estimates.
 	//       It is up to the user to interpret the empirical and model
-	//       variogram plots to assess the validity of the parameters 
+	//       variogram plots to assess the validity of the parameters
 	//       used in the chosen model.
 
 	// For fixed models, range is the first distance where the sill is reached.
@@ -684,7 +683,7 @@ Kriging::KrigeParams Kriging::computeDefaultParameters() const
 				assert(shift >= 1 && shift < static_cast<int>(MaxPointCount));
 				int j = (i + shift) % static_cast<int>(MaxPointCount);
 				assert(i != j);
-				
+
 				double delta = m_dataPoints[i].value - m_dataPoints[j].value;
 				double variance = (delta * delta) / 2;
 
@@ -793,7 +792,7 @@ Kriging::KrigeParams Kriging::computeDefaultParameters() const
 		for (size_t i = 0; i < lagSemivariance.size(); ++i)
 		{
 			double semivariance = lagSemivariance[i];
-			
+
 			if (semivariance > estimatedParams.sill)
 			{
 				estimatedParams.range = (i != 0 ? (lagDistance[i - 1] + lagDistance[i]) / 2.0 : lagDistance[i]);

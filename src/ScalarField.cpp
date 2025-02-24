@@ -4,7 +4,6 @@
 #include <ScalarField.h>
 
 //System
-#include <cassert>
 #include <cstring>
 
 using namespace CCCoreLib;
