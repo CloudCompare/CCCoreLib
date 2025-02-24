@@ -3,9 +3,6 @@
 
 #include "ReferenceCloud.h"
 
-//system
-#include <algorithm>
-
 using namespace CCCoreLib;
 
 ReferenceCloud::ReferenceCloud(GenericIndexedCloudPersist* associatedCloud)

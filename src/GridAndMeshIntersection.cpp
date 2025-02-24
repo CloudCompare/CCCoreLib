@@ -298,4 +298,3 @@ bool GridAndMeshIntersection::hasGridMeshIntersection() const
 {
 	return m_perCellTriangleList.isInitialized();
 }
-

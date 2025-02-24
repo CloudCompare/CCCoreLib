@@ -7,7 +7,6 @@
 #include "CCToolbox.h"
 #include "DgmOctree.h"
 
-
 namespace CCCoreLib
 {
 	class GenericCloud;

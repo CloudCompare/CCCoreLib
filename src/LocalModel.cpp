@@ -5,7 +5,6 @@
 
 //local
 #include "DistanceComputationTools.h"
-#include "GenericIndexedMesh.h"
 #include "GenericMesh.h"
 #include "GenericTriangle.h"
 
@@ -186,7 +185,7 @@ LocalModel* LocalModel::New(LOCAL_MODEL_TYPES type,
 		case TRI:
 		{
 			std::string	errorStr;
-			
+
 			GenericMesh* tri = subset.triangulateOnPlane( Neighbourhood::DUPLICATE_VERTICES,
 														  Neighbourhood::IGNORE_MAX_EDGE_LENGTH,
 														  errorStr ); //'subset' is potentially associated to a volatile ReferenceCloud, so we must duplicate vertices!

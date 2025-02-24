@@ -3,7 +3,11 @@
 
 #pragma once
 
+//Local
 #include "CCGeom.h"
+
+//System
+#include <cassert>
 
 namespace CCCoreLib
 {
@@ -20,31 +24,31 @@ namespace CCCoreLib
 			invDir = Vector3Tpl<T>(1/rayAxis.x, 1/rayAxis.y, 1/rayAxis.z); // +/-infinity is acceptable here because we are mainly interested in the sign
 			sign = Tuple3i(invDir.x < 0, invDir.y < 0, invDir.z < 0);
 		}
-		
+
 		double radialSquareDistance(const Vector3Tpl<T>& P) const
 		{
 			Vector3Tpl<T> OP = P - origin;
 			return OP.cross(dir).norm2d();
 		}
-		
+
 		double squareDistanceToOrigin(const Vector3Tpl<T>& P) const
 		{
 			Vector3Tpl<T> OP = P - origin;
 			return OP.norm2d();
 		}
-		
+
 		void squareDistances(const Vector3Tpl<T>& P, double& radial, double& toOrigin) const
 		{
 			Vector3Tpl<T> OP = P - origin;
 			radial = OP.cross(dir).norm2d();
 			toOrigin = OP.norm2d();
 		}
-		
+
 		Vector3Tpl<T> dir, origin;
 		Vector3Tpl<T> invDir;
 		Tuple3i sign;
 	};
-		
+
 	//! Simple axis aligned box structure
 	template <typename T > struct AABB
 	{
@@ -53,11 +57,11 @@ namespace CCCoreLib
 			assert(minCorner.x <= maxCorner.x);
 			assert(minCorner.y <= maxCorner.y);
 			assert(minCorner.z <= maxCorner.z);
-			
+
 			corners[0] = minCorner;
 			corners[1] = maxCorner;
 		}
-		
+
 		/*
 		 * Ray-box intersection using IEEE numerical properties to ensure that the
 		 * test is both robust and efficient, as described in:
@@ -72,32 +76,32 @@ namespace CCCoreLib
 			T tmax  = (corners[1-r.sign.x].x - r.origin.x) * r.invDir.x;
 			T tymin = (corners[  r.sign.y].y - r.origin.y) * r.invDir.y;
 			T tymax = (corners[1-r.sign.y].y - r.origin.y) * r.invDir.y;
-			
+
 			if (tmin > tymax || tymin > tmax)
 				return false;
 			if (tymin > tmin)
 				tmin = tymin;
 			if (tymax < tmax)
 				tmax = tymax;
-			
+
 			T tzmin = (corners[  r.sign.z].z - r.origin.z) * r.invDir.z;
 			T tzmax = (corners[1-r.sign.z].z - r.origin.z) * r.invDir.z;
-			
+
 			if (tmin > tzmax || tzmin > tmax)
 				return false;
 			if (tzmin > tmin)
 				tmin = tzmin;
 			if (tzmax < tmax)
 				tmax = tzmax;
-			
+
 			if (t0)
 				*t0 = tmin;
 			if (t1)
 				*t1 = tmax;
-			
+
 			return true;
 		}
-		
+
 		Vector3Tpl<T> corners[2];
 	};
 }
