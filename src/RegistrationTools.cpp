@@ -1201,19 +1201,24 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 		SquareMatrixd Sigma_px = (coupleWeights ? GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(P, X, Gp, Gx, coupleWeights)
 												: GeometricalAnalysisTools::ComputeCrossCovarianceMatrix(P, X, Gp, Gx));
 		if (!Sigma_px.isValid())
+		{
 			return false;
+		}
 
-#define USE_SVD
-#ifdef USE_SVD
+//#define USE_SVD
+#ifdef USE_SVD // seems to cause a mirroring effect in some cases
 
 		SquareMatrixd U, S, V;
 		if (!Sigma_px.svd(S, U, V))
+		{
 			return false;
+		}
 		SquareMatrixd UT = U.transposed();
 
 		trans.R = V * UT;
 
 #else
+
 		//transpose sigma_px
 		SquareMatrixd Sigma_px_t = Sigma_px.transposed();
 
@@ -1265,7 +1270,9 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 
 		//these eigenvalue and eigenvector correspond to a quaternion --> we get the corresponding matrix
 		trans.R.initFromQuaternion(qR);
+
 #endif
+
 		if (adjustScale)
 		{
 			//two accumulators
