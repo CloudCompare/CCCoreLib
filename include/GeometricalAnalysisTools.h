@@ -150,14 +150,15 @@ namespace CCCoreLib
 		/** Inspired from "Parameter Estimation Techniques: A Tutorial with Application
 			to Conic Fitting" by Zhengyou Zhang (Inria Technical Report 2676).
 			More specifically the section 9.5 about Least Median of Squares.
-			\param[in]  cloud			input cloud
-			\param[in]  outliersRatio	proportion of outliers (between 0 and 1)
-			\param[out] center			center of the detected sphere
-			\param[out] radius			radius of the detected sphere
-			\param[out] rms				residuals RMS for the detected sphere
-			\param[in]  progressCb		for progress notification (optional)
-			\param[in]  confidence		probability that the detected sphere is the right one (strictly below 1)
-			\param[in]  seed			if different than 0, this seed will be used for random numbers generation (instead of a random one)
+			\param[in]     cloud			input cloud
+			\param[in]     outliersRatio	proportion of outliers (between 0 and 1)
+			\param[out]    center			center of the detected sphere
+			\param[in,out] radius			radius of the detected sphere
+			\param[out]    rms				residuals RMS for the detected sphere
+			\param[in]     useInputRadius	use input radius (instead of guessing it automatically)
+			\param[in]     progressCb		for progress notification (optional)
+			\param[in]     confidence		probability that the detected sphere is the right one (strictly below 1)
+			\param[in]     seed				if different than 0, this seed will be used for random numbers generation (instead of a random one)
 			\result success
 		**/
 		static ErrorCode DetectSphereRobust(	GenericIndexedCloudPersist* cloud,
@@ -165,6 +166,7 @@ namespace CCCoreLib
 												CCVector3& center,
 												PointCoordinateType& radius,
 												double& rms,
+												bool useInputRadius = false,
 												GenericProgressCallback* progressCb = nullptr,
 												double confidence = 0.99,
 												unsigned seed = 0);
@@ -235,6 +237,7 @@ namespace CCCoreLib
 		static bool RefineSphereLS(	GenericIndexedCloudPersist* cloud,
 									CCVector3& center,
 									PointCoordinateType& radius,
+									bool useInputRadius = false,
 									double minReltaiveCenterShift = 1.0e-3);
 	};
 }

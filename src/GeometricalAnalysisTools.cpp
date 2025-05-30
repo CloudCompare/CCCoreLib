@@ -747,6 +747,7 @@ SquareMatrixd GeometricalAnalysisTools::ComputeWeightedCrossCovarianceMatrix(	Ge
 bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud,
 												CCVector3& center,
 												PointCoordinateType& radius,
+												bool useInputRadius/*=false*/,
 												double minRelativeCenterShift/*=1.0e-3*/)
 {
 	if (!cloud || cloud->size() < 5)
@@ -799,12 +800,17 @@ bool GeometricalAnalysisTools::RefineSphereLS(	GenericIndexedCloudPersist* cloud
 		CCVector3d c0 = c;
 		//deduce new center
 		c = G - derivatives * meanNorm;
-		radius = static_cast<PointCoordinateType>(meanNorm);
+		if (!useInputRadius)
+		{
+			radius = static_cast<PointCoordinateType>(meanNorm);
+		}
 
 		double shift = (c-c0).norm();
 		double relativeShift = shift / radius;
 		if (relativeShift < minRelativeCenterShift)
+		{
 			break;
+		}
 	}
 
 	return true;
@@ -816,6 +822,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		CCVector3& center,
 		PointCoordinateType& radius,
 		double& rms,
+		bool useInputRadius/*=false*/,
 		GenericProgressCallback* progressCb/*=nullptr*/,
 		double confidence/*=0.99*/,
 		unsigned seed/*=0*/)
@@ -826,9 +833,17 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		return InvalidInput;
 	}
 
+	if (useInputRadius && radius <= 0)
+	{
+		assert(false);
+		return InvalidInput;
+	}
+
 	unsigned n = cloud->size();
 	if (n < 4)
+	{
 		return NotEnoughPoints;
+	}
 
 	assert(confidence < 1.0);
 	confidence = std::min(confidence, 1.0 - ZERO_TOLERANCE_D);
@@ -851,6 +866,10 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 	if (n > p)
 	{
 		m = static_cast<unsigned>(log(1.0 - confidence) / log(1.0 - pow(1.0 - outliersRatio, static_cast<double>(p))));
+	}
+	if (m == 0)
+	{
+		m = 1;
 	}
 
 	//for progress notification
@@ -907,7 +926,15 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 		CCVector3 thisCenter;
 		PointCoordinateType thisRadius;
 		if (ComputeSphereFrom4(*A, *B, *C, *D, thisCenter, thisRadius) != NoError)
+		{
 			continue;
+		}
+
+		if (useInputRadius)
+		{
+			//override the detected radius with the input one
+			thisRadius = radius;
+		}
 
 		//compute residuals
 		for (unsigned i = 0; i < n; ++i)
@@ -968,7 +995,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 			candidates.resize(candidates.size());
 
 			//eventually estimate the robust sphere parameters with least squares (iterative)
-			if (RefineSphereLS(&candidates, center, radius))
+			if (RefineSphereLS(&candidates, center, radius, useInputRadius))
 			{
 				//replace input cloud by this subset!
 				cloud = &candidates;
@@ -991,7 +1018,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::DetectSphereRobust
 			double e = (*P - center).norm() - radius;
 			residuals += e*e;
 		}
-		rms = sqrt(residuals/n);
+		rms = sqrt(residuals / n);
 	}
 
 	return NoError;
