@@ -20,12 +20,11 @@
 #include <algorithm>
 #include <cassert>
 
-//Qt
-#include <QCoreApplication>
-
 #ifndef CC_DEBUG
 #if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 #define ENABLE_CLOUD2MESH_DIST_MT
+//Qt
+#include <QCoreApplication>
 #include <QtConcurrentMap>
 #include <QtCore>
 #elif defined(CC_CORE_LIB_USES_TBB)
@@ -1764,7 +1763,9 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 
 			//Yk.clear(); //not necessary
 
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+#endif
 			if (progressCb && !nProgress.oneStep())
 			{
 				//process cancelled by the user

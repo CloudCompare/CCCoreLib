@@ -19,14 +19,13 @@
 //#define COMPUTE_NN_SEARCH_STATISTICS
 //#define ADAPTATIVE_BINARY_SEARCH
 
-//Qt
-#include <QCoreApplication>
-
 //#ifndef CC_DEBUG
 //enables multi-threading handling (Release only)
 //requires TBB or QtConcurrent
 #if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 #define ENABLE_MT_OCTREE
+//Qt
+#include <QCoreApplication>
 #include <QtConcurrentMap>
 #include <QThread>
 #include <QThreadPool>
@@ -220,10 +219,12 @@ void DgmOctree::MultiThreadingWrapper::launchOctreeCellFunc(const octreeCellDesc
 
 		cellFuncSuccess &= (*cellFunc)(cell, userParams, normProgressCb);
 
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 		if (normProgressCb)
 		{
 			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
 		}
+#endif
 	}
 	else
 	{
@@ -3448,8 +3449,10 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			if (progressCb)
 			{
 				progressCb->update((100.0f * cell.index) / m_numberOfProjectedPoints);
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 #ifndef __APPLE__
 				QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+#endif
 #endif
 				if (progressCb->isCancelRequested())
 				{
