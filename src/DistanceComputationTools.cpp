@@ -44,6 +44,10 @@
 //Note that there is the case CC_DEBUG=OFF and neither TBB nor Qt
 #undef ENABLE_CLOUD2MESH_DIST_MT
 #endif
+#else
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
+#undef CC_CORE_LIB_USES_QT_CONCURRENT
+#endif
 #endif // #ifndef CC_DEBUG
 
 namespace CCCoreLib
