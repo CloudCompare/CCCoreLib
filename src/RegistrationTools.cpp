@@ -659,13 +659,19 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					CCVector3 Nm;
 					if (inputModelMesh)
 					{
+						assert(data.CPSetPlain);
 						unsigned triIndex = static_cast<unsigned>(data.CPSetPlain->getPointScalarValue(i));
 						assert(triIndex < inputModelMesh->size());
 						inputModelMesh->interpolateNormals(triIndex, *data.CPSetPlain->getPoint(i), Nm);
 					}
+					else if (inputModelCloud)
+					{
+						assert(data.CPSetRef);
+						Nm = *inputModelCloud->getNormal(data.CPSetRef->getPointGlobalIndex(i));
+					}
 					else
 					{
-						Nm = *inputModelCloud->getNormal(i);
+						assert(false);
 					}
 
 					//we assume the vectors are unitary!
