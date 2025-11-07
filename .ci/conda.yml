@@ -3,6 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - ninja
-  - qt=5.15.*
-  - cgal=5.*
-  - tbb-devel=2021.*
+  - qt6-main==6.8.3
+  - cgal=6.0.*
+  - tbb-devel=2022.*

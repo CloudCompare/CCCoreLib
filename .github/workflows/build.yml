@@ -1,6 +1,6 @@
 name: Build
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -16,13 +16,13 @@ jobs:
               name: "Windows MSVC",
               os: windows-latest,
               generator: "Ninja",
-              conda_library_dir: "Library"
+              conda_library_dir: "Library",
             }
           - {
-                name: "macOS Clang",
-                os: macos-latest,
-                generator: "Ninja",
-                conda_library_dir: "."
+              name: "macOS Clang",
+              os: macos-latest,
+              generator: "Ninja",
+              conda_library_dir: ".",
             }
 
     steps:
@@ -69,7 +69,7 @@ jobs:
           .
 
       - name: Configure (Windows)
-        if:  matrix.config.os == 'windows-latest'
+        if: matrix.config.os == 'windows-latest'
         shell: bash -l {0}
         run: |
           mkdir build
@@ -90,7 +90,7 @@ jobs:
 
   ubuntu-build:
     name: Ubuntu ${{ matrix.compiler }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     strategy:
@@ -109,9 +109,9 @@ jobs:
           sudo apt-get update -qq
 
           sudo apt-get install -qy cmake ninja-build
-          qtbase5-dev qttools5-dev qttools5-dev-tools
+          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
           libtbb-dev
-          libcgal-dev libcgal-qt5-dev
+          libcgal-dev
 
       - name: Setup GCC
         if: matrix.compiler == 'GCC'
