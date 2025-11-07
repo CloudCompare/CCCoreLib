@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright © Andy Maloney <asmaloney@gmail.com>
 
-cmake_minimum_required( VERSION 3.10 )
+cmake_minimum_required( VERSION 3.15 )
 
 project( CCCoreLib
 	DESCRIPTION
@@ -102,7 +102,7 @@ add_subdirectory( src )
 # Compiler & definitions
 target_compile_features( CCCoreLib
 	PRIVATE
-		cxx_std_14
+		cxx_std_17
 )
 
 set_target_properties( CCCoreLib
@@ -186,8 +186,8 @@ if ( CCCORELIB_USE_CGAL )
 
 	if( WIN32 )
 		# Need to force the visibility of these variables so that we can use them later
-		set (GMP_LIBRARIES ${GMP_LIBRARIES} PARENT_SCOPE) 
-		set (MPFR_LIBRARIES ${MPFR_LIBRARIES} PARENT_SCOPE) 
+		set (GMP_LIBRARIES ${GMP_LIBRARIES} PARENT_SCOPE)
+		set (MPFR_LIBRARIES ${MPFR_LIBRARIES} PARENT_SCOPE)
 	endif()
 
 	if ( CCCORELIB_USE_TBB )
