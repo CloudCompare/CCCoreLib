@@ -116,9 +116,9 @@ target_compile_definitions( CCCoreLib
 )
 
 # Nanoflann
-option(NANOFLANN_BUILD_BENCHMARKS "" OFF)
-option(NANOFLANN_BUILD_EXAMPLES "" OFF)
-option(NANOFLANN_BUILD_TESTS "" OFF)
+set( NANOFLANN_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE )
+set( NANOFLANN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE )
+set( NANOFLANN_BUILD_TESTS OFF CACHE BOOL "" FORCE )
 add_subdirectory( extern/nanoflann EXCLUDE_FROM_ALL )
 target_link_libraries( CCCoreLib
 	PUBLIC
