@@ -365,13 +365,29 @@ namespace CCCoreLib
 												bool signedDistances = true,
 												double* rms = nullptr);
 
+		//! Computes the distance between each point in a cloud and a disc
+		/** \param[in]  cloud			a 3D point cloud
+		    \param[in]  discCenter      disc 3d center point
+		    \param[in]  discRadius	    disc radius
+		    \param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
+		    \param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a disc (optional)
+
+		     \return negative error code or a positive value in case of success
+		 **/
+		static int computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
+		                                     const CCVector3&            discCenter,
+		                                     const PointCoordinateType   discRadius,
+		                                     const SquareMatrix&         rotationTransform,
+		                                     bool                        signedDistances = true,
+		                                     double*                     rms             = nullptr);
+
 		//! Computes the distance between each point in a cloud and a plane
 		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
-			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
+		    \param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
+		    \param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
+		    \param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 
-			\return negative error code or a positive value in case of success
+		    \return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2PlaneEquation(	GenericIndexedCloudPersist* cloud,
 												const PointCoordinateType* planeEquation,

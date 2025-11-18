@@ -2666,6 +2666,67 @@ int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPe
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
+int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
+														const CCVector3&            discCenter,
+														const PointCoordinateType   discRadius,
+														const SquareMatrix&         rotationTransform,
+														bool                        signedDistances /*=true*/,
+														double*                     rms /*=nullptr*/)
+{
+	if (!cloud)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
+	}
+	unsigned count = cloud->size();
+	if (count == 0)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
+	}
+	if (!cloud->enableScalarField())
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
+	}
+	CCVector3 normal(0, 0, 1);
+	normal        = rotationTransform * normal;
+	double dSumSq = 0.0;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		const CCVector3* P = cloud->getPoint(i);
+		// Project the point on the plane which contains the disc
+		ScalarType dPlane = (*P - discCenter).dot(normal);
+		CCVector3  pProj  = *P - normal * dPlane;
+		ScalarType rProj  = (pProj - discCenter).norm();
+		// Is the projection inside or outside the disc?
+		bool   isInside = rProj < discRadius;
+		double d;
+		if (isInside)
+		{
+			d = dPlane; // The distance is simply the distance to the plane
+		}
+		else
+		{
+			CCVector3 pEdge = discCenter + discRadius * (pProj - discCenter) / rProj; // safe as rProj can not be null at this point
+			d                     = (*P - pEdge).normd();                                   // The distance is the distance between the point and the border of the disc
+			d                     = (*P - pEdge).dot(normal) > 0 ? d : -d;
+		}
+		if (signedDistances)
+		{
+			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+		}
+		else
+		{
+			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+		}
+		dSumSq += d * d;
+	}
+	if (rms)
+	{
+		*rms = sqrt(dSumSq / count);
+	}
+
+	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+}
+
 int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPersist *cloud,
 															const PointCoordinateType* planeEquation,
 															bool signedDistances/*=true*/,
