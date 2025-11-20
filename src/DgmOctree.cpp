@@ -3253,8 +3253,10 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			progressCb->update(0);
 			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, m_theAssociatedCloud->size());
 			progressCb->start();
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 #ifndef __APPLE__
 			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+#endif
 #endif
 		}
 
