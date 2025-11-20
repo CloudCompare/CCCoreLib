@@ -30,16 +30,20 @@
 #elif defined(CC_CORE_LIB_USES_TBB)
 //enables multi-threading handling with TBB
 #define ENABLE_CLOUD2MESH_DIST_MT
-#include <oneapi/tbb/mutex.h>
 #ifndef Q_MOC_RUN
 #if defined(emit)
 	#undef emit
 	#include <oneapi/tbb/parallel_for.h>
+	#include <oneapi/tbb/task_arena.h>
+	#include <oneapi/tbb/mutex.h>
 	#define emit // restore the macro definition of "emit", as it was defined in gtmetamacros.h
 #else
 	#include <oneapi/tbb/parallel_for.h>
+	#include <oneapi/tbb/task_arena.h>
+	#include <oneapi/tbb/mutex.h>
 #endif // defined(emit)
 #endif // Q_MOC_RUN
+using namespace oneapi;
 #else
 //Note that there is the case CC_DEBUG=OFF and neither TBB nor Qt
 #undef ENABLE_CLOUD2MESH_DIST_MT
@@ -934,7 +938,7 @@ namespace CCCoreLib
 #if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 		QMutex currentBitMaskMutex;
 #elif defined(CC_CORE_LIB_USES_TBB)
-		oneapi::tbb::mutex currentBitMaskMutex;
+		tbb::mutex currentBitMaskMutex;
 #endif
 	};
 }
@@ -1820,15 +1824,18 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		QThreadPool::globalInstance()->setMaxThreadCount(params.maxThreadCount);
 		QtConcurrent::blockingMap(cellsDescs, CloudMeshDistCellFunc_MT);
 #elif defined(CC_CORE_LIB_USES_TBB)
-		oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<std::size_t>(0, cellsDescs.size()),
-			[&](oneapi::tbb::blocked_range<std::size_t> r)
+		tbb::task_arena local_arena(params.maxThreadCount != 0 ? params.maxThreadCount : tbb::info::default_concurrency());
+		local_arena.execute([&]
+		{
+			tbb::parallel_for(tbb::blocked_range<std::size_t>(0, cellsDescs.size()),
+			[&](tbb::blocked_range<std::size_t> r)
 			{
 				for (auto i = r.begin(); i < r.end(); ++i)
 				{
 					CloudMeshDistCellFunc_MT(cellsDescs[i]);
 				}
-			}
-		);
+			});
+		});
 #endif
 
 		s_multiThreadingWrapper.octree = nullptr;
