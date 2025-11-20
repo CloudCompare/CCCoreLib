@@ -35,10 +35,10 @@
 #ifndef Q_MOC_RUN
 #if defined(emit)
 	#undef emit
-	#include <tbb/parallel_for.h>
+	#include <oneapi/tbb/parallel_for.h>
 	#define emit // restore the macro definition of "emit", as it was defined in gtmetamacros.h
 #else
-	#include <tbb/parallel_for.h>
+	#include <oneapi/tbb/parallel_for.h>
 #endif // defined(emit)
 #endif // Q_MOC_RUN
 #endif
@@ -3266,9 +3266,9 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 		QThreadPool::globalInstance()->setMaxThreadCount(maxThreadCount);
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); });
 #elif defined(CC_CORE_LIB_USES_TBB)
-		tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
-		tbb::parallel_for(tbb::blocked_range<int>(0, cells.size()),
-			[&](tbb::blocked_range<int> r)
+		//tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
+		oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<std::size_t>(0, cells.size()),
+			[&](oneapi::tbb::blocked_range<std::size_t> r)
 			{
 				for (auto i = r.begin(); i < r.end(); ++i)
 				{
@@ -3873,9 +3873,9 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 		QtConcurrent::blockingMap(cells, [this](const octreeCellDesc& desc) { m_MT_wrapper.launchOctreeCellFunc(desc); } );
 #elif defined(CC_CORE_LIB_USES_TBB)
 		// Otherwise we use TBB if we can
-		tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
-		tbb::parallel_for(tbb::blocked_range<int>(0, cells.size()),
-			[&](tbb::blocked_range<int> r)
+		//tbb::task_scheduler_init init(maxThreadCount != 0 ? maxThreadCount : tbb::task_scheduler_init::automatic);
+		oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<std::size_t>(0, cells.size()),
+			[&](tbb::blocked_range<std::size_t> r)
 			{
 				for (auto i = r.begin(); i < r.end(); ++i)
 				{

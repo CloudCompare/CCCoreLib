@@ -30,14 +30,14 @@
 #elif defined(CC_CORE_LIB_USES_TBB)
 //enables multi-threading handling with TBB
 #define ENABLE_CLOUD2MESH_DIST_MT
-#include <mutex>
+#include <oneapi/tbb/mutex.h>
 #ifndef Q_MOC_RUN
 #if defined(emit)
 	#undef emit
-	#include <tbb/parallel_for.h>
+	#include <oneapi/tbb/parallel_for.h>
 	#define emit // restore the macro definition of "emit", as it was defined in gtmetamacros.h
 #else
-	#include <tbb/parallel_for.h>
+	#include <oneapi/tbb/parallel_for.h>
 #endif // defined(emit)
 #endif // Q_MOC_RUN
 #else
@@ -934,7 +934,7 @@ namespace CCCoreLib
 #if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 		QMutex currentBitMaskMutex;
 #elif defined(CC_CORE_LIB_USES_TBB)
-		std::mutex currentBitMaskMutex;
+		oneapi::tbb::mutex currentBitMaskMutex;
 #endif
 	};
 }
@@ -956,8 +956,9 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 
 	if (s_multiThreadingWrapper.normProgressCb)
 	{
+#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
 		QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
-
+#endif
 		if (!s_multiThreadingWrapper.normProgressCb->oneStep())
 		{
 			s_multiThreadingWrapper.cellFunc_success = false;
@@ -1565,7 +1566,7 @@ int DistanceComputationTools::computePoint2MeshDistancesWithOctree(	const CCVect
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOctree* octree, 
+int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOctree* octree,
 																	const GridAndMeshIntersection& intersection,
 																	Cloud2MeshDistancesComputationParams& params,
 																	GenericProgressCallback* progressCb/*=nullptr*/)
@@ -1819,10 +1820,10 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 		QThreadPool::globalInstance()->setMaxThreadCount(params.maxThreadCount);
 		QtConcurrent::blockingMap(cellsDescs, CloudMeshDistCellFunc_MT);
 #elif defined(CC_CORE_LIB_USES_TBB)
-		tbb::parallel_for(tbb::blocked_range<int>(0, cellsDescs.size()),
-			[&](tbb::blocked_range<int> r)
+		oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<std::size_t>(0, cellsDescs.size()),
+			[&](oneapi::tbb::blocked_range<std::size_t> r)
 			{
-				for (auto i = r.begin(); r.end(); ++i)
+				for (auto i = r.begin(); i < r.end(); ++i)
 				{
 					CloudMeshDistCellFunc_MT(cellsDescs[i]);
 				}
@@ -1859,7 +1860,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 															DgmOctree* cloudOctree/*=nullptr*/)
 {
 	//check the input
-	if (!pointCloud) 
+	if (!pointCloud)
 	{
 		assert(false);
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
@@ -1921,7 +1922,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 			maxBB.u[k] = std::max(meshMaxBB.u[k], cloudMaxBB.u[k]);
 		}
 
-		//max cubical bounding-box 
+		//max cubical bounding-box
 		cubicalMinBB = minBB;
 		cubicalMaxBB = maxBB;
 
