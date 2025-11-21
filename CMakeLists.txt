@@ -158,20 +158,15 @@ endif()
 # TBB (optional)
 # Must come before CGAL so it can use TBB properly
 if ( CCCORELIB_USE_TBB )
-	find_package( TBB COMPONENTS tbb CONFIG )
+	find_package( TBB COMPONENTS tbb 2022.0.0 CONFIG )
 
+	set( CCCORELIB_USE_QT_CONCURRENT OFF )
 	if ( TBB_FOUND )
-		if ( ${TBB_VERSION} VERSION_GREATER 2021.0.0 )
-			target_link_libraries( CCCoreLib
-				PUBLIC
-					TBB::tbb
-			)
-		else()
-			target_link_libraries( CCCoreLib
-				PUBLIC
-					${TBB_IMPORTED_TARGETS}
-			)
-		endif()
+		target_link_libraries( CCCoreLib
+			PUBLIC
+				TBB::tbb
+		)
+
 		target_compile_definitions( CCCoreLib
 			PUBLIC
 				CC_CORE_LIB_USES_TBB
@@ -192,14 +187,7 @@ if ( CCCORELIB_USE_CGAL )
 
 	if ( CCCORELIB_USE_TBB )
 		if ( TBB_FOUND )
-			# Once Linux libcgal-dev >= 5.0, target_compile_definitions replaced by:
-			#  CGAL_target_use_TBB( CCCoreLib )
-
-			target_compile_definitions( CCCoreLib
-				PRIVATE
-					CGAL_LINKED_WITH_TBB
-					NOMINMAX
-			)
+			CGAL_target_use_TBB( CCCoreLib )
 		else()
 			message( WARNING "CGAL cannot compile with TBB (TBB not found)" )
 		endif()
@@ -232,7 +220,7 @@ if ( CCCORELIB_USE_QT_CONCURRENT )
 
 	target_link_libraries( CCCoreLib
 		PUBLIC
-            Qt6::Concurrent
+			Qt6::Concurrent
 	)
 
 	target_compile_definitions( CCCoreLib
@@ -268,9 +256,9 @@ install(
 include( CMakePackageConfigHelpers )
 
 configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+		${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+		INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+		NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
 write_basic_package_version_file( CCCoreLibConfigVersion.cmake
