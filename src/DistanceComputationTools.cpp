@@ -2320,17 +2320,13 @@ ScalarType DistanceComputationTools::computePoint2LineSegmentDistSquared(const C
 	return distSq;
 }
 
-// This algorithm is a modification of the distance computation between a point and a cone from
-// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and Cone-Spheres.
-// The modifications from the paper are to compute the closest distance when the point is interior to the cone.
-// http://liris.cnrs.fr/Documents/Liris-1297.pdf
 int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersist* cloud,
 														const CCVector3& coneP1,
 														const CCVector3& coneP2,
 														const PointCoordinateType coneR1,
 														const PointCoordinateType coneR2,
 														bool signedDistances/*=true*/,
-														bool solutionType/*=false*/,
+														bool outputSolutionType/*=false*/,
 														double* rms/*=nullptr*/)
 {
 	if (!cloud)
@@ -2368,38 +2364,37 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 		CCVector3 n = *P - coneP1;
 		double x = n.dot(coneAxis);
 		double xx = x * x;
-		double yy = (n.norm2d()) - xx;
+		double yy = std::max(0.0, n.norm2d() - xx);
 		double y = 0;
 		double d = 0;
 		double rx = 0;
 		double ry = 0;
-		if (yy < 0)
-		{
-			yy = 0;
-		}
+
 		if(x <= 0) //Below the bottom point
 		{
 			if (yy < rr1)
 			{
-				if (!solutionType)
+				//Below the bottom point within larger disk radius
+				if (!outputSolutionType)
 				{
-					d = -x; //Below the bottom point within larger disk radius
+					d = -x;
 				}
 				else
 				{
-					d = 1; //Works
+					d = 1;
 				}
 			}
 			else
 			{
-				if (!solutionType)
+				//Below the bottom point not within larger disk radius
+				if (!outputSolutionType)
 				{
 					y = sqrt(yy) - coneR1;
-					d = sqrt((y * y) + xx); //Below the bottom point not within larger disk radius
+					d = sqrt((y * y) + xx);
 				}
 				else
 				{
-					d = 2; //Works
+					d = 2;
 				}
 			}
 
@@ -2410,9 +2405,9 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 			{
 				if (x > axisLength) //outside cone within smaller disk
 				{
-					if (!solutionType)
+					if (!outputSolutionType)
 					{
-						d = x - axisLength; // Above the top point within top disk radius
+						d = x - axisLength;
 					}
 					else
 					{
@@ -2421,7 +2416,7 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 				}
 				else //inside cone within smaller disk
 				{
-					if (!solutionType)
+					if (!outputSolutionType)
 					{
 						y = sqrt(yy) - coneR1;
 						ry = y * side[0] - x * side[1]; //rotated y value (distance from the coneside axis)
@@ -2442,13 +2437,14 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 					rx = y * side[1] + x * side[0]; //rotated x value (distance along the coneside axis)
 					if (rx < 0)
 					{
-						if (!solutionType)
+						// point projects onto the large cap
+						if (!outputSolutionType)
 						{
 							d = sqrt(y * y + xx);
 						}
 						else
 						{
-							d = 7; // point projects onto the large cap
+							d = 7;
 						}
 					}
 					else
@@ -2456,23 +2452,25 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 						ry = y * side[0] - x * side[1]; //rotated y value (distance from the coneside axis)
 						if (rx > coneLength)
 						{
-							if (!solutionType)
+							// point projects onto the small cap
+							if (!outputSolutionType)
 							{
 								rx -= coneLength;
 								d = sqrt(ry * ry + rx * rx);
 							}
 							else
 							{
-								d = 8; // point projects onto the small cap
+								d = 8;
 							}
 						}
 						else
 						{
-							if (!solutionType)
+							if (!outputSolutionType)
 							{
 								d = ry; // point projects onto the side of cone
 								if (ry < 0)
-								{//point is interior to the cone
+								{
+									//point is interior to the cone
 									d = std::min(axisLength - x, x); //determine whether closer to either radii
 									d = std::min(d, static_cast<double>(std::abs(ry))); //or to side
 									d = -d; //negative inside
@@ -2505,20 +2503,12 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-// This algorithm is a modification of the distance computation between a point and a cylinder from
-// Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and Cone-Spheres.
-// The modifications from the paper are to compute the closest distance when the point is interior to the capped cylinder.
-// http://liris.cnrs.fr/Documents/Liris-1297.pdf
-// solutionType 1 = exterior to the cylinder and within the bounds of the axis
-// solutionType 2 = interior to the cylinder and either closer to an end-cap or the cylinder wall
-// solutionType 3 = beyond the bounds of the cylinder's axis and radius
-// solutionType 4 = beyond the bounds of the cylinder's axis but within the bounds of it's radius
 int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudPersist* cloud,
 															const CCVector3& cylinderP1,
 															const CCVector3& cylinderP2,
 															const PointCoordinateType cylinderRadius,
 															bool signedDistances/*=true*/,
-															bool solutionType/*=false*/,
+															bool outputSolutionType/*=false*/,
 															double* rms/*=nullptr*/)
 {
 	if (!cloud)
@@ -2536,10 +2526,10 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 	}
 	double dSumSq = 0.0;
 
-	CCVector3 cylinderCenter = (cylinderP1 + cylinderP2) / 2.;
+	CCVector3 cylinderCenter = (cylinderP1 + cylinderP2) / static_cast<PointCoordinateType>(2);
 
 	CCVector3 cylinderAxis = cylinderP2 - cylinderP1;
-	double h = cylinderAxis.normd() / 2.;
+	double h = cylinderAxis.normd() / 2;
 	cylinderAxis.normalize();
 	double cylinderRadius2 = static_cast<double>(cylinderRadius)* cylinderRadius;
 
@@ -2550,16 +2540,17 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 
 		double x = std::abs(n.dot(cylinderAxis));
 		double xx = x * x;
-		double yy = (n.norm2d()) - xx;
+		double yy = n.norm2d() - xx;
 		double y = 0;
 		double d = 0;
 		if (x <= h)
 		{
 			if (yy >= cylinderRadius2)
 			{
-				if (!solutionType)
+				//exterior to the cylinder and within the bounds of the axis
+				if (!outputSolutionType)
 				{
-					d = sqrt(yy) - cylinderRadius; //exterior to the cylinder and within the bounds of the axis
+					d = sqrt(yy) - cylinderRadius;
 				}
 				else
 				{
@@ -2568,9 +2559,10 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 			}
 			else
 			{
-				if (!solutionType)
+				//interior to the cylinder and either closer to an end-cap or the cylinder wall
+				if (!outputSolutionType)
 				{
-					d = -std::min(std::abs(sqrt(yy) - cylinderRadius), std::abs(h - x)); //interior to the cylinder and either closer to an end-cap or the cylinder wall
+					d = -std::min(std::abs(sqrt(yy) - cylinderRadius), std::abs(h - x));
 				}
 				else
 				{
@@ -2582,10 +2574,11 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 		{
 			if (yy >= cylinderRadius2)
 			{
-				if (!solutionType)
+				//beyond the bounds of the cylinder's axis and radius
+				if (!outputSolutionType)
 				{
 					y = sqrt(yy);
-					d = sqrt(((y - cylinderRadius) * (y - cylinderRadius)) + ((x - h) * (x - h))); //beyond the bounds of the cylinder's axis and radius
+					d = sqrt(((y - cylinderRadius) * (y - cylinderRadius)) + ((x - h) * (x - h)));
 				}
 				else
 				{
@@ -2594,9 +2587,10 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 			}
 			else
 			{
-				if (!solutionType)
+				//beyond the bounds of the cylinder's axis but within the bounds of its radius
+				if (!outputSolutionType)
 				{
-					d = x - h; //beyond the bounds of the cylinder's axis but within the bounds of it's radius
+					d = x - h;
 				}
 				else
 				{
@@ -2648,6 +2642,72 @@ int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPe
 	{
 		const CCVector3* P = cloud->getPoint(i);
 		double d = (*P - sphereCenter).normd() - sphereRadius;
+		if (signedDistances)
+		{
+			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+		}
+		else
+		{
+			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+		}
+		dSumSq += d * d;
+	}
+	if (rms)
+	{
+		*rms = sqrt(dSumSq / count);
+	}
+
+	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+}
+
+int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
+														const CCVector3&            discCenter,
+														const PointCoordinateType   discRadius,
+														const SquareMatrix&         rotationTransform,
+														bool                        signedDistances /*=true*/,
+														double*                     rms /*=nullptr*/)
+{
+	if (discRadius < 0)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::INVALID_INPUT;
+	}
+	if (!cloud)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
+	}
+	unsigned count = cloud->size();
+	if (count == 0)
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
+	}
+	if (!cloud->enableScalarField())
+	{
+		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
+	}
+
+	CCVector3 normal(0, 0, 1);
+	normal        = rotationTransform * normal;
+	double dSumSq = 0.0;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		const CCVector3* P = cloud->getPoint(i);
+		// Project the point onto the plane which contains the disc
+		ScalarType dPlane = (*P - discCenter).dot(normal);
+		CCVector3  pProj  = *P - normal * dPlane;
+		ScalarType rProj  = (pProj - discCenter).norm();
+
+		double d = 0.0;
+		// Is the projection inside or outside the disc?
+		if (rProj <= discRadius)
+		{
+			d = dPlane; // The distance is simply the distance to the plane
+		}
+		else
+		{
+			CCVector3 pEdge = discCenter + discRadius * (pProj - discCenter) / rProj; // safe as rProj can not be null at this point
+			d               = (*P - pEdge).normd();                                   // The distance is the distance between the point and the border of the disc
+			d               = (*P - pEdge).dot(normal) > 0 ? d : -d;
+		}
 		if (signedDistances)
 		{
 			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
@@ -2767,9 +2827,9 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 	normalVector = rotationTransform * normalVector;
 	PointCoordinateType planeDistance = center.dot(normalVector);
 	PointCoordinateType dSumSq = 0;
-	CCVector3 rectangleP0 = center - (widthXVec / 2) - (widthYVec / 2);
-	CCVector3 rectangleP1 = center + (widthXVec / 2) - (widthYVec / 2);
-	CCVector3 rectangleP3 = center - (widthXVec / 2) + (widthYVec / 2);
+	CCVector3 rectangleP0 = center - (widthXVec - widthYVec) / 2;
+	CCVector3 rectangleP1 = center + (widthXVec - widthYVec) / 2;
+	CCVector3 rectangleP3 = center - (widthXVec + widthYVec) / 2;
 	CCVector3 e0 = rectangleP1 - rectangleP0;
 	CCVector3 e1 = rectangleP3 - rectangleP0;
 
@@ -2783,7 +2843,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 			PointCoordinateType dot0 = e0.norm2();
 			if (s < dot0)
 			{
-				dist -= (s / dot0)*e0;
+				dist -= (s / dot0) * e0;
 			}
 			else
 			{
@@ -2797,7 +2857,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 			PointCoordinateType dot1 = e1.norm2();
 			if (t < dot1)
 			{
-				dist -= (t / dot1)*e1;
+				dist -= (t / dot1) * e1;
 			}
 			else
 			{
@@ -2840,7 +2900,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
-	if (boxDimensions.x <= 0 || boxDimensions.y <= 0 || boxDimensions.z <= 0)
+	if (boxDimensions.x < 0 || boxDimensions.y < 0 || boxDimensions.z < 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_INVALID_PRIMITIVE_DIMENSIONS;
 	}
@@ -2861,11 +2921,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 		const CCVector3* p = cloud->getPoint(i);
 		CCVector3 pointCenterDifference = (*p - boxCenter);
 		CCVector3 p_inBoxCoords(pointCenterDifference.dot(u), pointCenterDifference.dot(v), pointCenterDifference.dot(w));
-		bool insideBox = false;
-		if (p_inBoxCoords.x > -hu && p_inBoxCoords.x < hu && p_inBoxCoords.y > -hv && p_inBoxCoords.y < hv && p_inBoxCoords.z > -hw && p_inBoxCoords.z < hw)
-		{
-			insideBox = true;
-		}
+		bool insideBox = (std::abs(p_inBoxCoords.x) <= hu && std::abs(p_inBoxCoords.y) <= hv && std::abs(p_inBoxCoords.z) <= hw);
 
 		CCVector3 dist(0, 0, 0);
 		if (p_inBoxCoords.x < -hu)
@@ -2925,7 +2981,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 				dist.y = 0;
 			}
 		}
-		PointCoordinateType d = static_cast<PointCoordinateType>(dist.normd());
+		double d = dist.normd();
 		dSumSq += d * d;
 		if (signedDistances && insideBox)
 		{

@@ -311,14 +311,27 @@ namespace CCCoreLib
 		static ScalarType computePoint2LineSegmentDistSquared(const CCVector3* point, const CCVector3* start, const CCVector3* end);
 
 		//! Computes the distance between each point in a cloud and a cone
-		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  coneP1			center point associated with the larger radii
-			\param[in]  coneP2			center point associated with the smaller radii
-			\param[in]  coneR1			cone radius at coneP1 (larger)
-			\param[in]  coneR2			cone radius at coneP2 (smaller)
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
-			\param[in]  solutionType	if true the scalar field will be set to which solution was selected 1-4 (optional)
-			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
+		/** This algorithm is a modification of the distance computation between a point and a cylinder from
+			Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and Cone-Spheres.
+			The modifications from the paper are to compute the closest distance when the point is interior to the capped cylinder.
+			http://liris.cnrs.fr/Documents/Liris-1297.pdf
+
+			If outputSolutionType is true (mostly for debug purpose), the possible values of the scalar field will be:
+			- 1 = below the bottom point within larger disk radius
+			- 2 = below the bottom point not within larger disk radius
+			- 3 = above the bottom point, within smaller disk radius, outside cone
+			- 4 = above the bottom point, within smaller disk radius, inside cone
+			- 7 = above the bottom point, outside smaller disk radius, point projects onto the large cap
+			- 8 = above the bottom point, outside smaller disk radius, point projects onto the small cap
+			- 9 = above the bottom point, outside smaller disk radius, onto the side of the cone (dist > 0) or inside (dist < 0)
+			\param[in]  cloud				a 3D point cloud
+			\param[in]  coneP1				center point associated with the larger radii
+			\param[in]  coneP2				center point associated with the smaller radii
+			\param[in]  coneR1				cone radius at coneP1 (larger)
+			\param[in]  coneR2				cone radius at coneP2 (smaller)
+			\param[in]  signedDistances		whether to compute signed or positive distances
+			\param[in]  outputSolutionType	if true the scalar field will be set to which solution was selected (from 1 to 4 or from 7 to 9 - see above)
+			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a cone (optional)
 
 			\return negative error code or a positive value in case of success
 		**/
@@ -328,17 +341,28 @@ namespace CCCoreLib
 												const PointCoordinateType coneR1,
 												const PointCoordinateType coneR2,
 												bool signedDistances = true,
-												bool solutionType = false,
+												bool outputSolutionType = false,
 												double* rms = nullptr);
 
 		//! Computes the distance between each point in a cloud and a cylinder
-		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  cylinderP1		center bottom point
-			\param[in]  cylinderP2		center top point
-			\param[in]  cylinderRadius	cylinder radius
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
-			\param[in]  solutionType	if true the scalar field will be set to which solution was selected 1-4 (optional)
-			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
+		/**	This algorithm is a modification of the distance computation between a point and a cone from
+			Barbier & Galin's Fast Distance Computation Between a Point and Cylinders, Cones, Line Swept Spheres and Cone-Spheres.
+			The modifications from the paper are to compute the closest distance when the point is interior to the cone.
+			http://liris.cnrs.fr/Documents/Liris-1297.pdf
+
+			If outputSolutionType is true (mostly for debug purpose), the possible values of the scalar field will be:
+			- 1 = exterior to the cylinder and within the bounds of the axis
+			- 2 = interior to the cylinder and either closer to an end-cap or the cylinder wall
+			- 3 = beyond the bounds of the cylinder's axis and radius
+			- 4 = beyond the bounds of the cylinder's axis but within the bounds of it's radius
+
+			\param[in]  cloud				a 3D point cloud
+			\param[in]  cylinderP1			center bottom point
+			\param[in]  cylinderP2			center top point
+			\param[in]  cylinderRadius		cylinder radius
+			\param[in]  signedDistances		whether to compute signed or positive distances
+			\param[in]  outputSolutionType	if true the scalar field will be set to which solution was selected (from 1 to 4 - see above)
+			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
 
 			\return negative error code or a positive value in case of success
 		**/
@@ -347,14 +371,14 @@ namespace CCCoreLib
 													const CCVector3& cylinderP2,
 													const PointCoordinateType cylinderRadius,
 													bool signedDistances = true,
-													bool solutionType = false,
+													bool outputSolutionType = false,
 													double* rms = nullptr);
 
 		//! Computes the distance between each point in a cloud and a sphere
 		/** \param[in]  cloud			a 3D point cloud
 			\param[in]  sphereCenter	sphere 3d center point
 			\param[in]  sphereRadius	sphere radius
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
+			\param[in]  signedDistances	whether to compute signed or positive distances
 			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a sphere (optional)
 
 			\return negative error code or a positive value in case of success
@@ -365,13 +389,30 @@ namespace CCCoreLib
 												bool signedDistances = true,
 												double* rms = nullptr);
 
+		//! Computes the distance between each point in a cloud and a disc
+		/** \param[in]  cloud				a 3D point cloud
+		    \param[in]  discCenter			disc 3D center point
+		    \param[in]  discRadius			disc radius
+			\param[in]  rotationTransform	(plane) disc position in space
+		    \param[in]  signedDistances		whether to compute signed or absolute distances
+		    \param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a disc (optional)
+
+		     \return negative error code or a positive value in case of success
+		 **/
+		static int computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
+		                                     const CCVector3&            discCenter,
+		                                     const PointCoordinateType   discRadius,
+		                                     const SquareMatrix&         rotationTransform,
+		                                     bool                        signedDistances = true,
+		                                     double*                     rms             = nullptr);
+
 		//! Computes the distance between each point in a cloud and a plane
 		/** \param[in]  cloud			a 3D point cloud
-			\param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
-			\param[in]  signedDistances	whether to compute the signed or positive (absolute) distance (optional)
-			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
+		    \param[in]  planeEquation	plane equation: [a,b,c,d] as 'ax+by+cz=d' with norm(a,bc)==1
+		    \param[in]  signedDistances	whether to compute signed or absolute distances
+		    \param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 
-			\return negative error code or a positive value in case of success
+		    \return negative error code or a positive value in case of success
 		**/
 		static int computeCloud2PlaneEquation(	GenericIndexedCloudPersist* cloud,
 												const PointCoordinateType* planeEquation,
@@ -384,7 +425,7 @@ namespace CCCoreLib
 			\param[in]  widthY				rectangle height
 			\param[in]  rotationTransform	(plane) rectangle position in space
 			\param[in]  center				(plane) rectangle center point
-			\param[in]  signedDistances		whether to compute the signed or positive (absolute) distance (optional)
+			\param[in]  signedDistances		whether to compute signed or absolute distances
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a rectangle (optional)
 
 			\return negative error code or a positive value in case of success
@@ -402,7 +443,7 @@ namespace CCCoreLib
 			\param[in]  boxDimensions		box 3D dimensions
 			\param[in]  rotationTransform	box position in space
 			\param[in]  boxCenter			box center point
-			\param[in]  signedDistances		whether to compute the signed or positive (absolute) distance (optional)
+			\param[in]  signedDistances		whether to compute signed or positive distances
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a box (optional)
 
 			\return negative error code or a positive value in case of success
