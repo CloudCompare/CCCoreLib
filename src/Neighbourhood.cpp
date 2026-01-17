@@ -368,7 +368,7 @@ bool Neighbourhood::computeQuadric()
 
 	double lmax2 = 0; //max (squared) dimension
 
-	//for every points
+	//for every point
 	{
 		double* _A = A.data();
 		double* _b = b.data();
@@ -379,7 +379,7 @@ bool Neighbourhood::computeQuadric()
 			*_A++ = 1.0;
 			*_A++ = l.x;
 			*_A++ = l.y;
-			*_A = static_cast<double>(l.x)*l.y;
+			*_A = static_cast<double>(l.x)*l.x;
 			//by the way, we track the max 'X' squared dimension
 			lmax2 = std::max(lmax2, *_A);
 
