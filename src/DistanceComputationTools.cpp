@@ -173,7 +173,7 @@ int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPe
 	}
 
 	//by default we reset any former value stored in the 'enabled' scalar field
-	const ScalarType resetValue = maxSearchSquareDistd <= 0 ? NAN_VALUE : params.maxSearchDist;
+	const ScalarType resetValue = (maxSearchSquareDistd <= 0 ? NAN_VALUE : params.maxSearchDist);
 	if (params.resetFormerDistances)
 	{
 		for (unsigned i = 0; i < comparedCloud->size(); ++i)
@@ -1520,18 +1520,18 @@ int DistanceComputationTools::computePoint2MeshDistancesWithOctree(	const CCVect
 
 	bool boundedSearch = (params.maxSearchDist > 0);
 
-	PointCloud cloud;
-	if (!cloud.reserve(1))
+	PointCloud pointCloud;
+	if (!pointCloud.reserve(1))
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
 	}
-	cloud.addPoint(P);
-	if (!cloud.enableScalarField())
+	pointCloud.addPoint(P);
+	if (!pointCloud.enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
 	}
-	cloud.setPointScalarValue(0, NAN_VALUE);
-	ReferenceCloud Yk(&cloud);
+	pointCloud.setPointScalarValue(0, NAN_VALUE);
+	ReferenceCloud Yk(&pointCloud);
 	if (!Yk.reserve(1))
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_OUT_OF_MEMORY;
@@ -1565,7 +1565,7 @@ int DistanceComputationTools::computePoint2MeshDistancesWithOctree(	const CCVect
 		return result;
 	}
 
-	distance = cloud.getPointScalarValue(0);
+	distance = pointCloud.getPointScalarValue(0);
 
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
@@ -1854,10 +1854,12 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 }
 
 //convert all 'distances' (squared in fact) to their square root
-inline void applySqrtToPointDist(const CCVector3 &aPoint, ScalarType& aScalarValue)
+static inline void ApplySqrtToPointSquareDist(const CCVector3 &aPoint, ScalarType& aScalarValue)
 {
 	if (ScalarField::ValidValue(aScalarValue))
-		aScalarValue = sqrt(aScalarValue);
+	{
+		aScalarValue = sqrt(std::abs(aScalarValue)); // std::abs, in case the input value is negative by mistake or because of a numerical accuracy issue
+	}
 }
 
 int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPersist* pointCloud,
@@ -2002,7 +2004,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 			!params.signedDistances &&
 			!params.useDistanceMap)
 	{
-		pointCloud->forEach(applySqrtToPointDist);
+		pointCloud->forEach(ApplySqrtToPointSquareDist);
 	}
 
 	if (result < DISTANCE_COMPUTATION_RESULTS::SUCCESS)
@@ -2320,7 +2322,7 @@ ScalarType DistanceComputationTools::computePoint2LineSegmentDistSquared(const C
 	return distSq;
 }
 
-int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersist* cloud,
+int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersist* pointCloud,
 														const CCVector3& coneP1,
 														const CCVector3& coneP2,
 														const PointCoordinateType coneR1,
@@ -2329,16 +2331,16 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 														bool outputSolutionType/*=false*/,
 														double* rms/*=nullptr*/)
 {
-	if (!cloud)
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -2360,7 +2362,7 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		const CCVector3* P = pointCloud->getPoint(i);
 		CCVector3 n = *P - coneP1;
 		double x = n.dot(coneAxis);
 		double xx = x * x;
@@ -2488,11 +2490,11 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 		}
 		if (signedDistances)
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 		}
 		else
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
 		}
 		dSumSq += d * d;
 	}
@@ -2503,7 +2505,7 @@ int DistanceComputationTools::computeCloud2ConeEquation(GenericIndexedCloudPersi
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudPersist* cloud,
+int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudPersist* pointCloud,
 															const CCVector3& cylinderP1,
 															const CCVector3& cylinderP2,
 															const PointCoordinateType cylinderRadius,
@@ -2511,16 +2513,16 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 															bool outputSolutionType/*=false*/,
 															double* rms/*=nullptr*/)
 {
-	if (!cloud)
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -2535,7 +2537,7 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		const CCVector3* P = pointCloud->getPoint(i);
 		CCVector3 n = *P - cylinderCenter;
 
 		double x = std::abs(n.dot(cylinderAxis));
@@ -2602,11 +2604,11 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 
 		if (signedDistances)
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 		}
 		else
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
 		}
 		dSumSq += d * d;
 	}
@@ -2618,37 +2620,37 @@ int DistanceComputationTools::computeCloud2CylinderEquation(GenericIndexedCloudP
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPersist *cloud,
+int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPersist* pointCloud,
 															const CCVector3& sphereCenter,
 															const PointCoordinateType sphereRadius,
 															bool signedDistances/*=true*/,
 															double* rms/*=nullptr*/)
 {
-	if (!cloud)
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
 	double dSumSq = 0.0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		const CCVector3* P = pointCloud->getPoint(i);
 		double d = (*P - sphereCenter).normd() - sphereRadius;
 		if (signedDistances)
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 		}
 		else
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
 		}
 		dSumSq += d * d;
 	}
@@ -2660,7 +2662,7 @@ int DistanceComputationTools::computeCloud2SphereEquation(	GenericIndexedCloudPe
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
+int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersist* pointCloud,
 														const CCVector3&            discCenter,
 														const PointCoordinateType   discRadius,
 														const SquareMatrix&         rotationTransform,
@@ -2671,29 +2673,30 @@ int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersi
 	{
 		return DISTANCE_COMPUTATION_RESULTS::INVALID_INPUT;
 	}
-	if (!cloud)
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
 
+	const CCVector3d discCenterD = discCenter.toDouble();
 	CCVector3 normal(0, 0, 1);
 	normal        = rotationTransform * normal;
 	double dSumSq = 0.0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		CCVector3d P = pointCloud->getPoint(i)->toDouble();
 		// Project the point onto the plane which contains the disc
-		ScalarType dPlane = (*P - discCenter).dot(normal);
-		CCVector3  pProj  = *P - normal * dPlane;
+		ScalarType dPlane = (P - discCenter).dot(normal);
+		CCVector3d pProj  = P - normal.toDouble() * dPlane;
 		ScalarType rProj  = (pProj - discCenter).norm();
 
 		double d = 0.0;
@@ -2704,17 +2707,17 @@ int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersi
 		}
 		else
 		{
-			CCVector3 pEdge = discCenter + discRadius * (pProj - discCenter) / rProj; // safe as rProj can not be null at this point
-			d               = (*P - pEdge).normd();                                   // The distance is the distance between the point and the border of the disc
-			d               = (*P - pEdge).dot(normal) > 0 ? d : -d;
+			CCVector3d pEdge = discCenterD + (discRadius / rProj) * (pProj - discCenterD); // Safe as rProj can not be null at this point
+			d               = (P - pEdge).normd();                                         // The distance is the distance between the point and the border of the disc
+			d               = (P - pEdge).dot(normal) > 0 ? d : -d;
 		}
 		if (signedDistances)
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 		}
 		else
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
 		}
 		dSumSq += d * d;
 	}
@@ -2726,13 +2729,13 @@ int DistanceComputationTools::computeCloud2DiscEquation(GenericIndexedCloudPersi
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPersist *cloud,
+int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPersist* pointCloud,
 															const PointCoordinateType* planeEquation,
 															bool signedDistances/*=true*/,
 															double* rms/*=nullptr*/)
 {
-	assert(cloud && planeEquation);
-	if (!cloud)
+	assert(pointCloud && planeEquation);
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
@@ -2740,12 +2743,12 @@ int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPer
 	{
 		return DISTANCE_COMPUTATION_RESULTS::NULL_PLANE_EQUATION;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -2763,15 +2766,15 @@ int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPer
 	double dSumSq = 0.0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getPoint(i);
+		const CCVector3* P = pointCloud->getPoint(i);
 		double d = CCVector3::vdotd(P->u, planeEquation) - planeEquation[3];
 		if (signedDistances)
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 		}
 		else
 		{
-			cloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
+			pointCloud->setPointScalarValue(i, static_cast<ScalarType>(std::abs(d)));
 		}
 		dSumSq += d * d;
 	}
@@ -2783,7 +2786,7 @@ int DistanceComputationTools::computeCloud2PlaneEquation(	GenericIndexedCloudPer
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedCloudPersist *cloud,
+int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedCloudPersist* pointCloud,
 																PointCoordinateType widthX,
 																PointCoordinateType widthY,
 																const SquareMatrix& rotationTransform,
@@ -2799,17 +2802,17 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 	// p0-------------------->p1
 	//Rect(s,t)=p0 + s*0e + t*e1
 	//for s,t in {0,1}
-	assert(cloud);
-	if (!cloud)
+	assert(pointCloud);
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -2835,7 +2838,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* pe = cloud->getPoint(i);
+		const CCVector3* pe = pointCloud->getPoint(i);
 		CCVector3 dist = (*pe - rectangleP0);
 		PointCoordinateType s = e0.dot(dist);
 		if (s > 0)
@@ -2870,7 +2873,7 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 		{
 			d = -d;
 		}
-		cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+		pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 	}
 	if (rms)
 	{
@@ -2879,24 +2882,24 @@ int DistanceComputationTools::computeCloud2RectangleEquation(	GenericIndexedClou
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersist* cloud,
+int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersist* pointCloud,
 														const CCVector3& boxDimensions,
 														const SquareMatrix& rotationTransform,
 														const CCVector3& boxCenter,
 														bool signedDistances/*=true*/,
 														double* rms/*=nullptr*/)
 {
-	assert(cloud);
-	if (!cloud)
+	assert(pointCloud);
+	if (!pointCloud)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -2915,10 +2918,10 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 	u = rotationTransform * u;
 	v = rotationTransform * v;
 	w = rotationTransform * w;
-	PointCoordinateType dSumSq = 0;
+	double dSumSq = 0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* p = cloud->getPoint(i);
+		const CCVector3* p = pointCloud->getPoint(i);
 		CCVector3 pointCenterDifference = (*p - boxCenter);
 		CCVector3 p_inBoxCoords(pointCenterDifference.dot(u), pointCenterDifference.dot(v), pointCenterDifference.dot(w));
 		bool insideBox = (std::abs(p_inBoxCoords.x) <= hu && std::abs(p_inBoxCoords.y) <= hv && std::abs(p_inBoxCoords.z) <= hw);
@@ -2987,7 +2990,7 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 		{
 			d = -d;
 		}
-		cloud->setPointScalarValue(i, static_cast<ScalarType>(d));
+		pointCloud->setPointScalarValue(i, static_cast<ScalarType>(d));
 	}
 	if (rms)
 	{
@@ -2996,21 +2999,21 @@ int DistanceComputationTools::computeCloud2BoxEquation(	GenericIndexedCloudPersi
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudPersist* cloud,
+int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudPersist* pointCloud,
 															const Polyline* polyline,
 															double* rms/*=nullptr*/)
 {
-	if (!cloud)
+	if (!pointCloud)
 	{
 		assert(false);
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDCLOUD;
 	}
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_EMPTY_COMPAREDCLOUD;
 	}
-	if (!cloud->enableScalarField())
+	if (!pointCloud->enableScalarField())
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_ENABLE_SCALAR_FIELD_FAILURE;
 	}
@@ -3029,7 +3032,7 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 	for (unsigned i = 0; i < count; ++i)
 	{
 		ScalarType distSq = NAN_VALUE;
-		const CCVector3* p = cloud->getPoint(i);
+		const CCVector3* p = pointCloud->getPoint(i);
 		for (unsigned j = 0; j < polyline->size() - 1; j++)
 		{
 			const CCVector3* start = polyline->getPoint(j);
@@ -3056,7 +3059,7 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 		}
 		d = sqrt(distSq);
 		dSumSq += distSq;
-		cloud->setPointScalarValue(i, d);
+		pointCloud->setPointScalarValue(i, d);
 	}
 
 	if (rms)
@@ -3066,16 +3069,16 @@ int DistanceComputationTools::computeCloud2PolylineEquation(GenericIndexedCloudP
 	return DISTANCE_COMPUTATION_RESULTS::SUCCESS;
 }
 
-ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud* cloud,
+ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud* pointCloud,
 																	const PointCoordinateType* planeEquation)
 {
-	assert(cloud && planeEquation);
-	if (!cloud)
+	assert(pointCloud && planeEquation);
+	if (!pointCloud)
 	{
 		return 0;
 	}
 	//point count
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return 0;
@@ -3092,10 +3095,10 @@ ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud
 
 	//compute deviations
 	double dSumSq = 0.0;
-	cloud->placeIteratorAtBeginning();
+	pointCloud->placeIteratorAtBeginning();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getNextPoint();
+		const CCVector3* P = pointCloud->getNextPoint();
 		double d = CCVector3::vdotd(P->u, planeEquation) - planeEquation[3]/*/norm*/; //norm == 1.0
 
 		dSumSq += d*d;
@@ -3104,19 +3107,19 @@ ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud
 	return static_cast<ScalarType>(sqrt(dSumSq / count));
 }
 
-ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* cloud,
+ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* pointCloud,
 																	const PointCoordinateType* planeEquation,
 																	float percent)
 {
-	assert(cloud && planeEquation);
+	assert(pointCloud && planeEquation);
 	assert(percent < 1.0f);
 
-	if (!cloud)
+	if (!pointCloud)
 	{
 		return 0;
 	}
 	//point count
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return 0;
@@ -3137,11 +3140,11 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	tail.resize(tailSize);
 
 	//compute deviations
-	cloud->placeIteratorAtBeginning();
+	pointCloud->placeIteratorAtBeginning();
 	std::size_t pos = 0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getNextPoint();
+		const CCVector3* P = pointCloud->getNextPoint();
 		PointCoordinateType d = std::abs(CCVector3::vdot(P->u, planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
 
 		if (pos < tailSize)
@@ -3170,16 +3173,16 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	return static_cast<ScalarType>(tail.back());
 }
 
-ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud* cloud,
+ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud* pointCloud,
 																	const PointCoordinateType* planeEquation)
 {
-	assert(cloud && planeEquation);
-	if (!cloud)
+	assert(pointCloud && planeEquation);
+	if (!pointCloud)
 	{
 		return 0;
 	}
 	//point count
-	unsigned count = cloud->size();
+	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
 		return 0;
@@ -3197,10 +3200,10 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	//we search the max distance
 	PointCoordinateType maxDist = 0;
 
-	cloud->placeIteratorAtBeginning();
+	pointCloud->placeIteratorAtBeginning();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = cloud->getNextPoint();
+		const CCVector3* P = pointCloud->getNextPoint();
 		PointCoordinateType d = std::abs(CCVector3::vdot(P->u,planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
 		maxDist = std::max(d,maxDist);
 	}
@@ -3208,46 +3211,49 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	return static_cast<ScalarType>(maxDist);
 }
 
-ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(GenericCloud* cloud,
+ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(GenericCloud* pointCloud,
 																const PointCoordinateType* planeEquation,
 																ERROR_MEASURES measureType)
 {
 	switch (measureType)
 	{
-		case RMS:
-			return DistanceComputationTools::computeCloud2PlaneDistanceRMS(cloud,planeEquation);
+	case RMS:
+		return DistanceComputationTools::computeCloud2PlaneDistanceRMS(pointCloud, planeEquation);
 
-		case MAX_DIST_68_PERCENT:
-			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.32f);
-		case MAX_DIST_95_PERCENT:
-			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.05f);
-		case MAX_DIST_99_PERCENT:
-			return DistanceComputationTools::ComputeCloud2PlaneRobustMax(cloud,planeEquation,0.01f);
+	case MAX_DIST_68_PERCENT:
+		return DistanceComputationTools::ComputeCloud2PlaneRobustMax(pointCloud, planeEquation, 0.32f);
+	case MAX_DIST_95_PERCENT:
+		return DistanceComputationTools::ComputeCloud2PlaneRobustMax(pointCloud, planeEquation, 0.05f);
+	case MAX_DIST_99_PERCENT:
+		return DistanceComputationTools::ComputeCloud2PlaneRobustMax(pointCloud, planeEquation, 0.01f);
 
-		case MAX_DIST:
-			return DistanceComputationTools::ComputeCloud2PlaneMaxDistance(cloud,planeEquation);
+	case MAX_DIST:
+		return DistanceComputationTools::ComputeCloud2PlaneMaxDistance(pointCloud, planeEquation);
 
-		default:
-			assert(false);
-			return -1.0;
+	default:
+		assert(false);
+		return -1.0;
 	}
 }
 
-bool DistanceComputationTools::computeGeodesicDistances(GenericIndexedCloudPersist* cloud, unsigned seedPointIndex, unsigned char octreeLevel, GenericProgressCallback* progressCb)
+bool DistanceComputationTools::computeGeodesicDistances(GenericIndexedCloudPersist* pointCloud,
+														unsigned seedPointIndex,
+														unsigned char octreeLevel,
+														GenericProgressCallback* progressCb)
 {
-	assert(cloud);
-	if (!cloud)
+	assert(pointCloud);
+	if (!pointCloud)
 	{
 		return false;
 	}
-	unsigned n = cloud->size();
+	unsigned n = pointCloud->size();
 	if (n == 0 || seedPointIndex >= n)
 		return false;
 
-	cloud->enableScalarField();
-	cloud->forEach(ScalarFieldTools::SetScalarValueToNaN);
+	pointCloud->enableScalarField();
+	pointCloud->forEach(ScalarFieldTools::SetScalarValueToNaN);
 
-	DgmOctree* octree = new DgmOctree(cloud);
+	DgmOctree* octree = new DgmOctree(pointCloud);
 	if (octree->build(progressCb) < 1)
 	{
 		delete octree;
@@ -3255,7 +3261,7 @@ bool DistanceComputationTools::computeGeodesicDistances(GenericIndexedCloudPersi
 	}
 
 	FastMarchingForPropagation fm;
-	if (fm.init(cloud,octree,octreeLevel,true) < 0)
+	if (fm.init(pointCloud,octree,octreeLevel,true) < 0)
 	{
 		delete octree;
 		return false;
@@ -3263,7 +3269,7 @@ bool DistanceComputationTools::computeGeodesicDistances(GenericIndexedCloudPersi
 
 	//on cherche la cellule de l'octree qui englobe le "seedPoint"
 	Tuple3i cellPos;
-	octree->getTheCellPosWhichIncludesThePoint(cloud->getPoint(seedPointIndex), cellPos, octreeLevel);
+	octree->getTheCellPosWhichIncludesThePoint(pointCloud->getPoint(seedPointIndex), cellPos, octreeLevel);
 	fm.setSeedCell(cellPos);
 
 	bool result = false;
