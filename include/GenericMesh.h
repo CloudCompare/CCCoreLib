@@ -20,20 +20,11 @@ namespace CCCoreLib
 		//! Default destructor
 		virtual ~GenericMesh() = default;
 
-		//! Generic function to apply to a triangle (used by foreach)
-		using genericTriangleAction = std::function<void (GenericTriangle &)>;
-
 		//! Returns the number of triangles
 		/**	Virtual method to request the mesh size
 			\return the mesh size
 		**/
 		virtual unsigned size() const = 0;
-
-		//! Fast iteration mechanism
-		/**	Virtual method to apply a function to the whole mesh
-			\param action function to apply (see GenericMesh::genericTriangleAction)
-		**/
-		virtual void forEach(genericTriangleAction action) = 0;
 
 		//! Returns the mesh bounding-box
 		/**	Virtual method to request the mesh bounding-box limits. It is equivalent to

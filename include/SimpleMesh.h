@@ -34,7 +34,6 @@ namespace CCCoreLib
 
 	public: //inherited methods
 
-		void forEach(genericTriangleAction action) override;
 		void placeIteratorAtBeginning() override;
 		GenericTriangle* _getNextTriangle() override; //temporary
 		GenericTriangle* _getTriangle(unsigned triangleIndex) override; //temporary

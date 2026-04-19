@@ -361,7 +361,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	}
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
-	//data.cloud->forEach(ScalarFieldTools::SetScalarValueToNaN); //DGM: done automatically in computeCloud2CloudDistances now
+	//data.cloud->setPointScalarValues(CCCoreLib::NAN_VALUE); //DGM: done automatically in computeCloud2CloudDistances now
 	if (inputModelMesh)
 	{
 		assert(data.CPSetPlain);

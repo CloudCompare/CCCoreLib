@@ -23,7 +23,7 @@ namespace CCCoreLib
 
 		//**** inherited form GenericCloud ****//
 		inline unsigned size() const override { return m_size; }
-		void forEach(genericPointAction action) override;
+		void setPointScalarValues(ScalarType value) override;
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
 		//virtual unsigned char testVisibility(const CCVector3& P) const; //not supported
 		inline void placeIteratorAtBeginning() override { m_globalIterator = 0; }

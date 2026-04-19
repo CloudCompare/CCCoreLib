@@ -149,17 +149,14 @@ void ReferenceCloud::setPointIndex(unsigned localIndex, unsigned globalIndex)
 	invalidateBoundingBox();
 }
 
-void ReferenceCloud::forEach(genericPointAction action)
+void ReferenceCloud::setPointScalarValues(ScalarType value)
 {
 	assert(m_theAssociatedCloud);
 
 	unsigned count = size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		unsigned index = m_theIndexes[i];
-		ScalarType d = m_theAssociatedCloud->getPointScalarValue(index);
-		action(*m_theAssociatedCloud->getPointPersistentPtr(index), d);
-		m_theAssociatedCloud->setPointScalarValue(index, d);
+		m_theAssociatedCloud->setPointScalarValue(m_theIndexes[i], value);
 	}
 }
 

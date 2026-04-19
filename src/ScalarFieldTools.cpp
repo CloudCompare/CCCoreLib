@@ -16,21 +16,6 @@ using namespace CCCoreLib;
 
 static const int AVERAGE_NUMBER_OF_POINTS_FOR_GRADIENT_COMPUTATION = 14;
 
-void ScalarFieldTools::SetScalarValueToNaN(const CCVector3& P, ScalarType& scalarValue)
-{
-	scalarValue = NAN_VALUE;
-}
-
-void ScalarFieldTools::SetScalarValueToZero(const CCVector3& P, ScalarType& scalarValue)
-{
-	scalarValue = 0;
-}
-
-void ScalarFieldTools::SetScalarValueInverted(const CCVector3& P, ScalarType& scalarValue)
-{
-	scalarValue = -scalarValue;
-}
-
 int ScalarFieldTools::computeScalarFieldGradient(	GenericIndexedCloudPersist* theCloud,
 													PointCoordinateType radius,
 													bool euclideanDistances,

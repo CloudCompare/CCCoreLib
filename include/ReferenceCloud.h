@@ -37,7 +37,7 @@ namespace CCCoreLib
 
 		//**** inherited form GenericCloud ****//
 		inline unsigned size() const override { return static_cast<unsigned>(m_theIndexes.size()); }
-		void forEach(genericPointAction action) override;
+		void setPointScalarValues(ScalarType value) override;
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
 		inline unsigned char testVisibility(const CCVector3& P) const override { assert(m_theAssociatedCloud); return m_theAssociatedCloud->testVisibility(P); }
 		inline void placeIteratorAtBeginning() override { m_globalIterator = 0; }

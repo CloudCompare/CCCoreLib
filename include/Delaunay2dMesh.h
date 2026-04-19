@@ -79,7 +79,6 @@ namespace CCCoreLib
 
 		//inherited methods (see GenericMesh)
 		unsigned size() const override { return m_numberOfTriangles; }
-		void forEach(genericTriangleAction action) override;
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override;
 		void placeIteratorAtBeginning() override;
 		GenericTriangle* _getNextTriangle() override;

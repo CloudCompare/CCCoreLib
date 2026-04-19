@@ -1853,15 +1853,6 @@ int DistanceComputationTools::computeCloud2MeshDistancesWithOctree(	const DgmOct
 #endif // ENABLE_CLOUD2MESH_DIST_MT
 }
 
-//convert all 'distances' (squared in fact) to their square root
-static inline void ApplySqrtToPointSquareDist(const CCVector3 &aPoint, ScalarType& aScalarValue)
-{
-	if (ScalarField::ValidValue(aScalarValue))
-	{
-		aScalarValue = sqrt(std::abs(aScalarValue)); // std::abs, in case the input value is negative by mistake or because of a numerical accuracy issue
-	}
-}
-
 int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPersist* pointCloud,
 															GenericIndexedMesh* mesh,
 															Cloud2MeshDistancesComputationParams& params,
@@ -1994,7 +1985,7 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 
 	//reset the output distances
 	pointCloud->enableScalarField();
-	pointCloud->forEach(ScalarFieldTools::SetScalarValueToNaN);
+	pointCloud->setPointScalarValues(CCCoreLib::NAN_VALUE);
 
 	//WE CAN EVENTUALLY COMPUTE THE DISTANCES!
 	int result = computeCloud2MeshDistancesWithOctree(octree, intersection, params, progressCb);
@@ -2004,7 +1995,11 @@ int DistanceComputationTools::computeCloud2MeshDistances(	GenericIndexedCloudPer
 			!params.signedDistances &&
 			!params.useDistanceMap)
 	{
-		pointCloud->forEach(ApplySqrtToPointSquareDist);
+		//convert all squared distances to their root
+		for (unsigned i = 0; i < pointCloud->size(); ++i)
+		{
+			pointCloud->setPointScalarValue(i, sqrt(std::abs(pointCloud->getPointScalarValue(i)))); // std::abs, in case the input value is negative by mistake or because of a numerical accuracy issue
+		}
 	}
 
 	if (result < DISTANCE_COMPUTATION_RESULTS::SUCCESS)
@@ -3251,7 +3246,7 @@ bool DistanceComputationTools::computeGeodesicDistances(GenericIndexedCloudPersi
 		return false;
 
 	pointCloud->enableScalarField();
-	pointCloud->forEach(ScalarFieldTools::SetScalarValueToNaN);
+	pointCloud->setPointScalarValues(CCCoreLib::NAN_VALUE);
 
 	DgmOctree* octree = new DgmOctree(pointCloud);
 	if (octree->build(progressCb) < 1)

@@ -318,23 +318,6 @@ bool Delaunay2dMesh::removeTrianglesWithEdgesLongerThan(PointCoordinateType maxE
 	return true;
 }
 
-void Delaunay2dMesh::forEach(genericTriangleAction action)
-{
-	if (!m_associatedCloud)
-		return;
-
-	SimpleTriangle tri;
-
-	const int* _triIndexes = m_triIndexes.data();
-	for (unsigned i = 0; i < m_numberOfTriangles; ++i, _triIndexes += 3)
-	{
-		tri.A = *m_associatedCloud->getPoint(_triIndexes[0]);
-		tri.B = *m_associatedCloud->getPoint(_triIndexes[1]);
-		tri.C = *m_associatedCloud->getPoint(_triIndexes[2]);
-		action(tri);
-	}
-}
-
 void Delaunay2dMesh::placeIteratorAtBeginning()
 {
 	m_globalIterator = m_triIndexes.data();

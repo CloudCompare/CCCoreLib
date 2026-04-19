@@ -28,19 +28,6 @@ SimpleMesh::~SimpleMesh()
 	}
 }
 
-void SimpleMesh::forEach(genericTriangleAction action)
-{
-	SimpleTriangle tri;
-
-	for (VerticesIndexes& ti : triIndexes)
-	{
-		theVertices->getPoint(ti.i1, tri.A);
-		theVertices->getPoint(ti.i2, tri.B);
-		theVertices->getPoint(ti.i3, tri.C);
-		action(tri);
-	}
-}
-
 void SimpleMesh::placeIteratorAtBeginning()
 {
 	globalIterator = 0;

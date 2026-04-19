@@ -81,39 +81,18 @@ namespace CCCoreLib
 
 		inline unsigned size() const override { return static_cast<unsigned>(m_points.size()); }
 
-		void forEach(GenericCloud::genericPointAction action) override
+		void setPointScalarValues(ScalarType value) override
 		{
-			//there's no point of calling forEach if there's no activated scalar field!
 			ScalarField* currentOutScalarFieldArray = getCurrentOutScalarField();
 			if (!currentOutScalarFieldArray)
 			{
+				//no activated scalar field!
 				assert(false);
 				return;
 			}
 
-			unsigned n = size();
-
-			if (0 != n)
-			{
-				double previousOffset = currentOutScalarFieldArray->getOffset();
-				if (n == currentOutScalarFieldArray->size())
-				{
-					// if we are going to change ALL the values, we can also apply the functor on the offset
-					double firstValue = currentOutScalarFieldArray->getValue(0);
-					action(m_points.front(), firstValue);
-					if (ScalarField::ValidValue(firstValue))
-					{
-						currentOutScalarFieldArray->setOffset(firstValue);
-					}
-				}
-
-				for (unsigned i = 0; i < n; ++i)
-				{
-					ScalarType value = previousOffset + currentOutScalarFieldArray->getLocalValue(i); // warning, the offset has been changed, we can't use getValue anymore
-					action(m_points[i], value);
-					currentOutScalarFieldArray->setValue(i, value);
-				}
-			}
+			currentOutScalarFieldArray->resetOffset();
+			currentOutScalarFieldArray->fill(value);
 		}
 
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override

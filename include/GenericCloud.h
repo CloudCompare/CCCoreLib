@@ -23,20 +23,11 @@ namespace CCCoreLib
 		//! Default destructor
 		virtual ~GenericCloud() = default;
 
-		//! Generic function applied to a point (used by foreach)
-		using genericPointAction = std::function<void (const CCVector3 &, ScalarType &)>;
-
 		//! Returns the number of points
 		/**	Virtual method to request the cloud size
 			\return the cloud size
 		**/
 		virtual unsigned size() const = 0;
-
-		//! Fast iteration mechanism
-		/**	Virtual method to apply a function to the whole cloud
-			\param action the function to apply (see GenericCloud::genericPointAction)
-		**/
-		virtual void forEach(genericPointAction action) = 0;
 
 		//! Returns the cloud bounding box
 		/**	Virtual method to request the cloud bounding box limits
@@ -88,10 +79,20 @@ namespace CCCoreLib
 		//! Returns true if the scalar field is enabled, false otherwise
 		virtual bool isScalarFieldEnabled() const = 0;
 
+		//! Resets all value of the currently enabled scalar field to the same value
+		/**	\param value the value to for to all points
+		**/
+		virtual void setPointScalarValues(ScalarType value) = 0;
+
 		//! Sets the ith point associated scalar value
+		/**	\param pointIndex the point index
+			\param value the value to set
+		**/
 		virtual void setPointScalarValue(unsigned pointIndex, ScalarType value) = 0;
 
 		//! Returns the ith point associated scalar value
+		/**	\param pointIndex the point index
+		**/
 		virtual ScalarType getPointScalarValue(unsigned pointIndex) const = 0;
 	};
 

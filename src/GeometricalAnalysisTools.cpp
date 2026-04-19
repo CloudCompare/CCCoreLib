@@ -323,7 +323,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::FlagDuplicatePoint
 	}
 	
 	//set all flags to 0 by default
-	cloud->forEach(ScalarFieldTools::SetScalarValueToZero);
+	cloud->setPointScalarValues(0);
 
 	unsigned char level = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(static_cast<PointCoordinateType>(minDistanceBetweenPoints));
 

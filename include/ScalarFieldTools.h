@@ -139,21 +139,6 @@ namespace CCCoreLib
 									KMeanClass kmcc[],
 									GenericProgressCallback* progressCb = nullptr);
 
-		//! Sets the distance value associated to a point
-		/** Generic function that can be used with the GenericCloud::foreach() method.
-			\param P a 3D point
-			\param scalarValue its associated scalar value
-		**/
-		static void SetScalarValueToNaN(const CCVector3& P, ScalarType& scalarValue);
-
-		//! Sets the distance value associated to a point to zero
-		/** Generic function that can be used with the GenericCloud::foreach() method.
-			\param P a 3D point
-			\param scalarValue its associated scalar value
-		**/
-		static void SetScalarValueToZero(const CCVector3 &P, ScalarType& scalarValue);
-
-		static void SetScalarValueInverted(const CCVector3 &P, ScalarType& scalarValue);
 	protected:
 
 		//! "Cellular" function to compute the gradient norms of points inside an octree cell

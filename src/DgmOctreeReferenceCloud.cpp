@@ -63,14 +63,11 @@ void DgmOctreeReferenceCloud::getBoundingBox(CCVector3& bbMin, CCVector3& bbMax)
 	bbMax = m_bbMax;
 }
 
-void DgmOctreeReferenceCloud::forEach(genericPointAction action)
+void DgmOctreeReferenceCloud::setPointScalarValues(ScalarType value)
 {
 	unsigned count = size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		//we must change from double container to 'ScalarType' one!
-		ScalarType sqDist = static_cast<ScalarType>(m_set->at(i).squareDistd);
-		action(*m_set->at(i).point, sqDist);
-		m_set->at(i).squareDistd = static_cast<double>(sqDist);
+		m_set->at(i).squareDistd = value;
 	}
 }
