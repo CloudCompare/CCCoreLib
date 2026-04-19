@@ -70,7 +70,7 @@ namespace CCCoreLib
 			assert(std::isfinite(offset));
 
 			m_offsetHasBeenSet = true;
-			m_offset = offset;
+			m_offset = (std::abs(offset) < 100.0 ? 0.0 : offset); // don't use a too small offset, as it can cause numerical accuracy issues
 		}
 
 		//! Resets the offset
@@ -111,22 +111,18 @@ namespace CCCoreLib
 		inline ScalarType getMax() const { return m_offset + m_localMaxVal; }
 
 		//! Fills the array with a particular value
-		inline void fill(ScalarType fillValue = 0)
+		inline void fill(ScalarType fillValue = 0, bool autoResetOffset = true)
 		{
 			float fillValueF = 0.0f;
 			if (std::isfinite(fillValue))
 			{
-				if (m_offsetHasBeenSet)
-				{
-					fillValueF = static_cast<float>(fillValue - m_offset);
-				}
-				else
+				if (!m_offsetHasBeenSet || autoResetOffset)
 				{
 					// if the offset has not been set yet, we use the first finite value by default
 					setOffset(fillValue);
-
-					//fillValueF = 0.0f; // already set
 				}
+
+				fillValueF = static_cast<float>(fillValue - m_offset);
 			}
 			else
 			{
@@ -144,6 +140,22 @@ namespace CCCoreLib
 			else
 			{
 				std::fill(begin(), end(), fillValueF);
+			}
+		}
+
+		//! Inverts all values
+		/** \warning The internal offset will be inverted as well
+		**/
+		inline void invert()
+		{
+			if (m_offsetHasBeenSet && std::isfinite(m_offset))
+			{
+				m_offset = -m_offset;
+			}
+
+			for (float& fValue : *this)
+			{
+				fValue = -fValue;
 			}
 		}
 
@@ -171,7 +183,7 @@ namespace CCCoreLib
 				// if the offset has not been set yet, we use the
 				// first finite value as offset by default
 				setOffset(value);
-				(*this)[index] = 0.0f;
+				(*this)[index] = static_cast<float>(value - m_offset);
 			}
 			else
 			{
@@ -192,7 +204,7 @@ namespace CCCoreLib
 				// if the offset has not been set yet, we use the
 				// first finite value as offset by default
 				setOffset(value);
-				push_back(0.0f);
+				push_back(static_cast<float>(value - m_offset));
 			}
 			else
 			{
