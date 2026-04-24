@@ -235,6 +235,10 @@ int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPe
 		//something went wrong
 		result = DISTANCE_COMPUTATION_RESULTS::ERROR_EXECUTE_FUNCTION_FOR_ALL_CELLS_AT_LEVEL_FAILURE;
 	}
+	else
+	{
+		result = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
+	}
 
 
 	if (comparedOctree && !compOctree)
