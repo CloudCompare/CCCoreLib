@@ -133,7 +133,8 @@ namespace CCCoreLib
 			\param compOctree		the pre-computed octree of the compared cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
 			\param refOctree		the pre-computed octree of the reference cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
 
-			\return 0 if ok, a negative value otherwise
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2CloudDistances(	GenericIndexedCloudPersist* comparedCloud,
 												GenericIndexedCloudPersist* referenceCloud,
@@ -522,7 +523,7 @@ namespace CCCoreLib
 			ERROR_UNKOWN_ERRORMEASURES_TYPE,
 			ERROR_INTERNAL,
 			INVALID_INPUT,
-			SUCCESS = 1,
+			SUCCESS = 0,
 		};
 
 		//! Computes the "distance" (see ERROR_MEASURES) between a point cloud and a plane

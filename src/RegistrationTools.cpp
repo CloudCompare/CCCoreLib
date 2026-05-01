@@ -383,7 +383,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 		c2cDistParams.CPSet = data.CPSetRef;
 		c2cDistParams.maxThreadCount = params.maxThreadCount;
-		if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams, progressCb) < 0)
+		if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams, progressCb) <
+				DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 		{
 			//an error occurred during distances computation...
 			return ICP_ERROR_DIST_COMPUTATION;
@@ -654,7 +655,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				{
 					//retrieve the data point normal
 					const CCVector3* Nd = data.cloud->getNormal(i);
-					
+
 					//retrieve the nearest model point normal
 					CCVector3 Nm;
 					if (inputModelMesh)
@@ -951,7 +952,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			DistanceComputationTools::Cloud2CloudDistancesComputationParams c2cDistParams;
 			c2cDistParams.CPSet = data.CPSetRef;
 			c2cDistParams.maxThreadCount = params.maxThreadCount;
-			if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams) < 0)
+			if (DistanceComputationTools::computeCloud2CloudDistances(data.cloud, model.cloud, c2cDistParams) <
+					DistanceComputationTools::DISTANCE_COMPUTATION_RESULTS::SUCCESS)
 			{
 				//an error occurred during distances computation...
 				result = ICP_ERROR_REGISTRATION_STEP;
@@ -1155,7 +1157,7 @@ bool RegistrationTools::RegistrationProcedure(	GenericCloud* P, //data
 			{
 				return false;
 			}
-			
+
 			PointCoordinateType sin_t = static_cast<PointCoordinateType>(S / Q);
 			PointCoordinateType cos_t = static_cast<PointCoordinateType>(C / Q);
 			PointCoordinateType inv_cos_t = 1 - cos_t;
