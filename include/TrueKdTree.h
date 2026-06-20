@@ -130,7 +130,7 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 		**/
 		bool build(	double maxError,
-					DistanceComputationTools::ERROR_MEASURES errorMeasure = DistanceComputationTools::RMS,
+					DistanceComputationTools::MEASURE_TYPE errorMeasure = DistanceComputationTools::RMS,
 					unsigned minPointCountPerCell = 3,
 					unsigned maxPointCountPerCell = 0,
 					GenericProgressCallback* progressCb = nullptr);
@@ -142,7 +142,7 @@ namespace CCCoreLib
 		inline double getMaxError() const { return m_maxError; }
 
 		//! Returns max error estimator used for planarity-based split strategy
-		inline DistanceComputationTools::ERROR_MEASURES getMaxErrorType() const { return m_errorMeasure; }
+		inline DistanceComputationTools::MEASURE_TYPE getMaxErrorType() const { return m_errorMeasure; }
 
 		//! Returns all leaf nodes
 		bool getLeaves(LeafVector& leaves) const;
@@ -162,7 +162,7 @@ namespace CCCoreLib
 		double m_maxError;
 
 		//! Error measurement
-		DistanceComputationTools::ERROR_MEASURES m_errorMeasure;
+		DistanceComputationTools::MEASURE_TYPE m_errorMeasure;
 
 		//! Min number of points per cell (speed-up)
 		/** Can't be < 3

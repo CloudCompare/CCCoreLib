@@ -216,23 +216,21 @@ int DistanceComputationTools::computeCloud2CloudDistances(	GenericIndexedCloudPe
 									reinterpret_cast<void*>(&computeSplitDistances)
 								};
 
-	int result = DISTANCE_COMPUTATION_RESULTS::SUCCESS;
-
 	if (!comparedOctree)
 	{
 		return DISTANCE_COMPUTATION_RESULTS::ERROR_NULL_COMPAREDOCTREE;
 	}
 
-	result = comparedOctree->executeFunctionForAllCellsAtLevel(params.octreeLevel,
-															   params.localModel == NO_MODEL ? computeCellHausdorffDistance : computeCellHausdorffDistanceWithLocalModel,
-															   additionalParameters,
-															   params.multiThread,
-															   progressCb,
-															   "Cloud-Cloud Distance",
-															   params.maxThreadCount);
-	if(result == 0) //executeFunctionForAllCellsAtLevel returns zero if error or canceled
+	int result = comparedOctree->executeFunctionForAllCellsAtLevel(params.octreeLevel,
+	                                                               params.localModel == NO_MODEL ? computeCellHausdorffDistance : computeCellHausdorffDistanceWithLocalModel,
+	                                                               additionalParameters,
+	                                                               params.multiThread,
+	                                                               progressCb,
+	                                                               "Cloud-Cloud Distance",
+	                                                               params.maxThreadCount);
+	if (result == 0) // executeFunctionForAllCellsAtLevel returns zero if error or canceled
 	{
-		//something went wrong
+		// something went wrong
 		result = DISTANCE_COMPUTATION_RESULTS::ERROR_EXECUTE_FUNCTION_FOR_ALL_CELLS_AT_LEVEL_FAILURE;
 	}
 	else
@@ -3074,13 +3072,13 @@ ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud
 	assert(pointCloud && planeEquation);
 	if (!pointCloud)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 	//point count
 	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
@@ -3115,19 +3113,19 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 
 	if (!pointCloud)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 	//point count
 	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
 	double norm2 = CCVector3::vnorm2d(planeEquation);
 	//the norm should always be equal to 1.0!
-	if ( LessThanEpsilon( norm2 ) )
+	if (LessThanEpsilon(norm2))
 	{
 		return NAN_VALUE;
 	}
@@ -3143,8 +3141,8 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	std::size_t pos = 0;
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = pointCloud->getNextPoint();
-		PointCoordinateType d = std::abs(CCVector3::vdot(P->u, planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
+		const CCVector3*    P = pointCloud->getNextPoint();
+		PointCoordinateType d = std::abs(CCVector3::vdot(P->u, planeEquation) - planeEquation[3]) /*/norm*/; // norm == 1.0
 
 		if (pos < tailSize)
 		{
@@ -3158,12 +3156,12 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 		//search the max element of the tail
 		if (pos > 1)
 		{
-			std::size_t maxPos = pos - 1;
+			std::size_t maxPos   = pos - 1;
 			std::size_t maxIndex = maxPos;
 			for (std::size_t j = 0; j < maxPos; ++j)
 				if (tail[j] < tail[maxIndex])
 					maxIndex = j;
-			//and put it to the back!
+			// and put it at the back!
 			if (maxPos != maxIndex)
 				std::swap(tail[maxIndex], tail[maxPos]);
 		}
@@ -3178,19 +3176,19 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	assert(pointCloud && planeEquation);
 	if (!pointCloud)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 	//point count
 	unsigned count = pointCloud->size();
 	if (count == 0)
 	{
-		return 0;
+		return NAN_VALUE;
 	}
 
 	//point to plane distance: d = std::abs(a0*x+a1*y+a2*z-a3) / sqrt(a0^2+a1^2+a2^2) <-- "norm"
 	double norm2 = CCVector3::vnorm2d(planeEquation);
 	//the norm should always be equal to 1.0!
-	if ( LessThanEpsilon( norm2 ) )
+	if (LessThanEpsilon(norm2))
 	{
 		return NAN_VALUE;
 	}
@@ -3202,17 +3200,17 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneMaxDistance( GenericCloud
 	pointCloud->placeIteratorAtBeginning();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		const CCVector3* P = pointCloud->getNextPoint();
-		PointCoordinateType d = std::abs(CCVector3::vdot(P->u,planeEquation) - planeEquation[3])/*/norm*/; //norm == 1.0
-		maxDist = std::max(d,maxDist);
+		const CCVector3*    P = pointCloud->getNextPoint();
+		PointCoordinateType d = std::abs(CCVector3::vdot(P->u, planeEquation) - planeEquation[3]) /*/norm*/; // norm == 1.0
+		maxDist               = std::max(d, maxDist);
 	}
 
 	return static_cast<ScalarType>(maxDist);
 }
 
-ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(GenericCloud* pointCloud,
-																const PointCoordinateType* planeEquation,
-																ERROR_MEASURES measureType)
+ScalarType DistanceComputationTools::ComputeCloud2PlaneDistanceMeasure(GenericCloud*              pointCloud,
+                                                                       const PointCoordinateType* planeEquation,
+                                                                       MEASURE_TYPE               measureType)
 {
 	switch (measureType)
 	{
@@ -3231,7 +3229,7 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneDistance(GenericCloud* po
 
 	default:
 		assert(false);
-		return -1.0;
+		return NAN_VALUE;
 	}
 }
 

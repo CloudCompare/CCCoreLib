@@ -211,7 +211,8 @@ namespace CCCoreLib
 			\param progressCb	the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\param cloudOctree	the pre-computed octree of the compared cloud (warning: its bounding box should be equal to the union of both point cloud and mesh bbs and it should be cubical - it is automatically computed if 0)
 
-			\return 0 if ok, a negative value otherwise
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2MeshDistances(	GenericIndexedCloudPersist* pointCloud,
 												GenericIndexedMesh* mesh,
@@ -225,7 +226,8 @@ namespace CCCoreLib
 			\param intersection	a specific structure corresponding the intersection of the mesh with the grid
 			\param params		parameters
 			\param progressCb	the client method can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2MeshDistancesWithOctree(const DgmOctree* octree,
 														const GridAndMeshIntersection& intersection,
@@ -241,7 +243,8 @@ namespace CCCoreLib
 			\param distance			the output distance
 			\param intersection		a specific structure corresponding the intersection of the mesh with the grid
 			\param params			parameters
-			\return -1 if an error occurred (e.g. not enough memory) and 0 otherwise
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computePoint2MeshDistancesWithOctree(const CCVector3& P,
 														ScalarType& distance,
@@ -263,7 +266,8 @@ namespace CCCoreLib
 			\param compOctree		the pre-computed octree of the compared cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
 			\param refOctree		the pre-computed octree of the reference cloud (warning: both octrees must have the same cubical bounding-box - it is automatically computed if 0)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeApproxCloud2CloudDistance(GenericIndexedCloudPersist* comparedCloud,
 													GenericIndexedCloudPersist* referenceCloud,
@@ -334,7 +338,8 @@ namespace CCCoreLib
 			\param[in]  outputSolutionType	if true the scalar field will be set to which solution was selected (from 1 to 4 or from 7 to 9 - see above)
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a cone (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2ConeEquation(	GenericIndexedCloudPersist* cloud,
 												const CCVector3& coneP1,
@@ -365,7 +370,8 @@ namespace CCCoreLib
 			\param[in]  outputSolutionType	if true the scalar field will be set to which solution was selected (from 1 to 4 - see above)
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a cylinder (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2CylinderEquation(	GenericIndexedCloudPersist* cloud,
 													const CCVector3& cylinderP1,
@@ -382,7 +388,8 @@ namespace CCCoreLib
 			\param[in]  signedDistances	whether to compute signed or positive distances
 			\param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a sphere (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2SphereEquation(	GenericIndexedCloudPersist *cloud,
 												const CCVector3& sphereCenter,
@@ -398,7 +405,8 @@ namespace CCCoreLib
 		    \param[in]  signedDistances		whether to compute signed or absolute distances
 		    \param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a disc (optional)
 
-		     \return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		 **/
 		static int computeCloud2DiscEquation(GenericIndexedCloudPersist* cloud,
 		                                     const CCVector3&            discCenter,
@@ -413,7 +421,8 @@ namespace CCCoreLib
 		    \param[in]  signedDistances	whether to compute signed or absolute distances
 		    \param[out] rms				will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 
-		    \return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2PlaneEquation(	GenericIndexedCloudPersist* cloud,
 												const PointCoordinateType* planeEquation,
@@ -429,7 +438,8 @@ namespace CCCoreLib
 			\param[in]  signedDistances		whether to compute signed or absolute distances
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a rectangle (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2RectangleEquation(	GenericIndexedCloudPersist *cloud,
 													PointCoordinateType widthX,
@@ -447,7 +457,8 @@ namespace CCCoreLib
 			\param[in]  signedDistances		whether to compute signed or positive distances
 			\param[out] rms					will be set with the Root Mean Square (RMS) distance between a cloud and a box (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2BoxEquation(GenericIndexedCloudPersist* cloud,
 											const CCVector3& boxDimensions,
@@ -461,21 +472,12 @@ namespace CCCoreLib
 			\param[in]  polyline	the polyline to measure to
 			\param[out] rms			will be set with the Root Mean Square (RMS) distance between a cloud and a plane (optional)
 
-			\return negative error code or a positive value in case of success
+			\return DISTANCE_COMPUTATION_RESULTS::SUCCESS on success,
+			        a negative error code from DISTANCE_COMPUTATION_RESULTS otherwise.
 		**/
 		static int computeCloud2PolylineEquation(	GenericIndexedCloudPersist* cloud,
 													const Polyline* polyline,
 													double* rms = nullptr);
-
-		//! Error estimators
-		enum ERROR_MEASURES
-		{
-			RMS,						/**< Root Mean Square error **/
-			MAX_DIST_68_PERCENT,		/**< Max distance @ 68% (1 sigma) **/
-			MAX_DIST_95_PERCENT,		/**< Max distance @ 98% (2 sigmas) **/
-			MAX_DIST_99_PERCENT,		/**< Max distance @ 99% (3 sigmas) **/
-			MAX_DIST,					/**< Max distance **/
-		};
 
 		//! Error codes returned by the distance computation methods
 		enum DISTANCE_COMPUTATION_RESULTS
@@ -526,21 +528,32 @@ namespace CCCoreLib
 			SUCCESS = 0,
 		};
 
-		//! Computes the "distance" (see ERROR_MEASURES) between a point cloud and a plane
+		//! Distance/error measurement type
+		enum MEASURE_TYPE
+		{
+			RMS,						/**< Root Mean Square distance **/
+			MAX_DIST_68_PERCENT,		/**< Max distance @ 68% (1 sigma) **/
+			MAX_DIST_95_PERCENT,		/**< Max distance @ 98% (2 sigmas) **/
+			MAX_DIST_99_PERCENT,		/**< Max distance @ 99% (3 sigmas) **/
+			MAX_DIST,					/**< Max distance **/
+		};
+
+		//! Computes the distance 'measure' (see MEASURE_TYPE) between a point cloud and a plane
 		/** \param cloud a point cloud
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
 			\param measureType measure type
+			\return the distance measure (or NAN_VALUE in case of error)
 		**/
-		static ScalarType ComputeCloud2PlaneDistance(	GenericCloud* cloud,
-														const PointCoordinateType* planeEquation,
-														ERROR_MEASURES measureType);
+		static ScalarType ComputeCloud2PlaneDistanceMeasure(GenericCloud* cloud,
+															const PointCoordinateType* planeEquation,
+															MEASURE_TYPE measureType);
 
 		//! Computes the maximum distance between a point cloud and a plane
 		/** \warning this method uses the cloud global iterator
 			\param cloud a point cloud
 			\param planeEquation plane equation: [a,b,c,d] as 'ax+by+cz=d'
 			\param percent percentage of lowest values ignored
-			\return the max distance @ 'percent' % between the point and the plane
+			\return the max distance @ 'percent' % between the point and the plane (or NAN_VALUE in case of error)
 		**/
 		static ScalarType ComputeCloud2PlaneRobustMax(	GenericCloud* cloud,
 														const PointCoordinateType* planeEquation,
