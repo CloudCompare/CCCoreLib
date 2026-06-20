@@ -62,13 +62,13 @@ static void InitProgress(GenericProgressCallback* progressCb, unsigned totalCoun
 	}
 }
 
-static inline void UpdateProgress(unsigned increment)
+static void UpdateProgress(unsigned increment)
 {
 	if (s_progressCb)
 	{
 		assert(s_totalProgressCount != 0);
 		s_lastProgressCount += increment;
-		float fPercent = static_cast<float>(s_lastProgressCount) / s_totalProgressCount * 100.0f;
+		float fPercent = s_lastProgressCount / (s_totalProgressCount * 100.0f);
 		unsigned uiPercent = static_cast<unsigned>(fPercent);
 		if (uiPercent > s_lastProgress)
 		{
@@ -90,23 +90,23 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 		//an error occurred during LS plane computation?! (maybe the (3) points are aligned)
 		//we return an invalid Leaf (so as the above level understands that it's not a memory issue)
 		delete subset;
-		PointCoordinateType fakePlaneEquation[4] = { 0,0,0,0 };
+		PointCoordinateType fakePlaneEquation[4] { 0,0,0,0 };
 		return new Leaf(nullptr, fakePlaneEquation, static_cast<ScalarType>(-1));
 	}
 
 	//we always split sets larger than a given size
-	ScalarType error = -1;
+	ScalarType error = NAN_VALUE;
 	if (count < m_maxPointCountPerCell || count < 2 * m_minPointCountPerCell)
 	{
 		assert(std::abs(CCVector3(planeEquation).norm2() - 1.0) < 1.0e-6);
-		error = (count > 3 ? DistanceComputationTools::ComputeCloud2PlaneDistance(subset, planeEquation, m_errorMeasure) : 0);
+		error = (count > 3 ? DistanceComputationTools::ComputeCloud2PlaneDistanceMeasure(subset, planeEquation, m_errorMeasure) : 0);
 
-		//we can't split cells with less than twice the minimum number of points per cell! (and min >= 3 so as to fit a plane)
-		bool isLeaf = (error <= m_maxError || count < 2 * m_minPointCountPerCell);
+		// we can't split cells with less than twice the minimum number of points per cell! (and min >= 3 so as to fit a plane)
+		bool isLeaf = (std::isnan(error) || error <= m_maxError || count < 2 * m_minPointCountPerCell);
 		if (isLeaf)
 		{
 			UpdateProgress(count);
-			//the Leaf class takes ownership of the subset!
+			// the Leaf class takes ownership of the subset!
 			return new Leaf(subset, planeEquation, error);
 		}
 	}
@@ -165,8 +165,10 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 		else //in fact we can't split this cell!
 		{
 			UpdateProgress(count);
-			if (error < 0)
-				error = (count != 3 ? DistanceComputationTools::ComputeCloud2PlaneDistance(subset, planeEquation, m_errorMeasure) : 0);
+			if (std::isnan(error))
+			{
+				error = (count != 3 ? DistanceComputationTools::ComputeCloud2PlaneDistanceMeasure(subset, planeEquation, m_errorMeasure) : 0);
+			}
 			//the Leaf class takes ownership of the subset!
 			return new Leaf(subset, planeEquation, error);
 		}
@@ -239,7 +241,7 @@ TrueKdTree::BaseNode* TrueKdTree::split(ReferenceCloud* subset)
 }
 
 bool TrueKdTree::build(	double maxError,
-						DistanceComputationTools::ERROR_MEASURES errorMeasure/*=DistanceComputationTools::RMS*/,
+						DistanceComputationTools::MEASURE_TYPE errorMeasure/*=DistanceComputationTools::RMS*/,
 						unsigned minPointCountPerCell/*=3*/,
 						unsigned maxPointCountPerCell/*=0*/,
 						GenericProgressCallback* progressCb/*=nullptr*/)
