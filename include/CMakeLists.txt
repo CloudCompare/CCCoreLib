@@ -62,6 +62,14 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/StatisticalTestingTools.h
 		${CMAKE_CURRENT_LIST_DIR}/TrueKdTree.h
 		${CMAKE_CURRENT_LIST_DIR}/WeibullDistribution.h
+		${CMAKE_CURRENT_LIST_DIR}/block.h
+		${CMAKE_CURRENT_LIST_DIR}/cp_d0_dist.h
+		${CMAKE_CURRENT_LIST_DIR}/cut_pursuit.h
+		${CMAKE_CURRENT_LIST_DIR}/cut_pursuit_d0.h
+		${CMAKE_CURRENT_LIST_DIR}/grid_graph.h
+		${CMAKE_CURRENT_LIST_DIR}/maxflow.h
+		${CMAKE_CURRENT_LIST_DIR}/knncpp.h
+		${CMAKE_CURRENT_LIST_DIR}/omp_num_threads.h
 )
 
 install(

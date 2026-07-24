@@ -36,6 +36,11 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/StatisticalTestingTools.cpp
 		${CMAKE_CURRENT_LIST_DIR}/TrueKdTree.cpp
 		${CMAKE_CURRENT_LIST_DIR}/WeibullDistribution.cpp
+		${CMAKE_CURRENT_LIST_DIR}/cp_d0_dist.cpp
+		${CMAKE_CURRENT_LIST_DIR}/cut_pursuit.cpp
+		${CMAKE_CURRENT_LIST_DIR}/cut_pursuit_d0.cpp
+		${CMAKE_CURRENT_LIST_DIR}/edge_list_to_forward_star.cpp
+		${CMAKE_CURRENT_LIST_DIR}/maxflow.cpp
 )
 
 target_include_directories( ${PROJECT_NAME}
