@@ -1,4 +1,4 @@
-/* block.hpp */
+/* Block.h */
 /* Vladimir Kolmogorov vnk@ist.ac.at */
 /* Version slightly modified by Hugo Raguet 2016 (different error handling: no
  * error function, message handed to standard error) */

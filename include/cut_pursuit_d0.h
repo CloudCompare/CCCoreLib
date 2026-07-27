@@ -27,7 +27,7 @@
  * Hugo Raguet 2019, 2020
  *===========================================================================*/
 #pragma once
-#include "cut_pursuit.h"
+#include "CutPursuit.h"
 
 /* real_t is the real numeric type, used for objective functional computation;
  * index_t must be able to represent the number of vertices and of (undirected)

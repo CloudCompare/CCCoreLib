@@ -2,11 +2,14 @@
  * Hugo Raguet 2019
  *===========================================================================*/
 #include <cstdint>
-#include "grid_graph.h"
-#include "omp_num_threads.h"
+#include "GridGraph.h"
+#include "OMPNumThreads.h"
+
+
+using namespace CCCoreLib;
 
 template <typename vertex_t, typename edge_t>
-void edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
+void GridGraph::edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
     edge_t* first_edge, edge_t* reindex)
 {
     /* compute number of edges for each vertex and keep track of indices */
@@ -33,7 +36,7 @@ void edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
 /**  instantiate for compilation  **/
 
 #define INSTANCE(vertex_t, edge_t) \
-    template void edge_list_to_forward_star<vertex_t, edge_t> \
+    template void GridGraph::edge_list_to_forward_star<vertex_t, edge_t> \
         (vertex_t, size_t, const vertex_t*, edge_t*, edge_t*);
 
 INSTANCE(int32_t, int32_t)

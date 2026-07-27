@@ -3,7 +3,7 @@
  *===========================================================================*/
 #include <algorithm>
 #include <random>
-#include "cut_pursuit.h"
+#include "CutPursuit.h"
 
 #define ADD1(i) (((size_t) i) + (size_t) 1) // avoid overflows
 #define EDGE_WEIGHTS_(e) (edge_weights ? edge_weights[(e)] : homo_edge_weight)

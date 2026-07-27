@@ -51,32 +51,23 @@
 #pragma once
 #include <cstddef>
 
-/* vertex_t is supposed to be an unsigned integer type able to hold the total
- * number of _vertices_ of the manipulated graphs;
- * edge_t is supposed to be an unsigned integer type able to hold the total
- * number of _edges_ of the manipulated graphs */
-
-/* compute the number of edges in the resulting graph */
-template <typename vertex_t = unsigned int, typename conn_t = unsigned char>
-size_t num_edges_grid_graph(size_t D, vertex_t* shape, conn_t connectivity);
-
-/* compute the graph structure */
-template <typename vertex_t = unsigned int, typename conn_t = unsigned char>
-void edge_list_grid_graph(size_t D, vertex_t* shape, conn_t connectivity,
-    vertex_t* edges, conn_t* connectivities = nullptr,
-    vertex_t offset_u = 0, vertex_t offset_v = 0,
-    conn_t recursive_connectivity = 0, bool recursive_call = false);
-/* edges is an array of length twice the number of edges, already allocated;
- * connectivities is an array of length the number of edges, already allocated;
- * the number of edges can be found using the num_edges_grid_graph function;
- * connectivities are computed unless corresponding argument is null */
-
-/* convert edge list to forward-star representation */
-template <typename vertex_t = unsigned int, typename edge_t = vertex_t>
-void edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
-    edge_t* first_edge, edge_t* reindex);
-/* first_edge is an array of length V + 1, already allocated;
- * reindex is the permutation indices so that all edges starting from a
- * same vertex are consecutive, array of length E, already allocated;
- * adj_vertices can be thus deduced from the edges by permuting the ending
- * vertices according to reindex */
+namespace CCCoreLib
+{
+    /* vertex_t is supposed to be an unsigned integer type able to hold the total
+    * number of _vertices_ of the manipulated graphs;
+    * edge_t is supposed to be an unsigned integer type able to hold the total
+    * number of _edges_ of the manipulated graphs */
+   class GridGraph
+   {
+    public:
+        /* convert edge list to forward-star representation */
+        template <typename vertex_t = unsigned int, typename edge_t = vertex_t>
+        void edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
+            edge_t* first_edge, edge_t* reindex);
+        /* first_edge is an array of length V + 1, already allocated;
+        * reindex is the permutation indices so that all edges starting from a
+        * same vertex are consecutive, array of length E, already allocated;
+        * adj_vertices can be thus deduced from the edges by permuting the ending
+        * vertices according to reindex */
+    };
+}

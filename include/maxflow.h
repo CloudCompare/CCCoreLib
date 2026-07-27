@@ -1,4 +1,4 @@
-/* maxflow.hpp */
+/* Maxflow.h */
 /* modified from graph.h by Hugo Raguet 2020, for use with cut-pursuit
  * algorithms */
 /*
@@ -21,7 +21,7 @@
 =============================================================================*/
 
 #pragma once
-#include "block.h"
+#include "Block.h"
 
 /* index_t is an integer type able to hold the number of nodes and of edges;
  * flow_t is a numeric type for the flow (capacities) */

@@ -1,9 +1,12 @@
-/* maxflow.cpp */
+/* Maxflow.cpp */
 
+//Local
+#include "Maxflow.h"
+
+//system
 #include <cstdlib>
 #include <limits>
 #include <cstdint> // for instantiation
-#include "maxflow.h"
 
 /* special constants for parent arcs */
 #define TERMINAL terminal

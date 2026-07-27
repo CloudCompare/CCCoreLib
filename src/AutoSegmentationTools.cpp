@@ -9,9 +9,9 @@
 #include <ReferenceCloud.h>
 #include <ScalarField.h>
 #include <ScalarFieldTools.h>
-#include "grid_graph.h"
+#include <GridGraph.h>
+#include <CutPursuit.h>
 #include "cp_d0_dist.h"
-#include "cut_pursuit.h"
 
 //System
 #include <algorithm>
@@ -145,7 +145,8 @@ int AutoSegmentationTools::labelCutPursuitComponents(GenericIndexedCloudPersist*
 	}
 	
 	// compute CSR representation of the graph
-	edge_list_to_forward_star<int32_t, int32_t>(
+	GridGraph graph;
+	graph.edge_list_to_forward_star<int32_t, int32_t>(
 		N,
 		E,
 		edges.data(),

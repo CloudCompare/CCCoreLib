@@ -21,14 +21,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *===========================================================================*/
 #pragma once
+
+//Local
+#include "OMPNumThreads.h"
+#include "Maxflow.h"
+
+//system
 #include <cstdint> // for uintmax_t, requires C++11
 #include <cstdlib> // for size_t, malloc, exit
 #include <chrono>
 #include <limits>
 #include <functional>
 #include <iostream>
-#include "omp_num_threads.h"
-#include "maxflow.h"
 
 /* real_t is the real numeric type, used for objective functional computation
  * and thus for edge weights and flow graph capacities;
