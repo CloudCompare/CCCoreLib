@@ -9,7 +9,7 @@
 #include <ReferenceCloud.h>
 #include <ScalarField.h>
 #include <ScalarFieldTools.h>
-#include <GridGraph.h>
+#include <Graph.h>
 #include <CutPursuit.h>
 #include "cp_d0_dist.h"
 
@@ -49,162 +49,24 @@ int AutoSegmentationTools::labelCutPursuitComponents(GenericIndexedCloudPersist*
 		return -1;
 	}
 
+	// instantiate the graph and compute edges
+	Graph G(N, theCloud, theOctree);
+	G.computeEdges(knn, knnRadius, progressCb);
+	
 	// call cut pursuit
-	unsigned char bestLevel = theOctree->findBestLevelForAGivenNeighbourhoodSizeExtraction(knnRadius);
-	CCCoreLib::ReferenceCloud neighbors(theCloud);
+	auto rV = G.partitionCutPursuit(D, 
+									Y,
+									components,
+									regularization, 
+									spatialWeight, 
+									cutoff, 
+									knn, 
+									knnRadius,
+									0.01f, 15, 2, 2, 0.7f, 3, 3, 1000,
+									false, true, true, true, false, false,
+									-1,
+									progressCb);
 
-	// allocate memory for edges computation
-	std::vector<int32_t> edges;
-	std::vector<float> distances;
-
-	// compute edges
-	progressCb(0);
-	float distancesSum = 0.0;
-	for (int32_t i = 0; i < N; ++i)
-	{
-		neighbors.clear(false);
-		double maxSquareDist = 0.0;
-		int finalNeighbourhoodSize = 0;
-		const CCVector3* queryPoint = theCloud->getPoint(i);
-		if (theOctree->findPointNeighbourhood(
-			queryPoint,             	// Position we are searching around
-			&neighbors,             	// Where the resulting neighbor indices will be stored
-			knn,                   		// Max number of neighbors (k)
-			bestLevel,               	// The optimized octree level we calculated
-			maxSquareDist,          	// Output: The squared distance to the furthest neighbor found
-			knnRadius,             		// Max search radius (r)
-			&finalNeighbourhoodSize) 	// Output: Internal octree box search size metric (optional)
-		)
-		{
-			int32_t source = static_cast<int>(i);
-			for (unsigned n = 0; n < neighbors.size(); ++n)
-			{
-				int32_t target = static_cast<int>(neighbors.getPointGlobalIndex(n));
-
-				// ignore self-loops
-				if (source == target)
-					continue;
-
-				edges.push_back(source); // 2*e
-				edges.push_back(target); // 2*e + 1
-
-				// compute distance
-				const CCVector3* p1 = theCloud->getPoint(source);
-				const CCVector3* p2 = theCloud->getPoint(target);
-				float distance = static_cast<float>((*p1 - *p2).norm());
-				distancesSum += distance;
-				distances.push_back(distance);
-			}
-		}
-
-		progressCb(int(double(i + 1) / N * 30.0));
-	}
-
-	// more parallel cut pursuit params
-	int32_t E = static_cast<int32_t>(edges.size() / 2);
-	std::vector<float> edgeWeights(E);
-	std::vector<int32_t> first_edge(N + 1);
-	std::vector<int32_t> adj_vertices(E);
-	std::vector<int32_t> reindex(E);
-	std::vector<float> node_size(N, 1.0f);
-	std::vector<float> coor_weights(D, 1.0f);
-	float cp_dif_tol = 0.01f;
-	int cp_it_max = 15;
-	int K = 2;
-	int split_iter_num = 2;
-	float split_damp_ratio = 0.7f;
-	int kmpp_init_num = 3;
-	int kmpp_iter_num = 3;
-	int verbose = 1000;
-	int max_num_threads = omp_get_max_threads();
-	int32_t max_split_size = N;
-	int balance_parallel_split = false;
-	int compute_Time = true;
-	int compute_List = true;
-	int compute_Graph = true;
-	int compute_Obj = false;
-	int compute_Dif = false;
-	
-	// monitoring arrays
-	float* Obj = nullptr;
-	if (compute_Obj){ Obj = (float*) malloc(sizeof(float)*(cp_it_max + 1)); }
-
-	double* Time = nullptr;
-	if (compute_Time){
-		Time = (double*) malloc(sizeof(double)*(cp_it_max + 1));
-	}
-
-	float* Dif = nullptr;
-	if (compute_Dif){ Dif = (float*) malloc(sizeof(float)*cp_it_max); }
-
-	// Allocate Comp array using malloc because cut pursuit uses C-style memory tracking
-	int32_t* Comp = (int32_t*)calloc(N, sizeof(int32_t));
-	if (!Comp)
-	{
-		return -1;
-	}
-	
-	// compute CSR representation of the graph
-	GridGraph graph;
-	graph.edge_list_to_forward_star<int32_t, int32_t>(
-		N,
-		E,
-		edges.data(),
-		first_edge.data(),
-		reindex.data()
-	);
-
-	// apply spatial weight
-	for (int32_t d = 0; d < 3; ++d)
-	{
-		coor_weights[d] *= spatialWeight;
-	}
-
-	// compute targets and edge weights based on distances in CSR order
-	float avgDistance = distancesSum / distances.size();
-	for (int32_t e = 0; e < E; ++e)
-	{
-		// compute weight based on distance
-		float distance = distances[e];
-		float edgeAttr = distance;
-		
-		// The target vertex for original edge 'e' is stored at (2 * e + 1)
-		adj_vertices[reindex[e]] = edges[2 * e + 1];
-		
-		// The weight for original edge 'e' maps to the same new position
-		edgeWeights[reindex[e]] = edgeAttr * regularization;
-	}
-
-	//  cut-pursuit with preconditioned forward-Douglas-Rachford
-	Cp_d0_dist<float, int32_t, int32_t>* cp =
-		new Cp_d0_dist<float, int32_t, int32_t>
-			(N, E, first_edge.data(), adj_vertices.data(), Y.data(), D);
-
-	cp->set_loss(static_cast<float>(D), Y.data(), node_size.data(), coor_weights.data());
-	cp->set_edge_weights(edgeWeights.data(), regularization);
-	cp->set_cp_param(cp_dif_tol, cp_it_max, verbose);
-	cp->set_split_param(max_split_size, K, split_iter_num, split_damp_ratio,
-		kmpp_init_num, kmpp_iter_num);
-	cp->set_min_comp_weight(static_cast<float>(cutoff));
-	cp->set_parallel_param(max_num_threads, balance_parallel_split);
-	cp->set_monitoring_arrays(Obj, Time, Dif);
-	cp->set_components(0, Comp);
-
-	int cp_it = cp->cut_pursuit(true, progressCb);
-
-	// Get number of components and their lists of indices
-	const int32_t* comp_assign;
-	const int32_t* first_vertex;
-	const int32_t* comp_list;
-	auto rV = cp->get_components(&comp_assign, &first_vertex, &comp_list);
-
-	// Copy results
-	components.resize(N);
-	for (int32_t i = 0; i < N; i++) {
-		components[i] = static_cast<int32_t>(comp_assign[i]);
-	}
-
-	delete cp;
 	return rV;
 }
 

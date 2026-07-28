@@ -126,7 +126,7 @@ public:
     void set_reduced_values(value_t* rX);
 
     /* solve the main problem */
-    int cut_pursuit(bool init, std::function<void(int)> progressCb);
+    int cut_pursuit(bool init, std::function<void(int)> progressCb = nullptr);
 
 protected:
     /**  main graph  **/

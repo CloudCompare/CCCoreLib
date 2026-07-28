@@ -53,21 +53,72 @@
 
 namespace CCCoreLib
 {
+    class GenericIndexedCloudPersist;
+    class DgmOctree;
+    
     /* vertex_t is supposed to be an unsigned integer type able to hold the total
     * number of _vertices_ of the manipulated graphs;
     * edge_t is supposed to be an unsigned integer type able to hold the total
     * number of _edges_ of the manipulated graphs */
-   class GridGraph
+   class Graph
    {
     public:
+        // constructor
+        Graph(int32_t N, GenericIndexedCloudPersist* cloud, DgmOctree* octree);
+
+        /* return the number of nodes in the graph */
+        int32_t numNodes() const { return m_N; }
+        /* return the number of edges in the graph */
+        size_t numEdges() const { return static_cast<size_t>(m_edges.size() / 2); }
+        
+        /* compute edges of the graph 
+        * knn - number of nearest neighbors
+        * knnRadius - radius for nearest neighbors search
+        * edges - array to store the edges (2*knn*N)
+        * edgeWeight - array to store the edge weights (optional)
+        */
+        void computeEdges(int32_t knn, double knnRadius, std::function<void(int)> progressCb = nullptr);
+        
         /* convert edge list to forward-star representation */
-        template <typename vertex_t = unsigned int, typename edge_t = vertex_t>
-        void edge_list_to_forward_star(vertex_t V, size_t E, const vertex_t* edges,
-            edge_t* first_edge, edge_t* reindex);
+        void edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
+            int32_t* first_edge, int32_t* reindex);
         /* first_edge is an array of length V + 1, already allocated;
         * reindex is the permutation indices so that all edges starting from a
         * same vertex are consecutive, array of length E, already allocated;
         * adj_vertices can be thus deduced from the edges by permuting the ending
         * vertices according to reindex */
+
+        int partitionCutPursuit(
+            int32_t D,
+            std::vector<float> Y,
+            std::vector<int32_t>& components,
+            float regularization, 
+            float spatialWeight, 
+            int32_t cutoff,
+            int32_t knn,
+            double knnRadius,
+            float cp_dif_tol = 0.01f,
+            int cp_it_max = 15,
+            int K = 2,
+            int split_iter_num = 2,
+            float split_damp_ratio = 0.7f,
+            int kmpp_init_num = 3,
+            int kmpp_iter_num = 3,
+            int verbose = 1000,
+            int balance_parallel_split = false,
+            int compute_Time = true,
+            int compute_List = true,
+            int compute_Graph = true,
+            int compute_Obj = false,
+            int compute_Dif = false,
+            int max_num_threads = -1,
+            std::function<void(int)> progressCb = nullptr);
+
+    protected:
+        GenericIndexedCloudPersist* m_cloud;
+        DgmOctree* m_octree;
+        int32_t m_N; // number of nodes
+        std::vector<int32_t> m_edges; // edge list representation of the graph
+        std::vector<float> m_distances;
     };
 }

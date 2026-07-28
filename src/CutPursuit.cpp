@@ -204,6 +204,8 @@ TPL int CP::cut_pursuit(bool init, std::function<void(int)> progressCb)
     double timer = 0.0;
     real_t dif = real_inf();
 
+    if (progressCb){ progressCb(0); }
+    
     chrono::steady_clock::time_point start;
     if (elapsed_time){ start = chrono::steady_clock::now(); }
     if (init){
@@ -217,7 +219,7 @@ TPL int CP::cut_pursuit(bool init, std::function<void(int)> progressCb)
         if (verbose){ print_progress(it, dif, timer); }
         if (it == it_max || dif <= dif_tol){ break; }
 
-           progressCb(30+int(double(it)/it_max*65.0));
+           if (progressCb){ progressCb(int(double(it)/it_max*95.0)); }
 
         if (verbose){
             cout << "Cut-pursuit iteration " << it + 1 << " (max. " << it_max
