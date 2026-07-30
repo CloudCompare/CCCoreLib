@@ -849,6 +849,12 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 		case EigenValue3:
 			value = l3;
 			break;
+		case DegreeOfPlanarity:
+			value = std::log(l1/l3);
+			break;
+		case DegreeOfLinearity:
+			value = std::log(l1/l2) / std::log(l2/l3);
+			break;
 		default:
 			assert(false);
 			break;
