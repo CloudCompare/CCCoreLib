@@ -182,7 +182,6 @@ namespace CCCoreLib
 			EigenValue3,
 			DegreeOfPlanarity,
 			DegreeOfLinearity
-			
 		};
 
 		//! Computes the given feature on a set of point
