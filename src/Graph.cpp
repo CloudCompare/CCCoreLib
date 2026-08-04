@@ -8,6 +8,7 @@
 #include <ReferenceCloud.h>
 #include "DgmOctree.h"
 #include "Graph.h"
+#include "GenericProgressCallback.h"
 #include "OMPNumThreads.h"
 #include <CutPursuit.h>
 #include "cp_d0_dist.h"
@@ -26,16 +27,26 @@ Graph::Graph(int32_t N, GenericIndexedCloudPersist* cloud, DgmOctree* octree)
 
 void Graph::computeEdges(   int32_t knn, 
                             double knnRadius, 
-                            std::function<void(int)> progressCb)
+                            GenericProgressCallback* progressCb)
 {
     if (m_cloud && m_octree)
     {
         unsigned char bestLevel = m_octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(knnRadius);
 
+        //progress notification (optional)
         if (progressCb)
         {
-            progressCb(0);
+            if (progressCb->textCanBeEdited())
+            {
+                progressCb->setMethodTitle("Building graph");
+                char infosBuffer[64];
+                snprintf(infosBuffer, 64, "Computing %u edges from %i nodes", knn, m_N);
+                progressCb->setInfo(infosBuffer);
+            }
+            progressCb->update(0);
+            progressCb->start();
         }
+        NormalizedProgress nprogress(progressCb, m_N, 100);
 
         // parallel compute pre-thread edges
         int numThreads = omp_get_max_threads();
@@ -95,10 +106,7 @@ void Graph::computeEdges(   int32_t knn,
                 // Progress update from master thread only
                 if (progressCb && threadId == 0 && (i % 100 == 0))
                 {
-                    #pragma omp critical
-                    {
-                        progressCb(static_cast<int>(100.0 * i / m_N));
-                    }
+                    nprogress.oneStep();
                 }
             }
         }
@@ -171,7 +179,7 @@ int Graph::partitionCutPursuit(
             int compute_Obj,
             int compute_Dif,
             int max_num_threads,
-            std::function<void(int)> progressCb)
+            GenericProgressCallback* progressCb)
 {
 
     // more parallel cut pursuit params

@@ -81,7 +81,7 @@ namespace CCCoreLib
 											float spatialWeight,
 											int32_t cutoff,
 											std::vector<int32_t>& components,
-											std::function<void(int)> progressCb,
+											GenericProgressCallback* progressCb = nullptr,
 											DgmOctree* theOctree = nullptr);
 
 		//! Extracts connected components from a point cloud

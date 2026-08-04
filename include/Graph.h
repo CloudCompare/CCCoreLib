@@ -74,10 +74,9 @@ namespace CCCoreLib
         /* compute edges of the graph 
         * knn - number of nearest neighbors
         * knnRadius - radius for nearest neighbors search
-        * edges - array to store the edges (2*knn*N)
-        * edgeWeight - array to store the edge weights (optional)
+        * progressCb - progress callback
         */
-        void computeEdges(int32_t knn, double knnRadius, std::function<void(int)> progressCb = nullptr);
+        void computeEdges(int32_t knn, double knnRadius, GenericProgressCallback* progressCb = nullptr);
         
         /* convert edge list to forward-star representation */
         void edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
@@ -112,7 +111,7 @@ namespace CCCoreLib
             int compute_Obj = false,
             int compute_Dif = false,
             int max_num_threads = -1,
-            std::function<void(int)> progressCb = nullptr);
+            GenericProgressCallback* progressCb = nullptr);
 
     protected:
         GenericIndexedCloudPersist* m_cloud;

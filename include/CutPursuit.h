@@ -25,6 +25,7 @@
 //Local
 #include "OMPNumThreads.h"
 #include "Maxflow.h"
+#include <GenericProgressCallback.h>
 
 //system
 #include <cstdint> // for uintmax_t, requires C++11
@@ -126,7 +127,7 @@ public:
     void set_reduced_values(value_t* rX);
 
     /* solve the main problem */
-    int cut_pursuit(bool init, std::function<void(int)> progressCb = nullptr);
+    int cut_pursuit(bool init, CCCoreLib::GenericProgressCallback* progressCb = nullptr);
 
 protected:
     /**  main graph  **/

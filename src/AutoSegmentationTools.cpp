@@ -34,7 +34,7 @@ int AutoSegmentationTools::labelCutPursuitComponents(GenericIndexedCloudPersist*
 													float spatialWeight,
 													int32_t cutoff,
 													std::vector<int32_t>& components,
-													std::function<void(int)> progressCb,
+													GenericProgressCallback* progressCb,
 													DgmOctree* theOctree)
 {
 	if (nullptr == theCloud)
