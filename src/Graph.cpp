@@ -109,7 +109,7 @@ void Graph::edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
 
 int Graph::partitionCutPursuit(
             int32_t D,
-            std::vector<float> Y,
+            const std::vector<float>& Y,
             std::vector<int32_t>& components,
             float regularization, 
             float spatialWeight, 
@@ -215,7 +215,6 @@ int Graph::partitionCutPursuit(
 
 	if (progressCb)
     {
-        progressCb(0);
         int cp_it = cp->cut_pursuit(true, progressCb);
     }
     else
@@ -230,6 +229,7 @@ int Graph::partitionCutPursuit(
 	auto rV = cp->get_components(&comp_assign, &first_vertex, &comp_list);
 
     // Copy results
+    components.resize(m_N);
 	for (int32_t i = 0; i < m_N; i++) {
 		components[i] = static_cast<int32_t>(comp_assign[i]);
 	}

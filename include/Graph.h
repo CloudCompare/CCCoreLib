@@ -90,7 +90,7 @@ namespace CCCoreLib
 
         int partitionCutPursuit(
             int32_t D,
-            std::vector<float> Y,
+            const std::vector<float>& Y,
             std::vector<int32_t>& components,
             float regularization, 
             float spatialWeight, 

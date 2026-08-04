@@ -76,7 +76,7 @@ namespace CCCoreLib
 											double knnRadius,
 											int32_t N,
 											int32_t D,
-											std::vector<float> Y,
+											const std::vector<float>& Y,
 											float regularization,
 											float spatialWeight,
 											int32_t cutoff,

@@ -219,7 +219,7 @@ TPL int CP::cut_pursuit(bool init, std::function<void(int)> progressCb)
         if (verbose){ print_progress(it, dif, timer); }
         if (it == it_max || dif <= dif_tol){ break; }
 
-           if (progressCb){ progressCb(int(double(it)/it_max*95.0)); }
+           if (progressCb){ progressCb(int(double(it)/it_max*100.0)); }
 
         if (verbose){
             cout << "Cut-pursuit iteration " << it + 1 << " (max. " << it_max
