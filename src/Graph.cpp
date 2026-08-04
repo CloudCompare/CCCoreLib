@@ -31,54 +31,94 @@ void Graph::computeEdges(   int32_t knn,
     if (m_cloud && m_octree)
     {
         unsigned char bestLevel = m_octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(knnRadius);
-        CCCoreLib::ReferenceCloud neighbors(m_cloud);
 
         if (progressCb)
         {
             progressCb(0);
         }
 
-        // compute edges
-        for (int32_t i = 0; i < m_N; ++i)
+        // parallel compute pre-thread edges
+        int numThreads = omp_get_max_threads();
+        std::vector<std::vector<int32_t>> threadEdges(numThreads);
+        std::vector<std::vector<float>> threadDistances(numThreads);
+        
+        // pre-allocate space per thread (assuming KNN neighbors per point)
+        for (int t = 0; t < numThreads; ++t)
         {
-            neighbors.clear(false);
-            double maxSquareDist = 0.0;
-            int finalNeighbourhoodSize = 0;
-            const CCVector3* queryPoint = m_cloud->getPoint(i);
-            if (m_octree->findPointNeighbourhood(
-                queryPoint,             	// Position we are searching around
-                &neighbors,             	// Where the resulting neighbor indices will be stored
-                knn,                   		// Max number of neighbors (k)
-                bestLevel,               	// The optimized octree level we calculated
-                maxSquareDist,          	// Output: The squared distance to the furthest neighbor found
-                knnRadius,             		// Max search radius (r)
-                &finalNeighbourhoodSize) 	// Output: Internal octree box search size metric (optional)
-            )
+            int pointsPerThread = (m_N + numThreads - 1) / numThreads;
+            threadEdges[t].reserve(pointsPerThread * knn * 2);
+            threadDistances[t].reserve(pointsPerThread * knn);
+        }
+
+        #pragma omp parallel
+        {
+            int threadId = omp_get_thread_num();
+            CCCoreLib::ReferenceCloud neighbors(m_cloud);
+            
+            #pragma omp for schedule(dynamic, 64)
+            for (int32_t i = 0; i < m_N; ++i)
             {
-                int32_t source = static_cast<int32_t>(i);
-                for (unsigned n = 0; n < neighbors.size(); ++n)
+                neighbors.clear(false);
+                double maxSquareDist = 0.0;
+                int finalNeighbourhoodSize = 0;
+                const CCVector3* queryPoint = m_cloud->getPoint(i);
+                
+                if (m_octree->findPointNeighbourhood(
+                    queryPoint,
+                    &neighbors,
+                    knn,
+                    bestLevel,
+                    maxSquareDist,
+                    knnRadius,
+                    &finalNeighbourhoodSize))
                 {
-                    int32_t target = static_cast<int32_t>(neighbors.getPointGlobalIndex(n));
+                    int32_t source = static_cast<int32_t>(i);
+                    for (unsigned n = 0; n < neighbors.size(); ++n)
+                    {
+                        int32_t target = static_cast<int32_t>(neighbors.getPointGlobalIndex(n));
 
-                    // ignore self-loops
-                    if (source == target)
-                        continue;
+                        // ignore self-loops
+                        if (source == target)
+                            continue;
 
-                    m_edges.push_back(source); // 2*e
-                    m_edges.push_back(target); // 2*e + 1
+                        threadEdges[threadId].push_back(source);
+                        threadEdges[threadId].push_back(target);
 
-                    // compute distance
-                    const CCVector3* p1 = m_cloud->getPoint(source);
-                    const CCVector3* p2 = m_cloud->getPoint(target);
-                    float distance = static_cast<float>((*p1 - *p2).norm());
-                    m_distances.push_back(distance);
+                        // compute distance
+                        const CCVector3* p1 = m_cloud->getPoint(source);
+                        const CCVector3* p2 = m_cloud->getPoint(target);
+                        float distance = static_cast<float>((*p1 - *p2).norm());
+                        threadDistances[threadId].push_back(distance);
+                    }
+                }
+
+                // Progress update from master thread only
+                if (progressCb && threadId == 0 && (i % 100 == 0))
+                {
+                    #pragma omp critical
+                    {
+                        progressCb(static_cast<int>(100.0 * i / m_N));
+                    }
                 }
             }
-
-            if (progressCb)
-            {
-                progressCb(static_cast<int>(100.0 * i / m_N));
-            }
+        }
+        
+        // Concatenate results from all threads
+        size_t totalEdges = 0;
+        size_t totalDistances = 0;
+        for (int t = 0; t < numThreads; ++t)
+        {
+            totalEdges += threadEdges[t].size();
+            totalDistances += threadDistances[t].size();
+        }
+        
+        m_edges.reserve(totalEdges);
+        m_distances.reserve(totalDistances);
+        
+        for (int t = 0; t < numThreads; ++t)
+        {
+            m_edges.insert(m_edges.end(), threadEdges[t].begin(), threadEdges[t].end());
+            m_distances.insert(m_distances.end(), threadDistances[t].begin(), threadDistances[t].end());
         }
     }
 }
