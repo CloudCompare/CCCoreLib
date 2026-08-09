@@ -461,7 +461,8 @@ ReferenceCloud* CloudSamplingTools::sorFilter(	GenericIndexedCloudPersist* input
 												int knn/*=6*/,
 												double nSigma/*=1.0*/,
 												DgmOctree* inputOctree/*=nullptr*/,
-												GenericProgressCallback* progressCb/*=nullptr*/)
+												GenericProgressCallback* progressCb/*=nullptr*/,
+												int maxThreadCount/*=0*/)
 {
 	if (!inputCloud || knn <= 0 || inputCloud->size() <= static_cast<unsigned>(knn))
 	{
@@ -517,7 +518,8 @@ ReferenceCloud* CloudSamplingTools::sorFilter(	GenericIndexedCloudPersist* input
 															additionalParameters,
 															true,
 															progressCb,
-															"SOR filter") == 0)
+															"SOR filter",
+															maxThreadCount ) == 0)
 			{
 				//something went wrong
 				break;
@@ -579,7 +581,8 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 												bool useAbsoluteError/*=true*/,
 												double absoluteError/*=0.0*/,
 												DgmOctree* inputOctree/*=nullptr*/,
-												GenericProgressCallback* progressCb/*=nullptr*/)
+												GenericProgressCallback* progressCb/*=nullptr*/,
+												int maxThreadCount/*=0*/)
 {
 	if (!inputCloud || inputCloud->size() < 2 || (useKnn && knn <= 0) || (!useKnn && kernelRadius <= 0))
 	{
@@ -612,7 +615,7 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 	}
 
 	//additional parameters
-	void* additionalParameters[] = {reinterpret_cast<void*>(filteredCloud),
+	void* additionalParameters[] {	reinterpret_cast<void*>(filteredCloud),
 									reinterpret_cast<void*>(&kernelRadius),
 									reinterpret_cast<void*>(&nSigma),
 									reinterpret_cast<void*>(&removeIsolatedPoints),
@@ -633,7 +636,8 @@ ReferenceCloud* CloudSamplingTools::noiseFilter(GenericIndexedCloudPersist* inpu
 													additionalParameters,
 													true,
 													progressCb,
-													"Noise filter" ) == 0)
+													"Noise filter",
+													maxThreadCount ) == 0)
 	{
 		//something went wrong
 		delete filteredCloud;
