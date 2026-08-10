@@ -151,13 +151,15 @@ namespace CCCoreLib
 			\param nSigma number of sigmas under which the points should be kept
 			\param octree associated octree if available
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param maxThreadCount maximum number of threads to use (0 = max available)
 			\return a reference cloud corresponding to the filtered cloud
 		**/
 		static ReferenceCloud* sorFilter(	GenericIndexedCloudPersist* cloud,
 											int knn = 6,
 											double nSigma = 1.0,
 											DgmOctree* octree = nullptr,
-											GenericProgressCallback* progressCb = nullptr);
+											GenericProgressCallback* progressCb = nullptr,
+											int maxThreadCount = 0);
 
 		//! Noise filter based on the distance to the approximate local surface
 		/** This filter removes points based on their distance relatively to the best fit plane computed on their neighbors.
@@ -171,6 +173,7 @@ namespace CCCoreLib
 			\param absoluteError absolute error (if useAbsoluteError is true)
 			\param octree associated octree if available
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
+			\param maxThreadCount maximum number of threads to use (0 = max available)
 			\return a reference cloud corresponding to the filtered cloud
 		**/
 		static ReferenceCloud* noiseFilter(	GenericIndexedCloudPersist* cloud,
@@ -182,7 +185,8 @@ namespace CCCoreLib
 											bool useAbsoluteError = true,
 											double absoluteError = 0.0,
 											DgmOctree* octree = nullptr,
-											GenericProgressCallback* progressCb = nullptr);
+											GenericProgressCallback* progressCb = nullptr,
+											int maxThreadCount = 0);
 
 	protected:
 
