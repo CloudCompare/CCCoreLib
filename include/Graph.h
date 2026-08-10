@@ -56,10 +56,6 @@ namespace CCCoreLib
     class GenericIndexedCloudPersist;
     class DgmOctree;
     
-    /* vertex_t is supposed to be an unsigned integer type able to hold the total
-    * number of _vertices_ of the manipulated graphs;
-    * edge_t is supposed to be an unsigned integer type able to hold the total
-    * number of _edges_ of the manipulated graphs */
    class Graph
    {
     public:
