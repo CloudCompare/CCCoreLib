@@ -161,6 +161,8 @@ namespace CCCoreLib
 				, minRMSDecrease(1.0e-5)
 				, nbMaxIterations(20)
 				, adjustScale(false)
+				, minScale(std::numeric_limits<double>::quiet_NaN())
+				, maxScale(std::numeric_limits<double>::quiet_NaN())
 				, filterOutFarthestPoints(false)
 				, samplingLimit(50000)
 				, finalOverlapRatio(1.0)
@@ -184,6 +186,12 @@ namespace CCCoreLib
 
 			//! Whether to release the scale parameter during the registration procedure or not
 			bool adjustScale;
+
+			//! Min scale (if adjustScale is true - NaN if no minimum boundary)
+			double minScale;
+
+			//! Max scale (if adjustScale is true - NaN if no maximum boundary)
+			double maxScale;
 
 			//! If true, the algorithm will automatically ignore farthest points from the reference, for better convergence
 			bool filterOutFarthestPoints;

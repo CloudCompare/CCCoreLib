@@ -811,8 +811,18 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 				if (params.adjustScale)
 				{
-					transform.s *= currentTrans.s;
-					transform.T *= currentTrans.s;
+					double newScale = transform.s * currentTrans.s;
+					if (std::isfinite(params.minScale))
+					{
+						newScale = std::max(newScale, params.minScale);
+					}
+					if (std::isfinite(params.maxScale))
+					{
+						newScale = std::min(newScale, params.maxScale);
+					}
+
+					transform.T *= (newScale / transform.s);
+					transform.s = newScale;
 				}
 
 				transform.T += currentTrans.T;
