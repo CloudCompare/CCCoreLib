@@ -17,20 +17,20 @@
 
 using namespace CCCoreLib;
 
-//! Max computable Chi2 distance
-static double CHI2_MAX = 1e7;
+static const double CHI2_MAX = 1e7; //!< Max computable Chi2 distance
 
 //! An element of a double-chained-list structure (used by computeAdaptativeChi2Dist)
 struct Chi2Class
 {
-
-	double pi;	/**< Probability Pi **/
-	int n;		/**< Number of elements for the class **/
+	double pi;	//!< Probability Pi
+	int n;		//!< Number of elements for the class
 
 	//! Default constructor
-	Chi2Class() : pi(0.0) , n(0) {}
-	//! Constructor from parameters
-	Chi2Class(double _pi, int _n) : pi(_pi) , n(_n) {}
+	Chi2Class(double _pi = 0.0, int _n = 0)
+	    : pi(_pi)
+	    , n(_n)
+	{
+	}
 
 };
 
@@ -50,8 +50,10 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 	assert(distrib && cloud);
 	unsigned n = cloud->size();
 
-	if (n==0 || !distrib->isValid())
+	if (n == 0 || !distrib->isValid())
+	{
 		return -1.0;
+	}
 
 	//compute min and max (valid) values
 	ScalarType minV = 0;
@@ -72,9 +74,13 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 				else
 				{
 					if (V > maxV)
+					{
 						maxV = V;
+					}
 					else if (V < minV)
+					{
 						minV = V;
+					}
 				}
 				++numberOfValidValues;
 			}
@@ -82,12 +88,18 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 	}
 
 	if (numberOfValidValues == 0)
+	{
 		return -1.0;
+	}
 
 	if (histoMin)
+	{
 		minV = *histoMin;
+	}
 	if (histoMax)
+	{
 		maxV = *histoMax;
+	}
 
 	//shall we automatically compute the number of classes?
 	if (numberOfClasses == 0)
@@ -96,7 +108,7 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 	}
 	if (numberOfClasses < 2)
 	{
-		return -2.0; //not enough points/classes
+		return -2.0; // not enough points/classes
 	}
 
 	//try to allocate the histogram values array (if necessary)
@@ -106,13 +118,13 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 		//not enough memory
 		return -1.0;
 	}
-	memset(histo, 0, sizeof(unsigned)*numberOfClasses);
+	memset(histo, 0, sizeof(unsigned) * numberOfClasses);
 
 	//accumulate histogram
 	ScalarType dV = maxV - minV;
 	unsigned histoBefore = 0;
 	unsigned histoAfter = 0;
-	if ( GreaterThanEpsilon( dV ) )
+	if (GreaterThanEpsilon(dV))
 	{
 		for (unsigned i = 0; i < n; ++i)
 		{
@@ -127,9 +139,13 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 				else if (bin >= static_cast<int>(numberOfClasses))
 				{
 					if (V > maxV)
+					{
 						histoAfter++;
+					}
 					else
+					{
 						histo[numberOfClasses - 1]++;
+					}
 				}
 				else
 				{
@@ -169,7 +185,9 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 			currentClass.n = histo[k - 1];
 			currentClass.pi = p2 - p1;
 			if (npis)
+			{
 				npis[k - 1] = currentClass.pi * numberOfValidValues;
+			}
 
 			try
 			{
@@ -209,11 +227,17 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 			Chi2ClassList::iterator it = classes.begin();
 			Chi2ClassList::iterator minIt = it;
 			for (; it != classes.end(); ++it)
+			{
 				if (it->pi < minIt->pi)
+				{
 					minIt = it;
+				}
+			}
 
-			if (minIt->pi >= minPi) //all classes are bigger than the minimum requirement
+			if (minIt->pi >= minPi) // all classes are bigger than the minimum requirement
+			{
 				break;
+			}
 
 			//otherwise we must merge the smallest class with its neighbor (to make the classes repartition more equilibrated)
 			Chi2ClassList::iterator smallestIt;
@@ -263,7 +287,9 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 	}
 
 	if (!histoValues)
+	{
 		delete[] histo;
+	}
 
 	finalNumberOfClasses = static_cast<unsigned>(classes.size());
 
@@ -272,12 +298,12 @@ double StatisticalTestingTools::computeAdaptativeChi2Dist(	const GenericDistribu
 
 double StatisticalTestingTools::computeChi2Fractile(double p, int d)
 {
-	return Chi2Helper::critchi(p,d);
+	return Chi2Helper::critchi(p, d);
 }
 
 double StatisticalTestingTools::computeChi2Probability(double chi2result, int d)
 {
-	return Chi2Helper::pochisq(chi2result,d);
+	return Chi2Helper::pochisq(chi2result, d);
 }
 
 double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistribution* distrib,
@@ -290,7 +316,9 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 	assert(theCloud);
 
 	if (!distrib->isValid())
+	{
 		return -1.0;
+	}
 
 	DgmOctree* theOctree = inputOctree;
 	if (!theOctree)
@@ -307,7 +335,9 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 	if (!theCloud->enableScalarField())
 	{
 		if (!inputOctree)
+		{
 			delete theOctree;
+		}
 		return -3.0;
 	}
 
@@ -325,7 +355,9 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 	{
 		//not enough memory
 		if (!inputOctree)
+		{
 			delete theOctree;
+		}
 		return -3.0;
 	}
 
@@ -351,12 +383,12 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 	}
 
 	//additional parameters for local process
-	void* additionalParameters[] = {	reinterpret_cast<void*>(const_cast<GenericDistribution*>(distrib)),
-										reinterpret_cast<void*>(&numberOfNeighbours),
-										reinterpret_cast<void*>(&numberOfChi2Classes),
-										reinterpret_cast<void*>(histoValues.data()),
-										reinterpret_cast<void*>(histoMin),
-										reinterpret_cast<void*>(histoMax) };
+	void* additionalParameters[] {	reinterpret_cast<void*>(const_cast<GenericDistribution*>(distrib)),
+									reinterpret_cast<void*>(&numberOfNeighbours),
+									reinterpret_cast<void*>(&numberOfChi2Classes),
+									reinterpret_cast<void*>(histoValues.data()),
+									reinterpret_cast<void*>(histoMin),
+									reinterpret_cast<void*>(histoMax) };
 
 	double maxChi2 = -1.0;
 
@@ -373,13 +405,15 @@ double StatisticalTestingTools::testCloudWithStatisticalModel(const GenericDistr
 		if (!progressCb || !progressCb->isCancelRequested())
 		{
 			//theoretical Chi2 fractile
-			maxChi2 = computeChi2Fractile(pTrust, numberOfChi2Classes-1);
+			maxChi2 = computeChi2Fractile(pTrust, numberOfChi2Classes - 1);
 			maxChi2 = sqrt(maxChi2); //on travaille avec les racines carrees des distances du Chi2
 		}
 	}
 
 	if (!inputOctree)
+	{
 		delete theOctree;
+	}
 
 	return maxChi2;
 }
@@ -388,22 +422,22 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 															void** additionalParameters,
 															NormalizedProgress* nProgress/*=nullptr*/)
 {
-	//variables additionnelles
-	GenericDistribution* statModel		= reinterpret_cast<GenericDistribution*>(additionalParameters[0]);
-	unsigned numberOfNeighbours         = *reinterpret_cast<unsigned*>(additionalParameters[1]);
-	unsigned numberOfChi2Classes		= *reinterpret_cast<unsigned*>(additionalParameters[2]);
-	unsigned* histoValues				= reinterpret_cast<unsigned*>(additionalParameters[3]);
-	ScalarType* histoMin				= reinterpret_cast<ScalarType*>(additionalParameters[4]);
-	ScalarType* histoMax				= reinterpret_cast<ScalarType*>(additionalParameters[5]);
+	// variables additionnelles
+	GenericDistribution* statModel           = reinterpret_cast<GenericDistribution*>(additionalParameters[0]);
+	unsigned             numberOfNeighbours  = *reinterpret_cast<unsigned*>(additionalParameters[1]);
+	unsigned             numberOfChi2Classes = *reinterpret_cast<unsigned*>(additionalParameters[2]);
+	unsigned*            histoValues         = reinterpret_cast<unsigned*>(additionalParameters[3]);
+	ScalarType*          histoMin            = reinterpret_cast<ScalarType*>(additionalParameters[4]);
+	ScalarType*          histoMax            = reinterpret_cast<ScalarType*>(additionalParameters[5]);
 
 	//number of points in the current cell
 	unsigned n = cell.points->size();
 
 	DgmOctree::NearestNeighboursSearchStruct nNSS;
-	nNSS.level												= cell.level;
-	nNSS.minNumberOfNeighbors								= numberOfNeighbours;
-	cell.parentOctree->getCellPos(cell.truncatedCode,cell.level,nNSS.cellPos,true);
-	cell.parentOctree->computeCellCenter(nNSS.cellPos,cell.level,nNSS.cellCenter);
+	nNSS.level                = cell.level;
+	nNSS.minNumberOfNeighbors = numberOfNeighbours;
+	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
+	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
 
 	//we already know the points of the first cell (this is the one we are currently processing!)
 	{
@@ -417,9 +451,9 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 		}
 
 		DgmOctree::NeighboursSet::iterator it = nNSS.pointsInNeighbourhood.begin();
-		for (unsigned j=0;j<n;++j,++it)
+		for (unsigned j = 0; j < n; ++j, ++it)
 		{
-			it->point = cell.points->getPointPersistentPtr(j);
+			it->point      = cell.points->getPointPersistentPtr(j);
 			it->pointIndex = cell.points->getPointGlobalIndex(j);
 		}
 		nNSS.alreadyVisitedNeighbourhoodSize = 1;
@@ -443,11 +477,15 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 
 			unsigned k = cell.parentOctree->findNearestNeighborsStartingFromCell(nNSS, true);
 			if (k > numberOfNeighbours)
+			{
 				k = numberOfNeighbours;
+			}
 
 			neighboursCloud.clear();
 			for (unsigned j = 0; j < k; ++j)
+			{
 				neighboursCloud.addPointIndex(nNSS.pointsInNeighbourhood[j].pointIndex);
+			}
 
 			unsigned finalNumberOfChi2Classes = 0;
 			//LAZY VERSION (approximate test)
@@ -462,7 +500,9 @@ bool StatisticalTestingTools::computeLocalChi2DistAtLevel(	const DgmOctree::octr
 		cell.points->setPointScalarValue(i, D);
 
 		if (nProgress && !nProgress->oneStep())
+		{
 			return false;
+		}
 	}
 
 	return true;
