@@ -79,8 +79,16 @@ namespace CCCoreLib
 			return *this;
 		}
 
+		//! Returns the point vector
+		inline const std::vector<CCVector3>& points() const
+		{
+			return m_points;
+		}
+
+		//! Returns the point vector
 		inline unsigned size() const override { return static_cast<unsigned>(m_points.size()); }
 
+		//! Sets all scalar values in the active 'out' scalar field to a given value
 		void setPointScalarValues(ScalarType value) override
 		{
 			ScalarField* currentOutScalarFieldArray = getCurrentOutScalarField();
@@ -95,6 +103,7 @@ namespace CCCoreLib
 			currentOutScalarFieldArray->fill(value);
 		}
 
+		//! Returns the bounding box of the cloud
 		void getBoundingBox(CCVector3& bbMin, CCVector3& bbMax) override
 		{
 			if (!m_bbox.isValid())
@@ -110,10 +119,13 @@ namespace CCCoreLib
 			bbMax = m_bbox.maxCorner();
 		}
 
+		//! Places the point iterator at the beginning of the cloud
 		void placeIteratorAtBeginning() override { m_currentPointIndex = 0; }
 
+		//! Returns the next point in the cloud (or nullptr if we are at the end)
 		const CCVector3* getNextPoint() override { return (m_currentPointIndex < m_points.size() ? point(m_currentPointIndex++) : 0); }
 
+		//! Enables the (default) scalar field for this cloud
 		bool enableScalarField() override
 		{
 			if (m_points.empty() && m_points.capacity() == 0)
@@ -164,6 +176,7 @@ namespace CCCoreLib
 			}
 		}
 
+		//! Returns whether the scalar field is enabled or not
 		bool isScalarFieldEnabled() const override
 		{
 			ScalarField* currentInScalarFieldArray = getCurrentInScalarField();
@@ -176,6 +189,7 @@ namespace CCCoreLib
 			return (sfValuesCount != 0 && sfValuesCount >= m_points.size());
 		}
 
+		//! Sets a scalar value to the active 'in' scalar field for a given point
 		void setPointScalarValue(unsigned pointIndex, ScalarType value) override
 		{
 			assert(m_currentInScalarFieldIndex >= 0 && m_currentInScalarFieldIndex < static_cast<int>(m_scalarFields.size()));
@@ -188,6 +202,7 @@ namespace CCCoreLib
 			m_scalarFields[m_currentInScalarFieldIndex]->setValue(pointIndex, value);
 		}
 
+		//! Returns the scalar value of the active 'out' scalar field for a given point
 		ScalarType getPointScalarValue(unsigned pointIndex) const override
 		{
 			assert(m_currentOutScalarFieldIndex >= 0 && m_currentOutScalarFieldIndex < static_cast<int>(m_scalarFields.size()));
@@ -195,9 +210,11 @@ namespace CCCoreLib
 			return m_scalarFields[m_currentOutScalarFieldIndex]->getValue(pointIndex);
 		}
 
+		//! Returns the point at a given index
 		inline const CCVector3* getPoint(unsigned index) const override { return point(index); }
+		//! Returns the point at a given index
 		inline void getPoint(unsigned index, CCVector3& P) const override { P = *point(index); }
-
+		//! Returns the point at a given index (as a persitent pointer)
 		inline const CCVector3* getPointPersistentPtr(unsigned index) const override { return point(index); }
 
 		//! Adds a scalar values to the active 'in' scalar field
