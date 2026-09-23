@@ -158,7 +158,7 @@ endif()
 # TBB (optional)
 # Must come before CGAL so it can use TBB properly
 if ( CCCORELIB_USE_TBB )
-	find_package( TBB COMPONENTS tbb 2022.0.0 CONFIG )
+	find_package( TBB 2022.0.0 COMPONENTS tbb CONFIG )
 
 	set( CCCORELIB_USE_QT_CONCURRENT OFF )
 	if ( TBB_FOUND )
@@ -187,7 +187,13 @@ if ( CCCORELIB_USE_CGAL )
 
 	if ( CCCORELIB_USE_TBB )
 		if ( TBB_FOUND )
-			CGAL_target_use_TBB( CCCoreLib )
+			# CGALConfig.cmake does not create the CGAL::TBB_support target itself, even when TBB_FOUND Is true.
+			# The target is defined by the CGAL_TBB_support.cmake module with CGAL into CGAL_MODULE_DIR,
+			# so we include it if the target is missing.
+			if ( NOT TARGET CGAL::TBB_support )
+				include( ${CGAL_MODULES_DIR}/CGAL_TBB_support.cmake )
+			endif()
+			target_link_libraries( CCCoreLib PUBLIC CGAL::TBB_support )
 		else()
 			message( WARNING "CGAL cannot compile with TBB (TBB not found)" )
 		endif()
