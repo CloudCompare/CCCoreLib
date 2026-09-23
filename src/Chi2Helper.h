@@ -1,33 +1,10 @@
-//##########################################################################
-//#                                                                        #
-//#                               CCLIB                                    #
-//#                                                                        #
-//#  This program is free software; you can redistribute it and/or modify  #
-//#  it under the terms of the GNU Library General Public License as       #
-//#  published by the Free Software Foundation; version 2 or later of the  #
-//#  License.                                                              #
-//#                                                                        #
-//#  This program is distributed in the hope that it will be useful,       #
-//#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
-//#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          #
-//#  GNU General Public License for more details.                          #
-//#                                                                        #
-//#          COPYRIGHT: EDF R&D / TELECOM ParisTech (ENST-TSI)             #
-//#                                                                        #
-//##########################################################################
+#pragma once
 
-#ifndef CHI2_HELPER_HEADER
-#define CHI2_HELPER_HEADER
+// SPDX-License-Identifier: LGPL-2.0-or-later
+// Copyright © EDF R&D / TELECOM ParisTech (ENST-TSI)
 
 //system
 #include <cmath>
-
-#ifndef LOG_SQRT_PI
-#define LOG_SQRT_PI 0.5723649429247000870717135 /* log(sqrt(pi)) */
-#endif
-#ifndef I_SQRT_PI
-#define I_SQRT_PI 0.5641895835477562869480795   /* 1 / sqrt(pi) */
-#endif
 
 //! Package of methods to compute Chi2 related stuff
 /**  The following JavaScript functions for calculating normal and
@@ -39,6 +16,18 @@
 **/
 class Chi2Helper
 {
+
+private:
+	static constexpr double LOG_SQRT_PI = 0.5723649429247000870717135; /* log(sqrt(pi)) */
+	static constexpr double I_SQRT_PI = 0.5641895835477562869480795;   /* 1 / sqrt(pi) */
+
+	//! Value above which exp(EXP_MAX_A_VALUE) diverges
+	static constexpr double EXP_MAX_A_VALUE = 50.0;
+
+	//! bound/epsilon for critical chi-square value computation
+	static constexpr double CHI_EPSILON = 0.000001;	/* Accuracy of critchi approximation */
+	static constexpr double CHI_MAX = 99999.0;		/* Maximum chi-square value */
+
 public:
 	//! Probability of normal z value
 	/** Adapted from a polynomial approximation in:
@@ -88,9 +77,6 @@ public:
 		return z > 0.0 ? ((x + 1.0) * 0.5) : ((1.0 - x) * 0.5);
 	}
 
-	//! Value above which exp(EXP_MAX_A_VALUE) diverges
-	static inline double EXP_MAX_A_VALUE() { return 50.0; }
-
 	//! Probability of chi-square value
 	/** Adapted from:
 		Hill, I. D. and Pike, M. C.  Algorithm 299
@@ -113,7 +99,7 @@ public:
 		if (df > 2) {
 			x = 0.5 * (df - 1.0);
 			double z = (even ? 1.0 : 0.5);
-			if (a > EXP_MAX_A_VALUE())
+			if (a > EXP_MAX_A_VALUE)
 			{
 				double e = (even ? 0.0 : LOG_SQRT_PI);
 				double c = std::log(a);
@@ -141,24 +127,21 @@ public:
 		else return s;
 	}
 
-	//! Compute critical chi-square value toproduce given p.
+	//! Compute critical chi-square value to produce given p.
 	/** We just do a bisection search for a value within CHI_EPSILON,
 		relying on the monotonicity of pochisq().
 	**/
 	static double critchi(double p, int df)
 	{
-		double CHI_EPSILON = 0.000001;	/* Accuracy of critchi approximation */
-		double CHI_MAX = 99999.0;		/* Maximum chi-square value */
 		double minchisq = 0.0;
 		double maxchisq = CHI_MAX;
-		double chisqval;
 
 		if (p <= 0.0)
 			return maxchisq;
-		else if (p >= 1.0)
+		if (p >= 1.0)
 			return 0.0;
 
-		chisqval = df / std::sqrt(p);    /* fair first value */
+		double chisqval = df / std::sqrt(p);    /* fair first value */
 		while ((maxchisq - minchisq) > CHI_EPSILON)
 		{
 			if (pochisq(chisqval, df) < p)
@@ -173,5 +156,3 @@ public:
 	}
 
 };
-
-#endif //CHI2_HELPER_HEADER
