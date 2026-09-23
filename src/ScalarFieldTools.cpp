@@ -485,7 +485,7 @@ void ScalarFieldTools::computeScalarFieldHistogram(const GenericCloud* theCloud,
 	{
 		histo.resize(numberOfClasses, 0);
 	}
-	catch (const std::bad_alloc)
+	catch (const std::bad_alloc&)
 	{
 		//out of memory
 		return;
