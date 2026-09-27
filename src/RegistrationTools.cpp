@@ -130,16 +130,17 @@ struct ModelCloud
 	ModelCloud() : cloud(nullptr), weights(nullptr) {}
 	ModelCloud(const ModelCloud& m) = default;
 	GenericIndexedCloudPersist* cloud;
-	ScalarField* weights;
+	ScalarField::Shared weights;
+	ScalarField::Shared ownedWeights;
 };
 
 struct DataCloud
 {
-	DataCloud() : cloud(nullptr), rotatedCloud(nullptr), weights(nullptr), CPSetRef(nullptr), CPSetPlain(nullptr) {}
+	DataCloud() : cloud(nullptr), rotatedCloud(nullptr), CPSetRef(nullptr), CPSetPlain(nullptr) {}
 
 	ReferenceCloud* cloud;
 	PointCloud* rotatedCloud;
-	ScalarField* weights;
+	ScalarField::Shared weights;
 	ReferenceCloud* CPSetRef;
 	PointCloud* CPSetPlain;
 };
@@ -163,7 +164,6 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	finalRMS = -1.0;
 
 	Garbage<GenericIndexedCloudPersist> cloudGarbage;
-	Garbage<ScalarField> sfGarbage;
 
 	bool registerWithNormals = (params.normalsMatching != NO_NORMAL);
 
@@ -190,8 +190,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			//if we need to resample the weights as well
 			if (params.dataWeights)
 			{
-				data.weights = new ScalarField("ResampledDataWeights");
-				sfGarbage.add(data.weights);
+				data.weights = std::make_shared<ScalarField>("ResampledDataWeights");
 
 				unsigned destCount = data.cloud->size();
 				if (data.weights->resizeSafe(destCount))
@@ -223,8 +222,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			if (params.dataWeights)
 			{
 				//we use the input weights
-				data.weights = new ScalarField(*params.dataWeights);
-				sfGarbage.add(data.weights);
+				data.weights = std::make_shared<ScalarField>(*params.dataWeights);
 			}
 		}
 
@@ -288,8 +286,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			//if we need to resample the weights as well
 			if (params.modelWeights)
 			{
-				model.weights = new ScalarField("ResampledModelWeights");
-				sfGarbage.add(model.weights);
+				model.ownedWeights = std::make_shared<ScalarField>("ResampledModelWeights");
+				model.weights = model.ownedWeights;
 
 				unsigned destCount = subModelCloud->size();
 				if (model.weights->resizeSafe(destCount))
@@ -353,11 +351,10 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	}
 
 	//per-point couple weights
-	ScalarField* coupleWeights = nullptr;
+	ScalarField::Shared coupleWeights;
 	if (model.weights || data.weights || registerWithNormals)
 	{
-		coupleWeights = new ScalarField("CoupleWeights");
-		sfGarbage.add(coupleWeights);
+		coupleWeights = std::make_shared<ScalarField>("CoupleWeights");
 	}
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
@@ -448,8 +445,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 				if (data.weights)
 				{
-					filteredData.weights = new ScalarField("ResampledDataWeights");
-					sfGarbage.add(filteredData.weights);
+					filteredData.weights = std::make_shared<ScalarField>("ResampledDataWeights");
 				}
 
 				unsigned pointCount = data.cloud->size();
@@ -521,10 +517,6 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				{
 					cloudGarbage.destroy(data.CPSetPlain);
 				}
-				if (data.weights)
-				{
-					sfGarbage.destroy(data.weights);
-				}
 				data = filteredData;
 
 				pointOrderHasBeenChanged = true;
@@ -564,8 +556,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			cloudGarbage.add(filteredData.cloud);
 			if (data.weights)
 			{
-				filteredData.weights = new ScalarField("ResampledDataWeights");
-				sfGarbage.add(filteredData.weights);
+				filteredData.weights = std::make_shared<ScalarField>("ResampledDataWeights");
 			}
 
 			if (!filteredData.cloud->reserve(pointCount) //should be maxOverlapCount in theory, but there may be several points with the same value as maxOverlapDist!
@@ -872,7 +863,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 														data.CPSetRef ? static_cast<GenericCloud*>(data.CPSetRef) : static_cast<GenericCloud*>(data.CPSetPlain),
 														currentTrans,
 														params.adjustScale,
-														coupleWeights,
+														coupleWeights.get(),
 														PC_ONE,
 														&dataGravityCenter,
 														&modelGravityCenter))
@@ -889,8 +880,6 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				cloudGarbage.destroy(data.CPSetRef);
 			else if (data.CPSetPlain)
 				cloudGarbage.destroy(data.CPSetPlain);
-			if (data.weights)
-				sfGarbage.destroy(data.weights);
 			data = trueData;
 		}
 

@@ -5,11 +5,12 @@
 
 //Local
 #include "CCConst.h"
-#include "CCShareable.h"
 
-//System
-#include <vector>
+// System
+#include <cassert>
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace CCCoreLib
 {
@@ -22,9 +23,11 @@ namespace CCCoreLib
 
 		Invalid values can be represented by CCCoreLib::NAN_VALUE.
 	**/
-	class ScalarField : protected std::vector<float>, public CCShareable
+	class ScalarField : protected std::vector<float>
 	{
 	public:
+		//! Shared pointer type
+		using Shared = std::shared_ptr<ScalarField>;
 
 		//! Shortcut to the (protected) std::vector::size() method
 		using std::vector<float>::size;
@@ -38,8 +41,7 @@ namespace CCCoreLib
 		using std::vector<float>::empty;
 
 		//! Default constructor
-		/** [SHAREABLE] Call 'link' when associating this structure to an object.
-			\param name scalar field name
+		/** \param name scalar field name
 		**/
 		CC_CORE_LIB_API explicit ScalarField(const std::string& name = std::string());
 
@@ -217,12 +219,8 @@ namespace CCCoreLib
 
 		inline void swap(std::size_t i1, std::size_t i2) { std::swap(at(i1), at(i2)); }
 
-	protected: //methods
-
 		//! Default destructor
-		/** Call release instead.
-		**/
-		CC_CORE_LIB_API ~ScalarField() override = default;
+		CC_CORE_LIB_API ~ScalarField() = default;
 
 	protected: //members
 

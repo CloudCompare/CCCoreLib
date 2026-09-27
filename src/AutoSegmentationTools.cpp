@@ -202,7 +202,7 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 		progressCb->start();
 	}
 
-	ScalarField* theDists = new ScalarField("distances");
+	auto theDists = std::make_shared<ScalarField>("distances");
 	{
 		ScalarType d = theCloud->getPointScalarValue(0);
 		if (!theDists->resizeSafe(numberOfPoints, true, d))
@@ -211,7 +211,6 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 			{
 				delete theOctree;
 			}
-			theDists->release();
 			return false;
 		}
 	}
@@ -323,9 +322,6 @@ bool AutoSegmentationTools::frontPropagationBasedSegmentation(	GenericIndexedClo
 	{
 		theCloud->setPointScalarValue(i, theDists->getValue(i));
 	}
-
-	theDists->release();
-	theDists = nullptr;
 
 	if (nullptr == inputOctree)
 	{

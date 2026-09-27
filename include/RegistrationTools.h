@@ -203,10 +203,10 @@ namespace CCCoreLib
 			double finalOverlapRatio;
 
 			//! Weights for model points (i.e. only if the model entity is a cloud) (optional)
-			ScalarField* modelWeights;
+			ScalarField::Shared modelWeights;
 
 			//! Weights for data points (optional)
-			ScalarField* dataWeights;
+			ScalarField::Shared dataWeights;
 
 			//! Filters to be applied on the resulting transformation at each step (experimental) - see RegistrationTools::TRANSFORMATION_FILTERS flags
 			int transformationFilters;
