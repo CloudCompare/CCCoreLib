@@ -131,7 +131,6 @@ struct ModelCloud
 	ModelCloud(const ModelCloud& m) = default;
 	GenericIndexedCloudPersist* cloud;
 	ScalarField::Shared weights;
-	ScalarField::Shared ownedWeights;
 };
 
 struct DataCloud
@@ -286,8 +285,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			//if we need to resample the weights as well
 			if (params.modelWeights)
 			{
-				model.ownedWeights = std::make_shared<ScalarField>("ResampledModelWeights");
-				model.weights = model.ownedWeights;
+				model.weights = std::make_shared<ScalarField>("ResampledModelWeights");
 
 				unsigned destCount = subModelCloud->size();
 				if (model.weights->resizeSafe(destCount))
