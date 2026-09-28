@@ -14,7 +14,6 @@ namespace CCCoreLib
 	class GenericIndexedMesh;
 	class GenericIndexedCloud;
 	class KDTree;
-	class ScalarField;
 
 	//! Common point cloud registration algorithms
 	class CC_CORE_LIB_API RegistrationTools : public CCToolbox

@@ -220,7 +220,7 @@ namespace CCCoreLib
 		inline void swap(std::size_t i1, std::size_t i2) { std::swap(at(i1), at(i2)); }
 
 		//! Default destructor
-		CC_CORE_LIB_API ~ScalarField() = default;
+		CC_CORE_LIB_API virtual ~ScalarField() = default;
 
 	protected: //members
 

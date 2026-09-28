@@ -9,20 +9,20 @@
 #include "DgmOctree.h"
 #include "Grid3D.h"
 #include "GridAndMeshIntersection.h"
-#include "ScalarField.h"
 #include "SquareMatrix.h"
 
 namespace CCCoreLib
 {
-	class GenericTriangle;
-	class GenericIndexedMesh;
 	class GenericCloud;
 	class GenericIndexedCloudPersist;
-	class ReferenceCloud;
+	class GenericIndexedMesh;
+	class GenericProgressCallback;
+	class GenericTriangle;
 	class PointCloud;
 	class Polyline;
-	class GenericProgressCallback;
+	class ReferenceCloud;
 	class SaitoSquaredDistanceTransform;
+	class ScalarField;
 	struct TriangleList;
 
 	//! Several entity-to-entity distances computation algorithms (cloud-cloud, cloud-mesh, point-triangle, etc.)
@@ -87,7 +87,7 @@ namespace CCCoreLib
 			ReferenceCloud* CPSet;
 
 			//! Split distances (one scalar field per dimension: X, Y and Z)
-			ScalarField::Shared splitDistances[3];
+			ScalarField* splitDistances[3];
 
 			//! Whether to keep the existing distances as is (if any) or not
 			/** By default, any previous distances/scalar values stored in the 'enabled' scalar field will be
@@ -107,6 +107,7 @@ namespace CCCoreLib
 				, radiusForLocalModel(0)
 				, reuseExistingLocalModels(false)
 				, CPSet(nullptr)
+			    , splitDistances{nullptr, nullptr, nullptr}
 				, resetFormerDistances(true)
 			{
 			}
