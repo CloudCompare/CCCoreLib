@@ -11,7 +11,6 @@
 #include <ScalarFieldTools.h>
 #include <Graph.h>
 #include <CutPursuit.h>
-#include "cp_d0_dist.h"
 
 //System
 #include <algorithm>

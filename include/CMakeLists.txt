@@ -63,7 +63,6 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/TrueKdTree.h
 		${CMAKE_CURRENT_LIST_DIR}/WeibullDistribution.h
 		${CMAKE_CURRENT_LIST_DIR}/Block.h
-		${CMAKE_CURRENT_LIST_DIR}/cp_d0_dist.h
 		${CMAKE_CURRENT_LIST_DIR}/CutPursuit.h
 		${CMAKE_CURRENT_LIST_DIR}/cut_pursuit_d0.h
 		${CMAKE_CURRENT_LIST_DIR}/Graph.h

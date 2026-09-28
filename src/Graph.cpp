@@ -11,7 +11,6 @@
 #include "GenericProgressCallback.h"
 #include "OMPNumThreads.h"
 #include <CutPursuit.h>
-#include "cp_d0_dist.h"
 
 
 using namespace CCCoreLib;
@@ -247,9 +246,7 @@ int Graph::partitionCutPursuit(
 	}
 
     //  cut-pursuit with preconditioned forward-Douglas-Rachford
-	Cp_d0_dist<float, int32_t, int32_t>* cp =
-		new Cp_d0_dist<float, int32_t, int32_t>
-			(m_N, E, first_edge.data(), adj_vertices.data(), Y.data(), D);
+	CP* cp = new CP(m_N, E, first_edge.data(), adj_vertices.data(), Y.data(), D);
 
 	cp->set_loss(static_cast<float>(D), Y.data(), node_size.data(), coor_weights.data());
 	cp->set_edge_weights(edgeWeights.data(), regularization);
