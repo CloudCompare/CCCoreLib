@@ -3,9 +3,6 @@
 
 #pragma once
 
-//local
-#include "ScalarField.h"
-
 //STL
 #include <unordered_set>
 
@@ -56,50 +53,4 @@ namespace CCCoreLib
 		std::unordered_set<C*> m_items;
 	};
 	
-	//! Specialization for ScalarFields
-	template <> class Garbage<ScalarField>
-	{
-	public:
-		//! Puts an item in the trash
-		inline void add(ScalarField* item)
-		{
-			try
-			{
-				m_items.insert(item);
-			}
-			catch (const std::bad_alloc&)
-			{
-				//what can we do?!
-			}
-		}
-		
-		//! Removes an item from the trash
-		/** \warning The item won't be destroyed! **/
-		inline void remove(ScalarField* item)
-		{
-			m_items.erase(item);
-		}
-		
-		//! Manually deltes an item already in the trash
-		inline void destroy(ScalarField* item)
-		{
-			m_items.erase(item);
-			item->release();
-		}
-		
-		//! Destructor
-		/** Automatically deletes all items **/
-		~Garbage()
-		{
-			//dispose of left over
-			for (auto item : m_items)
-			{
-				item->release();
-			}
-			m_items.clear();
-		}
-		
-		//! Items to delete
-		std::unordered_set<ScalarField*> m_items;
-	};
 }

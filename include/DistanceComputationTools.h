@@ -13,16 +13,16 @@
 
 namespace CCCoreLib
 {
-	class GenericTriangle;
-	class GenericIndexedMesh;
 	class GenericCloud;
 	class GenericIndexedCloudPersist;
-	class ReferenceCloud;
+	class GenericIndexedMesh;
+	class GenericProgressCallback;
+	class GenericTriangle;
 	class PointCloud;
 	class Polyline;
-	class GenericProgressCallback;
-	class ScalarField;
+	class ReferenceCloud;
 	class SaitoSquaredDistanceTransform;
+	class ScalarField;
 	struct TriangleList;
 
 	//! Several entity-to-entity distances computation algorithms (cloud-cloud, cloud-mesh, point-triangle, etc.)
@@ -107,9 +107,9 @@ namespace CCCoreLib
 				, radiusForLocalModel(0)
 				, reuseExistingLocalModels(false)
 				, CPSet(nullptr)
+			    , splitDistances{nullptr, nullptr, nullptr}
 				, resetFormerDistances(true)
 			{
-				splitDistances[0] = splitDistances[1] = splitDistances[2] = nullptr;
 			}
 		};
 

@@ -11,7 +11,6 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/CCMath.h
 		${CMAKE_CURRENT_LIST_DIR}/CCMiscTools.h
 		${CMAKE_CURRENT_LIST_DIR}/CCPlatform.h
-		${CMAKE_CURRENT_LIST_DIR}/CCShareable.h
 		${CMAKE_CURRENT_LIST_DIR}/CCToolbox.h
 		${CMAKE_CURRENT_LIST_DIR}/CCTypes.h
 		${CMAKE_CURRENT_LIST_DIR}/ChamferDistanceTransform.h
@@ -75,7 +74,6 @@ install(
 		CCMath.h
 		CCMiscTools.h
 		CCPlatform.h
-		CCShareable.h
 		CCToolbox.h
 		CCTypes.h
 		ChamferDistanceTransform.h
@@ -136,4 +134,3 @@ target_include_directories( ${PROJECT_NAME}
 		$<INSTALL_INTERFACE:include/CCCoreLib>
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
-
