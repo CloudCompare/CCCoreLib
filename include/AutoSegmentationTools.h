@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 #include <functional>
 
@@ -86,8 +87,8 @@ namespace CCCoreLib
 
 		//! Extracts connected components from a point cloud
 		/** This method shloud only be called after the connected components have been
-			labeled (see AutoSegmentationTools::labelConnectedComponents and 
-			AutoSegmentationTools::labelCutPursuitComponents). This 
+			labeled (see AutoSegmentationTools::labelConnectedComponents and
+			AutoSegmentationTools::labelCutPursuitComponents). This
 			implementation of the algorithm assumes that the CCs labels are stored for
 			each point in the associated scalar field.
 			Warning: be sure to set the labels S.F. as OUTPUT (reading)

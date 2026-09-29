@@ -4,6 +4,7 @@
 target_sources( ${PROJECT_NAME}
 	PRIVATE
 		${CMAKE_CURRENT_LIST_DIR}/AutoSegmentationTools.h
+		${CMAKE_CURRENT_LIST_DIR}/Block.h
 		${CMAKE_CURRENT_LIST_DIR}/BoundingBox.h
 		${CMAKE_CURRENT_LIST_DIR}/CCConst.h
 		${CMAKE_CURRENT_LIST_DIR}/CCCoreLib.h
@@ -16,6 +17,7 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/ChamferDistanceTransform.h
 		${CMAKE_CURRENT_LIST_DIR}/CloudSamplingTools.h
 		${CMAKE_CURRENT_LIST_DIR}/ConjugateGradient.h
+		${CMAKE_CURRENT_LIST_DIR}/CutPursuit.h
 		${CMAKE_CURRENT_LIST_DIR}/Delaunay2dMesh.h
 		${CMAKE_CURRENT_LIST_DIR}/DgmOctree.h
 		${CMAKE_CURRENT_LIST_DIR}/DgmOctreeReferenceCloud.h
@@ -34,6 +36,7 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/GenericProgressCallback.h
 		${CMAKE_CURRENT_LIST_DIR}/GenericTriangle.h
 		${CMAKE_CURRENT_LIST_DIR}/GeometricalAnalysisTools.h
+		${CMAKE_CURRENT_LIST_DIR}/Graph.h
 		${CMAKE_CURRENT_LIST_DIR}/Grid3D.h
 		${CMAKE_CURRENT_LIST_DIR}/GridAndMeshIntersection.h
 		${CMAKE_CURRENT_LIST_DIR}/Jacobi.h
@@ -42,9 +45,11 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/LocalModel.h
 		${CMAKE_CURRENT_LIST_DIR}/ManualSegmentationTools.h
 		${CMAKE_CURRENT_LIST_DIR}/MathTools.h
+		${CMAKE_CURRENT_LIST_DIR}/Maxflow.h
 		${CMAKE_CURRENT_LIST_DIR}/MeshSamplingTools.h
 		${CMAKE_CURRENT_LIST_DIR}/Neighbourhood.h
 		${CMAKE_CURRENT_LIST_DIR}/NormalDistribution.h
+		${CMAKE_CURRENT_LIST_DIR}/OMPNumThreads.h
 		${CMAKE_CURRENT_LIST_DIR}/ParallelSort.h
 		${CMAKE_CURRENT_LIST_DIR}/PointCloud.h
 		${CMAKE_CURRENT_LIST_DIR}/PointCloudTpl.h
@@ -62,11 +67,6 @@ target_sources( ${PROJECT_NAME}
 		${CMAKE_CURRENT_LIST_DIR}/StatisticalTestingTools.h
 		${CMAKE_CURRENT_LIST_DIR}/TrueKdTree.h
 		${CMAKE_CURRENT_LIST_DIR}/WeibullDistribution.h
-		${CMAKE_CURRENT_LIST_DIR}/Block.h
-		${CMAKE_CURRENT_LIST_DIR}/CutPursuit.h
-		${CMAKE_CURRENT_LIST_DIR}/Graph.h
-		${CMAKE_CURRENT_LIST_DIR}/Maxflow.h
-		${CMAKE_CURRENT_LIST_DIR}/OMPNumThreads.h
 )
 
 install(

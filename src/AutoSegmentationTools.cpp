@@ -51,14 +51,14 @@ int AutoSegmentationTools::labelCutPursuitComponents(GenericIndexedCloudPersist*
 	// instantiate the graph and compute edges
 	Graph G(N, theCloud, theOctree);
 	G.computeEdges(knn, knnRadius, progressCb);
-	
+
 	// call cut pursuit
-	auto rV = G.partitionCutPursuit(D, 
+	auto rV = G.partitionCutPursuit(D,
 									Y,
 									components,
-									regularization, 
-									spatialWeight, 
-									cutoff, 
+									regularization,
+									spatialWeight,
+									cutoff,
 									0.01f, 15, 2, 2, 0.7f, 3, 3, 1000,
 									false, true, true, false,
 									-1,
@@ -127,7 +127,7 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 	for (auto cloud : cc)
 	{
 		delete cloud;
-	} 
+	}
 	cc.clear();
 
 	for (unsigned i = 0; i < numberOfPoints; ++i)
@@ -152,7 +152,7 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 				for (auto cloud : cc)
 				{
 					delete cloud;
-				} 
+				}
 				cc.clear();
 				return false;
 			}
@@ -164,7 +164,7 @@ bool AutoSegmentationTools::extractConnectedComponents(GenericIndexedCloudPersis
 				for (auto cloud : cc)
 				{
 					delete cloud;
-				} 
+				}
 				cc.clear();
 
 				return false;

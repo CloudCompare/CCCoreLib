@@ -1,8 +1,8 @@
 /*=============================================================================
  * Base class for cut-pursuit algorithm
- * 
- * L. Landrieu and G. Obozinski, Cut Pursuit: Fast Algorithms to Learn 
- * Piecewise Constant Functions on General Weighted Graphs, SIAM Journal on 
+ *
+ * L. Landrieu and G. Obozinski, Cut Pursuit: Fast Algorithms to Learn
+ * Piecewise Constant Functions on General Weighted Graphs, SIAM Journal on
  * Imaging Sciences, 2017, 10, 1724-1766
  *
  * Hugo Raguet 2018, 2020, 2022
@@ -42,12 +42,12 @@ class CP
 public:
     /**  constructor, destructor  **/
 
-    CP(int32_t V, int32_t E, const int32_t* first_edge, 
+    CP(int32_t V, int32_t E, const int32_t* first_edge,
         const int32_t* adj_vertices, const float* Y, size_t D = 1);
 
-    /* the destructor does not free pointers which are supposed to be provided 
-     * by the user (forward-star graph structure given at construction, 
-     * monitoring arrays, etc.); IT DOES FREE THE REST (components assignment 
+    /* the destructor does not free pointers which are supposed to be provided
+     * by the user (forward-star graph structure given at construction,
+     * monitoring arrays, etc.); IT DOES FREE THE REST (components assignment
      * and reduced problem elements, etc.), but this can be prevented by
      * getting the corresponding pointer member and setting it to null
      * beforehand */
@@ -151,8 +151,8 @@ protected:
      * array of length V + 1, the first value is always zero and the last
      * value is always the total number of edges E
      * - for each edge, 'adj_vertices' indicates its ending vertex */
-    const int32_t *first_edge, *adj_vertices; 
-    
+    const int32_t *first_edge, *adj_vertices;
+
     const float *edge_weights; // array of length E, weights of edges
     float homo_edge_weight; // homogeneous weights, set edge_weights to null
 
@@ -161,7 +161,7 @@ protected:
 
     /**  reduced graph  **/
 
-    /* last_* are used to identify saturated components and to compute 
+    /* last_* are used to identify saturated components and to compute
      * iterate evolution */
     int32_t rV, last_rV; // number of components (reduced vertices)
     float *rX, *last_rX; // reduced iterate (values of the components)
@@ -183,7 +183,7 @@ protected:
     int32_t saturated_vert; // number of vertices within saturated components
 
     /* reduced connectivity
-     * reduced edges represented with edges list (array of size twice the 
+     * reduced edges represented with edges list (array of size twice the
      * number of reduced edges, consecutive indices are linked components)
      * guarantees:
      * 1) starting component identifiers are smaller than ending components
@@ -208,11 +208,11 @@ protected:
 
     /**  parameters  **/
 
-    float dif_tol, eps; // eps gives a characteristic precision 
+    float dif_tol, eps; // eps gives a characteristic precision
     /* with nonzero verbose information on the process will be printed;
      * for convex methods, this will be passed on to the reduced problem
      * subroutine, controlling the number of subiterations between prints */
-    int verbose; 
+    int verbose;
 
     /**  split components with graph cuts  **/
     struct Split_info {
@@ -220,7 +220,7 @@ protected:
         int32_t K; // number of alternative values in the component's split
         /* first alternative to compete, useful to avoid competing with a value
          * already assigned to all vertices, or for single cut with K = 2 */
-        int32_t first_k; 
+        int32_t first_k;
         float* sX; // D-by-K array with alternative values in the split
         Split_info(int32_t rv);
         ~Split_info();
@@ -333,7 +333,7 @@ protected:
 
     /* merge the merge chains of the two given roots;
      * the root of the resulting chain will be the component in the chains
-     * with lowest index, which is returned by the function */ 
+     * with lowest index, which is returned by the function */
     int32_t merge_components(int32_t ru, int32_t rv);
 
     /* arrays are indexed by reduced edges */
@@ -396,8 +396,8 @@ protected:
     static void* realloc_check(void* ptr, size_t size)
     {
         if (!size){
-           free(ptr); 
-           return nullptr; 
+           free(ptr);
+           return nullptr;
         }
         ptr = realloc(ptr, size);
         if (!ptr){
@@ -408,7 +408,7 @@ protected:
     }
 
     /**  control parallelization  **/
-    int max_num_threads; // maximum number of parallel threads 
+    int max_num_threads; // maximum number of parallel threads
     /* take into account max_num_threads attribute */
     int compute_num_threads(uintmax_t num_ops, uintmax_t max_threads) const
     {
@@ -426,7 +426,7 @@ private:
 /**  separable loss term: weighted square l2 or smoothed KL **/
     const float* Y; // observations, D-by-V array, column major format
 
-    /* D (or public method quadratic_loss()) for quadratic 
+    /* D (or public method quadratic_loss()) for quadratic
      *      f(x) = 1/2 ||y - x||_{l2,W}^2 ,
      * where W is a diagonal metric (separable product along ℝ^V and ℝ^D),
      * that is ||y - x||_{l2,W}^2 = sum_{v in V} w_v ||x_v - y_v||_{l2,M}^2

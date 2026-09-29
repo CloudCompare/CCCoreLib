@@ -55,9 +55,9 @@ namespace CCCoreLib
 {
     class GenericIndexedCloudPersist;
     class DgmOctree;
-    
-   class Graph
-   {
+
+    class Graph
+    {
     public:
         // constructor
         Graph(int32_t N, GenericIndexedCloudPersist* cloud, DgmOctree* octree);
@@ -66,14 +66,14 @@ namespace CCCoreLib
         int32_t numNodes() const { return m_N; }
         /* return the number of edges in the graph */
         size_t numEdges() const { return static_cast<size_t>(m_edges.size() / 2); }
-        
-        /* compute edges of the graph 
+
+        /* compute edges of the graph
         * knn - number of nearest neighbors
         * knnRadius - radius for nearest neighbors search
         * progressCb - progress callback
         */
         void computeEdges(int32_t knn, double knnRadius, GenericProgressCallback* progressCb = nullptr);
-        
+
         /* convert edge list to forward-star representation */
         void edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
             int32_t* first_edge, int32_t* reindex);
@@ -87,8 +87,8 @@ namespace CCCoreLib
             int32_t D,
             const std::vector<float>& Y,
             std::vector<int32_t>& components,
-            float regularization, 
-            float spatialWeight, 
+            float regularization,
+            float spatialWeight,
             int32_t cutoff,
             float cp_dif_tol = 0.01f,
             int cp_it_max = 15,

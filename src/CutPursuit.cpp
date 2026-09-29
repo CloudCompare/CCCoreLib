@@ -85,7 +85,7 @@ CP::CP(int32_t V, int32_t E, const int32_t* first_edge, const int32_t* adj_verti
 	max_split_size         = V;
 
 	vert_weights = coor_weights = nullptr;
-    comp_weights = nullptr; 
+    comp_weights = nullptr;
     merge_gains = nullptr;
     merge_values = nullptr;
 
@@ -149,7 +149,7 @@ float CP::distance(const float* Yv, const float* Xv) const
                     just compute cross-entropy here */
         float distKL = 0.0;
         const float s = loss < 1.0 ? loss : eps;
-        const float c = 1.0 - s;  
+        const float c = 1.0 - s;
         const float u = s/(D - Q);
         for (size_t d = Q; d < D; d++){
             distKL -= (u + c*Yv[d])*log(u + c*Xv[d]);
@@ -177,12 +177,12 @@ void CP::set_loss(float loss, const float* Y,
             " the probability space in Kullback-Leibler divergence." << endl;
         exit(EXIT_FAILURE);
     }
-    this->coor_weights = coor_weights; 
+    this->coor_weights = coor_weights;
     if (loss == quadratic_loss()){ fYY = 0.0; return; }
     /* recompute the constant dist(Y, Y) for Kullback-Leibler */
     const size_t Q = loss; // number of coordinates for quadratic part
     const float s = loss < 1.0 ? loss : eps;
-    const float c = 1.0 - s;  
+    const float c = 1.0 - s;
     const float u = s/(D - Q);
     float fYY_par = 0.0; // auxiliary variable for parallel region
 
@@ -2024,14 +2024,14 @@ void CP::compute_merge_candidate(int32_t re)
         if (!merge_values[re]){
             merge_values[re] = (float*) malloc_check(sizeof(float)*D);
         }
-        float* value = merge_values[re]; 
+        float* value = merge_values[re];
         for (size_t d = 0; d < D; d++){ value[d] = wru*rXu[d] + wrv*rXv[d]; }
 
         if (Q != D){
             /* smoothed Kullback-Leibler gain */
             float gainKLu = 0.0, gainKLv = 0.0;
             const float s = loss < 1.0 ? loss : eps;
-            const float c = 1.0 - s;  
+            const float c = 1.0 - s;
             const float u = s/(D - Q);
             for (size_t d = Q; d < D; d++){
                 float u_value_d = u + c*value[d];
@@ -2081,7 +2081,7 @@ float CP::compute_evolution() const
         if (loss != quadratic_loss()){
             const size_t Q = loss; // number of coordinates for quadratic part
             const float s = loss < 1.0 ? loss : eps;
-            const float c = 1.0 - s;  
+            const float c = 1.0 - s;
             const float u = s/(D - Q);
             for (size_t d = Q; d < D; d++){
                 distXX -= (u + c*rXv[d])*log(u + c*rXv[d]);
@@ -2254,7 +2254,7 @@ int32_t CP::compute_merge_chains()
          * avoided; in particular, ordering lists by end vertex identifiers
          * would require reordering of all adjacent candidates of rv, bilinear
          * in order of rv and sum of orders of its adjacent candidates
-         * NOTA: might be done in parallel along ru list, but current merging 
+         * NOTA: might be done in parallel along ru list, but current merging
          * candidate must be removed before, and might not be worth it */
         FIRST_CELL(mcc_ru, ru);
         while (!IS_EMPTY(mcc_ru)){
