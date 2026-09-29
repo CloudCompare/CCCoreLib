@@ -59,10 +59,8 @@ int AutoSegmentationTools::labelCutPursuitComponents(GenericIndexedCloudPersist*
 									regularization, 
 									spatialWeight, 
 									cutoff, 
-									knn, 
-									knnRadius,
 									0.01f, 15, 2, 2, 0.7f, 3, 3, 1000,
-									false, true, true, true, false, false,
+									false, true, true, false,
 									-1,
 									progressCb);
 
