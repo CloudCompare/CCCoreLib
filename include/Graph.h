@@ -1,53 +1,45 @@
 /*=============================================================================
- * Tools for manipulating nearest-neighbors graph defined on regular grids
+ * Graph class for CloudCompare (Ioannis Farmakis, 2026)
  *
- * A grid graph in dimension D is defined by the following parameters:
- * D - the number of dimensions
- * shape - array of length D, giving the grid size in each dimension
- * connectivity - defines the neighboring relationship;
- *      corresponds to the _square_ of the maximum Euclidean distance between
- *      two neighbors;
- *      if less than 4, it defines the number of coordinates allowed
- *      to simultaneously vary (+1 or -1) to define a neighbor; in that case,
- *      each level l of connectivity in dimension D adds binom(D, l)*2^l
- *      neighbors; corresponding number of neighbors for D = 2 and 3:
+ * This class builds and manipulates a k-nearest-neighbor graph over a point
+ * cloud (using CCCoreLib's octree for neighbor search), and provides
+ * cut-pursuit based partitioning/segmentation over that graph.
  *
- *      connectivity |  1   2   3
- *      --------------------------
- *                2D |  4   8  (8)
- *                3D |  6  18  26
+ *-----------------------------------------------------------------------------
+ * Third-party integration notes
  *
- *      note that a connectivity of 4 or more includes neighbors whose
- *      coordinates might differ by 2 or more from the coordinates of the
- *      considered vertex. Interestingly, in dimension 4 or more, including
- *      all surrounding vertices would then also include vertices from a "more
- *      distant" surround: the neighbor v + (2, 0, 0, 0) is at the same
- *      distance as the neighbor v + (1, 1, 1, 1).
+ * The `edgeListToForwardStar()` method below is adapted from the
+ * edge_list_to_forward_star().cpp file of the grid-graph project by
+ * Hugo Raguet (https://github.com/1a7r0ch3/grid-graph).
  *
- * A graph with V vertices and E edges is represented either as edge list
- * (array of E edges given as ordered pair of vertices), or as  forward-star,
- * where edges are numeroted so that all edges originating from a same vertex
- * are consecutive, and represented by the following parameters:
- * first_edge - array of length V + 1, indicating for each vertex, the first
- *      edge starting from the vertex (or, if there are none, starting from
- *      the next vertex); the first value is always zero and the last value is
- *      always the total number of edges
- * adj_vertices - array of length E, indicating for each edge, its ending
- *      vertex
+ * The method was de-templated (fixed vertex/edge index types)
+ * for direct use with the data types required by CloudCompare.
  *
- * Vertices of the grid are indexed in _column-major_ order, that is indices
- * increase first along the first dimension specified in the 'shape' array
- * (in the usual convention in 2D, this corresponds to columns), and then along
- * the second dimension, and so on up to the last dimension.
- * Indexing in _row-major_ order (indices increase first along the last
- * dimension and so on up to the first) can be obtained by simply reverting
- * the order of the grid dimensions in the shape array (in 2D, this amounts to
- * transposition).
+ * No other component, method, or documentation from the grid-graph project
+ * applies to this class; the graph structure and connectivity used
+ * elsewhere in this class are unrelated to the grid-graph project described
+ * above, and are original to this class.
  *
- * Parallel implementation with OpenMP API
+ * The grid-graph project is distributed under the GNU General Public
+ * License. As this file incorporates a derivative of one of its functions,
+ * this file as a whole is likewise distributed under the GPL, and the
+ * corresponding license notice is reproduced below, as required.
  *
- * Hugo Raguet 2019
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *-----------------------------------------------------------------------------
  *===========================================================================*/
+
 #pragma once
 #include <cstddef>
 
@@ -75,6 +67,8 @@ namespace CCCoreLib
         void computeEdges(int32_t knn, double knnRadius, GenericProgressCallback* progressCb = nullptr);
 
         /* convert edge list to forward-star representation */
+        /* adapted from the edge_list_to_forward_star().cpp file of the
+         * grid-graph project by Hugo Raguet (https://github.com/1a7r0ch3/grid-graph) */ 
         void edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
             int32_t* first_edge, int32_t* reindex);
         /* first_edge is an array of length V + 1, already allocated;

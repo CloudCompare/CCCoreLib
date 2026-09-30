@@ -1,5 +1,10 @@
 /*=============================================================================
- * Hugo Raguet 2018
+ * Adapted/integrated by Ioannis Farmakis (2026) from the original 
+ * parallel-cut-pursuit project implementation by Hugo Raguet 2018
+ * (https://github.com/1a7r0ch3/parallel-cut-pursuit), 2026, for use in 
+ * CloudCompare: merged and de-templated from the original cut_pursuit.hpp,
+ * cut_pursuit_d0.hpp and cp_d0_dist.hpp to implement the d0 distance only.
+ * See the integration notes in CutPursuit.h for full details.
  *===========================================================================*/
 #include <set>
 #include <algorithm>

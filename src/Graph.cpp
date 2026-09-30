@@ -1,5 +1,13 @@
 /*=============================================================================
- * Hugo Raguet 2019
+ * Integration notes (Ioannis Farmakis, 2026)
+ *
+ * The `edgeListToForwardStar` method in this file is adapted from the
+ * `edge_list_to_forward_star` function of the grid-graph project by
+ * Hugo Raguet (https://github.com/1a7r0ch3/grid-graph), file
+ * edge_list_to_forward_star.cpp. It was de-templated (fixed vertex/edge
+ * index types) for direct use in CloudCompare. No other component of the
+ * grid-graph project is used in this file. See Graph.h for further
+ * integration notes and license information.
  *===========================================================================*/
 #include <cstdint>
 
@@ -130,6 +138,8 @@ void Graph::computeEdges(int32_t knn,
     }
 }
 
+/* adapted from the edge_list_to_forward_star().cpp file of the
+ * grid-graph project by Hugo Raguet (https://github.com/1a7r0ch3/grid-graph) */ 
 void Graph::edgeListToForwardStar(int32_t V, size_t E, const int32_t* edges,
     int32_t* first_edge, int32_t* reindex)
 {

@@ -1,3 +1,4 @@
+/* CutPursuit.h */
 /*=============================================================================
  * Base class for cut-pursuit algorithm
  *
@@ -6,6 +7,64 @@
  * Imaging Sciences, 2017, 10, 1724-1766
  *
  * Hugo Raguet 2018, 2020, 2022
+ *
+ *-----------------------------------------------------------------------------
+ * Integration notes (Ioannis Farmakis, 2026)
+ *
+ * This file is adapted from the original parallel-cut-pursuit implementation by
+ * Hugo Raguet (https://github.com/1a7r0ch3/parallel-cut-pursuit), specifically from
+ * cut_pursuit.hpp, cut_pursuit_d0.hpp and cp_d0_dist.hpp.
+ *
+ * In the original project, the cut-pursuit algorithm is implemented as a
+ * hierarchy of template base classes (Cp<...>, Cp_d0<...>, Cp_d0_dist<...>,
+ * etc.), allowing the same core algorithm to be specialized for several
+ * distance types (d0, d1, etc) via template parameters and virtual overrides.
+ *
+ * For integration into CloudCompare, only the parts of the algorithm
+ * relevant to the d0 distance (piecewise-constant approximation with a
+ * weighted graph, as used e.g. for point cloud segmentation) were extracted
+ * and merged into this single, non-templated class. The generic distance
+ * abstraction of the original code has been collapsed so that this class
+ * computes the d0 distance directly, rather than being parameterized
+ * over distance type. As a result, this is a simplified, self
+ * contained derivative of the original work, not a direct copy of any
+ * single file from the upstream project, and it is not intended to be a
+ * drop-in replacement for the original templated hierarchy.
+ *
+ * The original license (GNU General Public License) and copyright notice
+ * from Hugo Raguet's implementation are preserved below, as required.
+ *-----------------------------------------------------------------------------
+ *
+ * The d0 penalization implemented here (weighted contour length), together
+ * with the loss term, originates from cp_d0_dist.hpp, which documented it as
+ * follows:
+ *
+ * Cut-pursuit algorithm with d0 (weighted contour length) penalization, with
+ * a loss akin to a distance:
+ *
+ *        minimize functional over a graph G = (V, E)
+ *
+ *        F(x) = sum_v loss(y_v, x_v) + ||x||_d0
+ *
+ * where for each vertex, y_v and x_v are D-dimensional vectors, the loss is
+ * a mix of the sum of square differences and a Kullback-Leibler divergence
+ * (equivalent to cross-entropy in this formulation); see the 'loss' attribute,
+ *   and ||x||_d0 = sum_{uv in E : xu != xv} w_d0_uv ,
+ *
+ * using greedy cut-pursuit approach with splitting initialized with k-means++.
+ *
+ * Parallel implementation with OpenMP API.
+ *
+ * L. Landrieu and G. Obozinski, Cut Pursuit: fast algorithms to learn
+ * piecewise constant functions on general weighted graphs, SIAM Journal on
+ * Imaging Science, 10(4):1724-1766, 2017
+ *
+ * L. Landrieu et al., A structured regularization framework for spatially
+ * smoothing semantic labelings of 3D point clouds, ISPRS Journal of
+ * Photogrammetry and Remote Sensing, 132:102-118, 2017
+ *
+ * Hugo Raguet 2019, 2022, 2023
+ *-----------------------------------------------------------------------------
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
