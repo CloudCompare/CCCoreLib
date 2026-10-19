@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 //Local
 #include "CCMiscTools.h"
@@ -12,6 +13,13 @@
 
 namespace CCCoreLib
 {
+	//! PCA results (eigen vectors and sorted eigen values)
+	struct PCAResults
+	{
+		SquareMatrixd eigVectors;
+		std::vector<double> eigValues;
+	};
+
 	class GenericIndexedMesh;
 
 	//! A specific point could structure to handle subsets of points, provided with several geometric processings
@@ -48,6 +56,12 @@ namespace CCCoreLib
 
 		//! Resets structure (depreactes all associated geometrical fetaures)
 		virtual void reset();
+
+		//! PCA results (populated by computePCA, cleared by reset)
+		PCAResults pca;
+
+		//! Returns whether the PCA has already been computed for this neighbourhood
+		bool hasPCA() const { return !pca.eigValues.empty(); }
 
 		//! Returns associated cloud
 		GenericIndexedCloudPersist* associatedCloud() const { return m_associatedCloud; }
@@ -183,6 +197,14 @@ namespace CCCoreLib
 			DegreeOfPlanarity,
 			DegreeOfLinearity
 		};
+
+		//! Computes the PCA (eigen vectors and non-sorted eigen values) of the set of points
+		/** The results are cached in the 'pca' property (see hasPCA). 
+		 	If the PCA has already been computed, 
+			the cached results are returned (call reset() to invalidate them).
+			\return PCA results (empty eigen values if the computation failed)
+		**/
+		PCAResults computePCA();
 
 		//! Computes the given feature on a set of point
 		/** \return feature value
