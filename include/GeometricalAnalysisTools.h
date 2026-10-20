@@ -65,7 +65,7 @@ namespace CCCoreLib
 												DgmOctree* inputOctree = nullptr);
 
 		//! A geometric characteristic to compute and the scalar field receiving its values (with index in the cloud)
-		struct GeomCharacteristicRequest
+		struct MultiGeomCharacteristicRequest
 		{
 			GeomCharacteristic c;
 			int subOption = 0;
@@ -73,14 +73,14 @@ namespace CCCoreLib
 			int sfIdx = -1;
 		};
 
-		//! Set of GeomCharacteristicRequest instances
-		using GeomCharacteristicRequestSet = std::vector<GeomCharacteristicRequest>;
+		//! Set of MultiGeomCharacteristicRequest instances
+		using MultiGeomCharacteristicRequestSet = std::vector<MultiGeomCharacteristicRequest>;
 
 		//! Computes several geometric characteristics in a single octree pass
 		/** The neighbors are extracted only once per point and shared by all the requested characteristics.
 			Each characteristic is written to its own scalar field (the cloud active scalar field is not used).
 			\warning ApproxLocalDensity is not supported here.
-			\param characteristics list of characteristics to compute (with their target scalar field)
+			\param requests list of characteristics requests to compute (with their target scalar field)
 			\param cloud cloud to compute the characteristics on
 			\param kernelRadius neighbouring sphere radius
 			\param roughnessUpDir up direction to compute signed roughness values (optional)
@@ -88,7 +88,7 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success
 		**/
-		static ErrorCode ComputeCharacteristics(const GeomCharacteristicRequestSet& characteristics,
+		static ErrorCode ComputeCharacteristics(const MultiGeomCharacteristicRequestSet& requests,
 												GenericIndexedCloudPersist* cloud,
 												PointCoordinateType kernelRadius,
 												const CCVector3* roughnessUpDir = nullptr,

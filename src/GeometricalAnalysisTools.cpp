@@ -166,7 +166,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteristics(
-		const GeomCharacteristicRequestSet& requests,
+		const MultiGeomCharacteristicRequestSet& requests,
 		GenericIndexedCloudPersist* cloud,
 		PointCoordinateType kernelRadius,
 		const CCVector3* roughnessUpDir/*=nullptr*/,
@@ -182,7 +182,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteris
 	unsigned numberOfPoints = cloud->size();
 
 	std::string label = "Geometric characteristics computation";
-	for (const GeomCharacteristicRequest& r : requests)
+	for (const MultiGeomCharacteristicRequest& r : requests)
 	{
 		if (r.sf->currentSize() < numberOfPoints)
 			return InvalidInput; //the output scalar fields must be allocated
@@ -239,7 +239,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteris
 
 	void* additionalParameters[]
 	{
-		static_cast<void*>(const_cast<GeomCharacteristicRequestSet*>(&requests)),
+		static_cast<void*>(const_cast<MultiGeomCharacteristicRequestSet*>(&requests)),
 		static_cast<void*>(&kernelRadius),
 		static_cast<void*>(const_cast<CCVector3*>(roughnessUpDir))
 	};
@@ -266,7 +266,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteris
 	//finish the work for the density characteristics
 	if (result == NoError)
 	{
-		for (const GeomCharacteristicRequest& r : requests)
+		for (const MultiGeomCharacteristicRequest& r : requests)
 		{
 			if (r.c != LocalDensity || r.subOption == DENSITY_KNN)
 				continue;
@@ -299,7 +299,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicsAtLevel(	const DgmOctre
 																	void** additionalParameters,
 																	NormalizedProgress* nProgress/*=nullptr*/)
 {
-	const std::vector<GeomCharacteristicRequest>& requests = *static_cast<const std::vector<GeomCharacteristicRequest>*>(additionalParameters[0]);
+	const std::vector<MultiGeomCharacteristicRequest>& requests = *static_cast<const std::vector<MultiGeomCharacteristicRequest>*>(additionalParameters[0]);
 	PointCoordinateType radius      = *static_cast<PointCoordinateType*>(additionalParameters[1]);
 	const CCVector3* roughnessUpDir = static_cast<const CCVector3*>(additionalParameters[2]);
 
@@ -342,7 +342,7 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicsAtLevel(	const DgmOctre
 		DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
 		Neighbourhood Z(&neighboursCloud);
 
-		for (const GeomCharacteristicRequest& r : requests)
+		for (const MultiGeomCharacteristicRequest& r : requests)
 		{
 			ScalarType value = NAN_VALUE;
 			switch (r.c)
