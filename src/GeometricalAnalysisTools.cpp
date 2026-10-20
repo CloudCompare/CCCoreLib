@@ -206,14 +206,13 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteris
 				if (numberOfPoints < 3)
 					return NotEnoughPoints;
 				break;
-			case ApproxLocalDensity:
-				if (r.subOption == 0)
-					return InvalidInput;
-				//special case (can't be handled in the same way as the other characteristics)
-				return ComputeLocalDensityApprox(cloud, static_cast<Density>(r.subOption), progressCb, inputOctree);
+			// case ApproxLocalDensity:
+			// 	if (r.subOption == 0)
+			// 		return InvalidInput;
 			case Roughness:
 				if (numberOfPoints < 4)
 					return NotEnoughPoints;
+				break;
 			case MomentOrder1:
 				if (numberOfPoints < 4)
 					return NotEnoughPoints;
