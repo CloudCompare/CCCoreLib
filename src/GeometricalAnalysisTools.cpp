@@ -166,9 +166,9 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 }
 
 GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteristics(
-		const GeomCharacteristicSet& requests,
-		PointCoordinateType kernelRadius,
+		const GeomCharacteristicRequestSet& requests,
 		GenericIndexedCloudPersist* cloud,
+		PointCoordinateType kernelRadius,
 		const CCVector3* roughnessUpDir/*=nullptr*/,
 		GenericProgressCallback* progressCb/*=nullptr*/,
 		DgmOctree* inputOctree/*=nullptr*/)
@@ -239,7 +239,7 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteris
 
 	void* additionalParameters[]
 	{
-		static_cast<void*>(const_cast<GeomCharacteristicSet*>(&requests)),
+		static_cast<void*>(const_cast<GeomCharacteristicRequestSet*>(&requests)),
 		static_cast<void*>(&kernelRadius),
 		static_cast<void*>(const_cast<CCVector3*>(roughnessUpDir))
 	};
@@ -342,7 +342,6 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicsAtLevel(	const DgmOctre
 		DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
 		Neighbourhood Z(&neighboursCloud);
 
-		bool needsRoughness = false;
 		for (const GeomCharacteristicRequest& r : requests)
 		{
 			ScalarType value = NAN_VALUE;
@@ -362,47 +361,46 @@ bool GeometricalAnalysisTools::ComputeGeomCharacteristicsAtLevel(	const DgmOctre
 					value = static_cast<ScalarType>(neighborCount);
 					break;
 
-				case MomentOrder1:
-					value = Z.computeMomentOrder1(nNSS.queryPoint);
+				case Roughness:
+					if (neighborCount > 3)
+					{
+						unsigned localIndex = 0;
+						while (localIndex < neighborCount && nNSS.pointsInNeighbourhood[localIndex].pointIndex != globalIndex)
+						{
+							++localIndex;
+						}
+						assert(localIndex < neighborCount);
+						if (localIndex + 1 < neighborCount)
+						{
+							std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
+						}
+
+						DgmOctreeReferenceCloud roughCloud(&nNSS.pointsInNeighbourhood, neighborCount - 1);
+						Neighbourhood ZR(&roughCloud);
+						value = ZR.computeRoughness(nNSS.queryPoint, roughnessUpDir);
+
+						//swap the points back to their original position (DGM: not necessary in this case)
+						//if (localIndex+1 < neighborCount)
+						//{
+						//	std::swap(nNSS.pointsInNeighbourhood[localIndex],nNSS.pointsInNeighbourhood[neighborCount-1]);
+						//}
+					}
 					break;
 
-				case Roughness:
-					needsRoughness = true; //handled below (needs a reordered neighborhood)
-					continue;
+				case MomentOrder1:
+				{
+					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+					Neighbourhood Z(&neighboursCloud);
+					value = Z.computeMomentOrder1(nNSS.queryPoint);
+				}
+					break;
 
 				default:
 					assert(false);
 					return false;
 			}
+
 			r.sf->setValue(globalIndex, value);
-		}
-
-		//roughness: done last as it reorders the neighbors and excludes the query point
-		if (needsRoughness)
-		{
-			ScalarType value = NAN_VALUE;
-			if (neighborCount > 3)
-			{
-				unsigned localIndex = 0;
-				while (localIndex < neighborCount && nNSS.pointsInNeighbourhood[localIndex].pointIndex != globalIndex)
-				{
-					++localIndex;
-				}
-				assert(localIndex < neighborCount);
-				if (localIndex + 1 < neighborCount)
-				{
-					std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
-				}
-
-				DgmOctreeReferenceCloud roughCloud(&nNSS.pointsInNeighbourhood, neighborCount - 1);
-				Neighbourhood ZR(&roughCloud);
-				value = ZR.computeRoughness(nNSS.queryPoint, roughnessUpDir);
-			}
-			for (const GeomCharacteristicRequest& r : requests)
-			{
-				if (r.c == Roughness)
-					r.sf->setValue(globalIndex, value);
-			}
 		}
 
 		if (nProgress && !nProgress->oneStep())

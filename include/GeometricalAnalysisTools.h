@@ -64,16 +64,17 @@ namespace CCCoreLib
 												GenericProgressCallback* progressCb = nullptr,
 												DgmOctree* inputOctree = nullptr);
 
-		//! A geometric characteristic to compute and the scalar field receiving its values
+		//! A geometric characteristic to compute and the scalar field receiving its values (with index in the cloud)
 		struct GeomCharacteristicRequest
 		{
 			GeomCharacteristic c;
 			int subOption = 0;
 			ScalarField* sf = nullptr;
+			int sfIdx = -1;
 		};
 
 		//! Set of GeomCharacteristicRequest instances
-		using GeomCharacteristicSet = std::vector<GeomCharacteristicRequest>;
+		using GeomCharacteristicRequestSet = std::vector<GeomCharacteristicRequest>;
 
 		//! Computes several geometric characteristics in a single octree pass
 		/** The neighbors are extracted only once per point and shared by all the requested characteristics.
@@ -87,9 +88,9 @@ namespace CCCoreLib
 			\param inputOctree if not set as input, octree will be automatically computed.
 			\return success
 		**/
-		static ErrorCode ComputeCharacteristics(const GeomCharacteristicSet& characteristics,
-												PointCoordinateType kernelRadius,
+		static ErrorCode ComputeCharacteristics(const GeomCharacteristicRequestSet& characteristics,
 												GenericIndexedCloudPersist* cloud,
+												PointCoordinateType kernelRadius,
 												const CCVector3* roughnessUpDir = nullptr,
 												GenericProgressCallback* progressCb = nullptr,
 												DgmOctree* inputOctree = nullptr);
