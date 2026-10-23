@@ -758,7 +758,7 @@ ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
 	return (m2 < std::numeric_limits<double>::epsilon() ? NAN_VALUE : static_cast<ScalarType>((m1 * m1) / m2));
 }
 
-PCAResults Neighbourhood::computePCA()
+const PCAResults& Neighbourhood::computePCA()
 {
 	if (hasPCA())
 	{
@@ -769,7 +769,7 @@ PCAResults Neighbourhood::computePCA()
 	if (!m_associatedCloud || m_associatedCloud->size() < 3)
 	{
 		//not enough points
-		pca = PCAResults();
+		pca = {};
 		return pca;
 	}
 
@@ -779,7 +779,7 @@ PCAResults Neighbourhood::computePCA()
 	if (!Jacobi<double>::ComputeEigenValuesAndVectors(covarianceMatrix, eigVectors, eigValues, true))
 	{
 		//failed to compute the eigen values
-		pca = PCAResults();
+		pca = {};
 		return pca;
 	}
 

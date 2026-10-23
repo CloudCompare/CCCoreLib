@@ -204,7 +204,7 @@ namespace CCCoreLib
 			the cached results are returned (call reset() to invalidate them).
 			\return PCA results (empty eigen values if the computation failed)
 		**/
-		PCAResults computePCA();
+		const PCAResults& computePCA();
 
 		//! Computes the given feature on a set of point
 		/** \return feature value
