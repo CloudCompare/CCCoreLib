@@ -57,11 +57,8 @@ namespace CCCoreLib
 		//! Resets structure (depreactes all associated geometrical fetaures)
 		virtual void reset();
 
-		//! PCA results (populated by computePCA, cleared by reset)
-		PCAResults pca;
-
 		//! Returns whether the PCA has already been computed for this neighbourhood
-		bool hasPCA() const { return !pca.eigValues.empty(); }
+		bool hasPCA() const { return !m_pca.eigValues.empty(); }
 
 		//! Returns associated cloud
 		GenericIndexedCloudPersist* associatedCloud() const { return m_associatedCloud; }
@@ -199,7 +196,7 @@ namespace CCCoreLib
 		};
 
 		//! Computes the PCA (eigen vectors and non-sorted eigen values) of the set of points
-		/** The results are cached in the 'pca' property (see hasPCA). 
+		/** The results are cached in the 'm_pca' property (see hasPCA). 
 		 	If the PCA has already been computed, 
 			the cached results are returned (call reset() to invalidate them).
 			\return PCA results (empty eigen values if the computation failed)
@@ -305,6 +302,9 @@ namespace CCCoreLib
 
 	protected:
 
+		//! PCA results (populated by computePCA, cleared by reset)
+		PCAResults m_pca;
+		
 		//! 2.5D Quadric equation
 		/** Array [a,b,c,d,e,f] such that Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2.
 			\warning: 'X','Y' and 'Z' are defined by 'm_quadricEquationDirections'
