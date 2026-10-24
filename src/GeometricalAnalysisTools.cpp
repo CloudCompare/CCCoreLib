@@ -165,6 +165,252 @@ GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharactersi
 	return result;
 }
 
+GeometricalAnalysisTools::ErrorCode GeometricalAnalysisTools::ComputeCharacteristics(
+		const MultiGeomCharacteristicRequestSet& requests,
+		GenericIndexedCloudPersist* cloud,
+		PointCoordinateType kernelRadius,
+		const CCVector3* roughnessUpDir/*=nullptr*/,
+		GenericProgressCallback* progressCb/*=nullptr*/,
+		DgmOctree* inputOctree/*=nullptr*/)
+{
+	if (!cloud)
+	{
+		//invalid input cloud
+		return InvalidInput;
+	}
+
+	unsigned numberOfPoints = cloud->size();
+
+	std::string label = "Geometric characteristics computation";
+	for (const MultiGeomCharacteristicRequest& r : requests)
+	{
+		if (r.sf->currentSize() < numberOfPoints)
+			return InvalidInput; //the output scalar fields must be allocated
+		switch (r.c)
+		{
+			case Feature:
+				if (r.subOption == 0)
+					return InvalidInput;
+				if (numberOfPoints < 4)
+					return NotEnoughPoints;
+				break;
+			case Curvature:
+				if (r.subOption == 0)
+					return InvalidInput;
+				if (numberOfPoints < 5)
+					return NotEnoughPoints;
+				break;
+			case LocalDensity:
+				if (r.subOption == 0)
+					return InvalidInput;
+				if (numberOfPoints < 3)
+					return NotEnoughPoints;
+				break;
+			// case ApproxLocalDensity:
+			// 	if (r.subOption == 0)
+			// 		return InvalidInput;
+			case Roughness:
+				if (numberOfPoints < 4)
+					return NotEnoughPoints;
+				break;
+			case MomentOrder1:
+				if (numberOfPoints < 4)
+					return NotEnoughPoints;
+				break;
+			default:
+				assert(false);
+				return UnhandledCharacteristic;
+		}
+	}
+
+	DgmOctree* octree = inputOctree;
+	if (!octree)
+	{
+		octree = new DgmOctree(cloud);
+		if (octree->build(progressCb) < 1)
+		{
+			delete octree;
+			return OctreeComputationFailed;
+		}
+	}
+
+	unsigned char level = octree->findBestLevelForAGivenNeighbourhoodSizeExtraction(kernelRadius);
+
+	void* additionalParameters[]
+	{
+		static_cast<void*>(const_cast<MultiGeomCharacteristicRequestSet*>(&requests)),
+		static_cast<void*>(&kernelRadius),
+		static_cast<void*>(const_cast<CCVector3*>(roughnessUpDir))
+	};
+
+	ErrorCode result = NoError;
+
+	if (octree->executeFunctionForAllCellsAtLevel(	level,
+													&ComputeGeomCharacteristicsAtLevel,
+													additionalParameters,
+													true,
+													progressCb,
+													label.c_str()) == 0)
+	{
+		//something went wrong
+		result = ProcessFailed;
+	}
+
+	if (nullptr == inputOctree)
+	{
+		delete octree;
+		octree = nullptr;
+	}
+
+	//finish the work for the density characteristics
+	if (result == NoError)
+	{
+		for (const MultiGeomCharacteristicRequest& r : requests)
+		{
+			if (r.c != LocalDensity || r.subOption == DENSITY_KNN)
+				continue;
+
+			double dimensionalCoef = 1.0;
+			switch (static_cast<Density>(r.subOption))
+			{
+				case DENSITY_2D:
+					dimensionalCoef = M_PI * pow(kernelRadius, 2.0);
+					break;
+				case DENSITY_3D:
+					dimensionalCoef = s_UnitSphereVolume * pow(kernelRadius, 3.0);
+					break;
+				default:
+					return InvalidInput;
+			}
+
+			const ScalarType coef = static_cast<ScalarType>(dimensionalCoef);
+			for (unsigned i = 0; i < numberOfPoints; ++i)
+			{
+				r.sf->setValue(i, r.sf->getValue(i) / coef);
+			}
+		}
+	}
+
+	return result;
+}
+
+bool GeometricalAnalysisTools::ComputeGeomCharacteristicsAtLevel(	const DgmOctree::octreeCell& cell,
+																	void** additionalParameters,
+																	NormalizedProgress* nProgress/*=nullptr*/)
+{
+	const std::vector<MultiGeomCharacteristicRequest>& requests = *static_cast<const std::vector<MultiGeomCharacteristicRequest>*>(additionalParameters[0]);
+	PointCoordinateType radius      = *static_cast<PointCoordinateType*>(additionalParameters[1]);
+	const CCVector3* roughnessUpDir = static_cast<const CCVector3*>(additionalParameters[2]);
+
+	DgmOctree::NearestNeighboursSearchStruct nNSS;
+	nNSS.level = cell.level;
+	cell.parentOctree->getCellPos(cell.truncatedCode, cell.level, nNSS.cellPos, true);
+	cell.parentOctree->computeCellCenter(nNSS.cellPos, cell.level, nNSS.cellCenter);
+
+	unsigned n = cell.points->size();
+
+	//we already know some of the neighbours: the points in the current cell!
+	{
+		try
+		{
+			nNSS.pointsInNeighbourhood.resize(n);
+		}
+		catch (const std::bad_alloc&)
+		{
+			return false;
+		}
+
+		DgmOctree::NeighboursSet::iterator it = nNSS.pointsInNeighbourhood.begin();
+		for (unsigned i = 0; i < n; ++i, ++it)
+		{
+			it->point = cell.points->getPointPersistentPtr(i);
+			it->pointIndex = cell.points->getPointGlobalIndex(i);
+		}
+	}
+	nNSS.alreadyVisitedNeighbourhoodSize = 1;
+
+	for (unsigned i = 0; i < n; ++i)
+	{
+		cell.points->getPoint(i, nNSS.queryPoint);
+		const unsigned globalIndex = cell.points->getPointGlobalIndex(i);
+
+		//neighbors are extracted only once for all the characteristics
+		unsigned neighborCount = cell.parentOctree->findNeighborsInASphereStartingFromCell(nNSS, radius, false);
+
+		//the Neighbourhood is shared by all the characteristics
+		DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+		Neighbourhood Z(&neighboursCloud);
+
+		for (const MultiGeomCharacteristicRequest& r : requests)
+		{
+			ScalarType value = NAN_VALUE;
+			switch (r.c)
+			{
+				case Feature:
+					if (neighborCount > 3)
+						value = static_cast<ScalarType>(Z.computeFeature(static_cast<Neighbourhood::GeomFeature>(r.subOption)));
+					break;
+
+				case Curvature:
+					if (neighborCount > 5)
+						value = Z.computeCurvature(nNSS.queryPoint, static_cast<Neighbourhood::CurvatureType>(r.subOption));
+					break;
+
+				case LocalDensity:
+					value = static_cast<ScalarType>(neighborCount);
+					break;
+
+				case Roughness:
+					if (neighborCount > 3)
+					{
+						unsigned localIndex = 0;
+						while (localIndex < neighborCount && nNSS.pointsInNeighbourhood[localIndex].pointIndex != globalIndex)
+						{
+							++localIndex;
+						}
+						assert(localIndex < neighborCount);
+						if (localIndex + 1 < neighborCount)
+						{
+							std::swap(nNSS.pointsInNeighbourhood[localIndex], nNSS.pointsInNeighbourhood[neighborCount - 1]);
+						}
+
+						DgmOctreeReferenceCloud roughCloud(&nNSS.pointsInNeighbourhood, neighborCount - 1);
+						Neighbourhood ZR(&roughCloud);
+						value = ZR.computeRoughness(nNSS.queryPoint, roughnessUpDir);
+
+						//swap the points back to their original position (DGM: not necessary in this case)
+						//if (localIndex+1 < neighborCount)
+						//{
+						//	std::swap(nNSS.pointsInNeighbourhood[localIndex],nNSS.pointsInNeighbourhood[neighborCount-1]);
+						//}
+					}
+					break;
+
+				case MomentOrder1:
+				{
+					DgmOctreeReferenceCloud neighboursCloud(&nNSS.pointsInNeighbourhood, neighborCount);
+					Neighbourhood Z(&neighboursCloud);
+					value = Z.computeMomentOrder1(nNSS.queryPoint);
+				}
+					break;
+
+				default:
+					assert(false);
+					return false;
+			}
+
+			r.sf->setValue(globalIndex, value);
+		}
+
+		if (nProgress && !nProgress->oneStep())
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool GeometricalAnalysisTools::ComputeGeomCharacteristicAtLevel(const DgmOctree::octreeCell& cell,
 																void** additionalParameters,
 																NormalizedProgress* nProgress/*=nullptr*/)

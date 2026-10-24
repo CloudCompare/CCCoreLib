@@ -35,7 +35,9 @@ void Neighbourhood::reset()
 const CCVector3* Neighbourhood::getGravityCenter()
 {
 	if (!(m_structuresValidity & FLAG_GRAVITY_CENTER))
+	{
 		computeGravityCenter();
+	}
 	return ((m_structuresValidity & FLAG_GRAVITY_CENTER) ? &m_gravityCenter : nullptr);
 }
 
@@ -130,8 +132,10 @@ SquareMatrixd Neighbourhood::computeCovarianceMatrix()
 {
 	assert(m_associatedCloud);
 	unsigned count = (m_associatedCloud ? m_associatedCloud->size() : 0);
-	if (!count)
+	if (count == 0)
+	{
 		return SquareMatrixd();
+	}
 
 	//get the centroid
 	const CCVector3* G = getGravityCenter();
@@ -757,6 +761,40 @@ ScalarType Neighbourhood::computeMomentOrder1(const CCVector3& P)
 	return (m2 < std::numeric_limits<double>::epsilon() ? NAN_VALUE : static_cast<ScalarType>((m1 * m1) / m2));
 }
 
+const Neighbourhood::PCAResults* Neighbourhood::getPCA()
+{
+	if (!(m_structuresValidity & FLAG_PCA))
+	{
+		if (!computePCA())
+		{
+			return nullptr;
+		}
+	}
+	return &m_pca;
+}
+
+bool Neighbourhood::computePCA()
+{
+	//invalidate previous PCA result (if any)
+	m_structuresValidity &= (~FLAG_PCA);
+
+	if (!m_associatedCloud || m_associatedCloud->size() < 3)
+	{
+		//not enough points
+		return false;
+	}
+
+	SquareMatrixd covarianceMatrix = computeCovarianceMatrix();
+	if (!Jacobi<double>::ComputeEigenValuesAndVectors(covarianceMatrix, m_pca.eigVectors, m_pca.eigValues, true))
+	{
+		//failed to compute the eigen values
+		return false;
+	}
+
+	m_structuresValidity |= FLAG_PCA;
+	return true;
+}
+
 double Neighbourhood::computeFeature(GeomFeature feature)
 {
 	if (!m_associatedCloud || m_associatedCloud->size() < 3)
@@ -765,21 +803,20 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 		return std::numeric_limits<double>::quiet_NaN();
 	}
 
-	SquareMatrixd eigVectors;
-	std::vector<double> eigValues;
-	SquareMatrixd covarianceMatrix = computeCovarianceMatrix();
-	if (!Jacobi<double>::ComputeEigenValuesAndVectors(covarianceMatrix, eigVectors, eigValues, true))
+	const PCAResults* pca = getPCA();
+	if (!pca)
 	{
-		//failed to compute the eigen values
+		//failed to compute PCA
 		return std::numeric_limits<double>::quiet_NaN();
 	}
 
-	Jacobi<double>::SortEigenValuesAndVectors(eigVectors, eigValues); //sort the eigenvectors in decreasing order of their associated eigenvalues
+	PCAResults sortedPCA = *pca;
+	Jacobi<double>::SortEigenValuesAndVectors(sortedPCA.eigVectors, sortedPCA.eigValues);
 
 	//shortcuts
-	const double& l1 = eigValues[0];
-	const double& l2 = eigValues[1];
-	const double& l3 = eigValues[2];
+	const double& l1 = sortedPCA.eigValues[0];
+	const double& l2 = sortedPCA.eigValues[1];
+	const double& l3 = sortedPCA.eigValues[2];
 
 	double value = std::numeric_limits<double>::quiet_NaN();
 
@@ -835,7 +872,7 @@ double Neighbourhood::computeFeature(GeomFeature feature)
 		{
 			CCVector3d Z(0, 0, 1);
 			CCVector3d e3(Z);
-			Jacobi<double>::GetEigenVector(eigVectors, 2, e3.u);
+			Jacobi<double>::GetEigenVector(sortedPCA.eigVectors, 2, e3.u);
 
 			value = 1.0 - std::abs(Z.dot(e3));
 		}
@@ -970,21 +1007,20 @@ ScalarType Neighbourhood::computeCurvature(const CCVector3& P, CurvatureType cTy
 			}
 
 			//we determine plane normal by computing the smallest eigen value of M = 1/n * S[(p-µ)*(p-µ)']
-			SquareMatrixd covMat = computeCovarianceMatrix();
+
+			const PCAResults* pca = getPCA();
+			if (!pca)
+			{
+				//failed to compute PCA
+				return NAN_VALUE;
+		    }
+			
 			CCVector3d e(0, 0, 0);
 
-			SquareMatrixd eigVectors;
-			std::vector<double> eigValues;
-			if (!Jacobi<double>::ComputeEigenValuesAndVectors(covMat, eigVectors, eigValues, true))
-			{
-				//failure
-				return NAN_VALUE;
-			}
-
 			//compute curvature as the rate of change of the surface
-			e.x = eigValues[0];
-			e.y = eigValues[1];
-			e.z = eigValues[2];
+			e.x = pca->eigValues[0];
+			e.y = pca->eigValues[1];
+			e.z = pca->eigValues[2];
 
 			const double sum = e.x + e.y + e.z; //we work with absolute values
 			if (LessThanEpsilon(sum))

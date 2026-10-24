@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 //Local
 #include "CCMiscTools.h"
@@ -31,7 +32,8 @@ namespace CCCoreLib
 		enum GeomElement {		FLAG_DEPRECATED			= 0,
 								FLAG_GRAVITY_CENTER		= 1,
 								FLAG_LS_PLANE			= 2,
-								FLAG_QUADRIC			= 4 };
+								FLAG_QUADRIC			= 4,
+								FLAG_PCA				= 8};
 
 		//! Curvature type
 		enum CurvatureType {	GAUSSIAN_CURV = 1,
@@ -184,6 +186,27 @@ namespace CCCoreLib
 			DegreeOfLinearity
 		};
 
+		//! PCA results (eigen vectors and sorted eigen values)
+		struct PCAResults
+		{
+			SquareMatrixd eigVectors;
+			std::vector<double> eigValues;
+		};
+
+		//! Returns the PCA results (eigen vectors and sorted eigen values)
+		/** Automatically computes it if necessary.
+			\return nullptr if computation failed
+		**/
+		const PCAResults* getPCA();
+
+		//! Computes the PCA (eigen vectors and non-sorted eigen values) of the set of points
+		/** The results are cached in the 'm_pca' property (see hasPCA). 
+		 	If the PCA has already been computed, 
+			the cached results are returned (call reset() to invalidate them).
+			\return true if the computation succeeded, false otherwise
+		**/
+		bool computePCA();
+
 		//! Computes the given feature on a set of point
 		/** \return feature value
 		**/
@@ -213,7 +236,8 @@ namespace CCCoreLib
 		/**** GETTERS ****/
 
 		//! Returns gravity center
-		/** \return nullptr if computation failed
+		/** Automatically computes it if necessary.
+			\return nullptr if computation failed
 		**/
 		const CCVector3* getGravityCenter();
 
@@ -224,7 +248,8 @@ namespace CCCoreLib
 		void setGravityCenter(const CCVector3& G);
 
 		//! Returns best interpolating plane equation (Least-square)
-		/** Returns an array of the form [a,b,c,d] such as:
+		/** Automatically computes it if necessary.
+			Returns an array of the form [a,b,c,d] such that:
 				ax + by + cz = d
 			\return nullptr if computation failed
 		**/
@@ -243,23 +268,27 @@ namespace CCCoreLib
 							const CCVector3& N );
 
 		//! Returns best interpolating plane (Least-square) 'X' base vector
-		/** This corresponds to the largest eigen value (i.e. the largest cloud dimension)
+		/** Automatically computes it if necessary.
+			This corresponds to the largest eigen value (i.e. the largest cloud dimension)
 			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneX();
 		//! Returns best interpolating plane (Least-square) 'Y' base vector
-		/** This corresponds to the second largest eigen value (i.e. the second largest cloud dimension)
+		/** Automatically computes it if necessary.
+			This corresponds to the second largest eigen value (i.e. the second largest cloud dimension)
 			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneY();
 		//! Returns best interpolating plane (Least-square) normal vector
-		/** This corresponds to the smallest eigen value (i.e. the second largest cloud dimension)
+		/** Automatically computes it if necessary.
+			This corresponds to the smallest eigen value (i.e. the second largest cloud dimension)
 			\return nullptr if computation failed
 		**/
 		const CCVector3* getLSPlaneNormal();
 
 		//! Returns the best interpolating 2.5D quadric
-		/** Returns an array of the form [a,b,c,d,e,f] such as:
+		/** Automatically computes it if necessary.
+			Returns an array of the form [a,b,c,d,e,f] such as:
 				Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2
 			\warning: 'X','Y' and 'Z' are implicitly expressed in a local coordinate system (see 'toLocalCS')
 			\param[out] toLocalOrientation	optional 3x3 matrix to convert the points to the local coordinate/orientation system in which the Quadric is expressed
@@ -283,6 +312,9 @@ namespace CCCoreLib
 
 	protected:
 
+		//! PCA results (populated by computePCA, cleared by reset)
+		PCAResults m_pca;
+		
 		//! 2.5D Quadric equation
 		/** Array [a,b,c,d,e,f] such that Z = a + b.X + c.Y + d.X^2 + e.X.Y + f.Y^2.
 			\warning: 'X','Y' and 'Z' are defined by 'm_quadricEquationDirections'
