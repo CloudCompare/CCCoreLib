@@ -116,10 +116,15 @@ target_compile_definitions( CCCoreLib
 )
 
 # Nanoflann
-set( NANOFLANN_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE )
-set( NANOFLANN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE )
-set( NANOFLANN_BUILD_TESTS OFF CACHE BOOL "" FORCE )
-add_subdirectory( extern/nanoflann EXCLUDE_FROM_ALL )
+option( CCCORELIB_USE_SYSTEM_NANOFLANN "Use an installed nanoflann instead of the bundled copy" OFF )
+if ( CCCORELIB_USE_SYSTEM_NANOFLANN )
+	find_package( nanoflann CONFIG REQUIRED )
+else()
+	set( NANOFLANN_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE )
+	set( NANOFLANN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE )
+	set( NANOFLANN_BUILD_TESTS OFF CACHE BOOL "" FORCE )
+	add_subdirectory( extern/nanoflann EXCLUDE_FROM_ALL )
+endif()
 target_link_libraries( CCCoreLib
 	PUBLIC
 		nanoflann::nanoflann
