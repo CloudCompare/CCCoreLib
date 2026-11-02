@@ -7,6 +7,7 @@
 #include "CCConst.h"
 
 // System
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <string>
