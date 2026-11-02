@@ -16,6 +16,7 @@
 
 //system
 #include <algorithm>
+#include <cstdlib>
 #include <random>
 
 using namespace CCCoreLib;
