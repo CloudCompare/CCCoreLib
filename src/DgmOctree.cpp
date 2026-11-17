@@ -356,7 +356,9 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 		progressCb->update(0);
 		progressCb->start();
 	}
-	NormalizedProgress nprogress(progressCb, pointCount, 90); //first phase: 90% (we keep 10% for sorting)
+	NormalizedProgress nprogress(progressCb,
+	                             pointCount / 100, // don't call nprogress.oneStep() too often, it can be quite slow!
+	                             90);              // first phase: 90% (we keep 10% for sorting)
 
 	//fill the index table (we'll fill the max. level, then deduce the others from this one)
 	int* fillIndexesAtMaxLevel = m_fillIndexes + (MAX_OCTREE_LEVEL * 6);
@@ -377,21 +379,10 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 			Tuple3i cellPos;
 			getTheCellPosWhichIncludesThePoint(P, cellPos);
 
-			//clipping X
-			if (cellPos.x < 0)
-				cellPos.x = 0;
-			else if (cellPos.x >= MAX_OCTREE_LENGTH)
-				cellPos.x = MAX_OCTREE_LENGTH - 1;
-			//clipping Y
-			if (cellPos.y < 0)
-				cellPos.y = 0;
-			else if (cellPos.y >= MAX_OCTREE_LENGTH)
-				cellPos.y = MAX_OCTREE_LENGTH - 1;
-			//clipping Z
-			if (cellPos.z < 0)
-				cellPos.z = 0;
-			else if (cellPos.z >= MAX_OCTREE_LENGTH)
-				cellPos.z = MAX_OCTREE_LENGTH - 1;
+			//clipping
+			cellPos.x = std::clamp(cellPos.x, 0, MAX_OCTREE_LENGTH - 1);
+			cellPos.y = std::clamp(cellPos.y, 0, MAX_OCTREE_LENGTH - 1);
+			cellPos.z = std::clamp(cellPos.z, 0, MAX_OCTREE_LENGTH - 1);
 
 			it->theIndex = i;
 			it->theCode = GenerateTruncatedCellCode(cellPos, MAX_OCTREE_LEVEL);
@@ -424,7 +415,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 			++m_numberOfProjectedPoints;
 		}
 
-		if (!nprogress.oneStep() || !m_buildInProgress)
+		if ((i % 100) == 0 && !nprogress.oneStep() || !m_buildInProgress)
 		{
 			m_buildInProgress = false;
 			m_thePointsAndTheirCellCodes.resize(0);
@@ -650,7 +641,7 @@ void DgmOctree::computeCellLimits(CellCode code, unsigned char level, CCVector3&
 	Tuple3i cellPos;
 	getCellPos(code,level,cellPos,isCodeTruncated);
 
-	const PointCoordinateType& cs = getCellSize(level);
+	PointCoordinateType cs = getCellSize(level);
 
 	cellMin.x = m_dimMin[0] + cs * cellPos.x;
 	cellMin.y = m_dimMin[1] + cs * cellPos.y;
@@ -1175,7 +1166,7 @@ double DgmOctree::findTheNearestNeighborStartingFromCell(NearestNeighboursSearch
 		unsigned char bitShift = GET_BIT_SHIFT(nNSS.level);
 
 		//cell size at the current level of subdivision
-		const PointCoordinateType& cs = getCellSize(nNSS.level);
+		PointCoordinateType cs = getCellSize(nNSS.level);
 
 		//already visited cells (relative distance to the cell that includes the query point)
 		int visitedCellDistance = nNSS.alreadyVisitedNeighbourhoodSize;
@@ -1352,7 +1343,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 	unsigned char bitShift = GET_BIT_SHIFT(nNSS.level);
 
 	//cell size at the current level of subdivision
-	const PointCoordinateType& cs = getCellSize(nNSS.level);
+	PointCoordinateType cs = getCellSize(nNSS.level);
 
 	//already visited cells (relative distance to the cell that includes the query point)
 	int visitedCellDistance = nNSS.alreadyVisitedNeighbourhoodSize;
@@ -1518,7 +1509,7 @@ int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
 													unsigned char level/*=0*/) const
 {
 	//cell size
-	const PointCoordinateType& cs = getCellSize(level);
+	PointCoordinateType cs           = getCellSize(level);
 	PointCoordinateType halfCellSize = cs / 2;
 
 	//squared radius
@@ -1613,7 +1604,7 @@ int DgmOctree::getPointsInSphericalNeighbourhood(	const CCVector3& sphereCenter,
 std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) const
 {
 	//cell size
-	const PointCoordinateType& cs = getCellSize(params.level);
+	PointCoordinateType cs = getCellSize(params.level);
 
 	//we are going to test all the cells that may intersect this box
 	//first we extract the box... bounding box ;)
@@ -1782,7 +1773,7 @@ std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) con
 std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourhood& params) const
 {
 	//cell size
-	const PointCoordinateType& cs = getCellSize(params.level);
+	PointCoordinateType cs           = getCellSize(params.level);
 	PointCoordinateType halfCellSize = cs/2;
 
 	//squared radius
@@ -1907,7 +1898,7 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhood(CylindricalNeighbourh
 std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(ProgressiveCylindricalNeighbourhood& params) const
 {
 	//cell size
-	const PointCoordinateType& cs = getCellSize(params.level);
+	PointCoordinateType cs           = getCellSize(params.level);
 	PointCoordinateType halfCellSize = cs / 2;
 
 	//squared radius
@@ -2085,7 +2076,7 @@ static double s_testedPoints = 0.0;
 int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSearchStruct &nNSS, double radius, bool sortValues) const
 {
 	//current level cell size
-	const PointCoordinateType& cs = getCellSize(nNSS.level);
+	PointCoordinateType cs = getCellSize(nNSS.level);
 
 	//we compute the minimal distance between the query point and all cell borders
 	const PointCoordinateType minDistToBorder = ComputeMinDistanceToCellBorder(nNSS.queryPoint, cs, nNSS.cellCenter);
@@ -4013,7 +4004,7 @@ bool DgmOctree::rayCast(const CCVector3& rayAxis,
 				getCellPos(it->theCode, level, cellPos, false);
 
 				//first test with the total bounding box
-				const PointCoordinateType& halfCellSize = getCellSize(level) / 2;
+				PointCoordinateType halfCellSize = getCellSize(level) / 2;
 				CCVector3 cellCenter(	(2* cellPos.x + 1) * halfCellSize,
 										(2* cellPos.y + 1) * halfCellSize,
 										(2* cellPos.z + 1) * halfCellSize);
