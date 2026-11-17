@@ -302,7 +302,9 @@ int DgmOctree::build(	const CCVector3& octreeMin,
 						GenericProgressCallback* progressCb/*=nullptr*/)
 {
 	if (!m_thePointsAndTheirCellCodes.empty())
+	{
 		clear();
+	}
 
 	m_dimMin = octreeMin;
 	m_dimMax = octreeMax;
@@ -356,17 +358,46 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 		progressCb->update(0);
 		progressCb->start();
 	}
+
+	unsigned progressStep = std::max<unsigned>(1, pointCount / 90);
+
 	NormalizedProgress nprogress(progressCb,
-	                             pointCount / 100, // don't call nprogress.oneStep() too often, it can be quite slow!
-	                             90);              // first phase: 90% (we keep 10% for sorting)
+	                             std::min(90u, pointCount), // don't call nprogress.oneStep() too often, it can be quite slow!
+	                             90);                       // first phase: 90% (we keep 10% for sorting)
 
 	//fill the index table (we'll fill the max. level, then deduce the others from this one)
 	int* fillIndexesAtMaxLevel = m_fillIndexes + (MAX_OCTREE_LEVEL * 6);
 
-	//for all points
-	cellsContainer::iterator it = m_thePointsAndTheirCellCodes.begin();
-	for (unsigned i = 0; i < pointCount; i++)
+	std::atomic<int> minCellPosX(MAX_OCTREE_LENGTH);
+	std::atomic<int> minCellPosY(MAX_OCTREE_LENGTH);
+	std::atomic<int> minCellPosZ(MAX_OCTREE_LENGTH);
+	std::atomic<int> maxCellPosX(-1);
+	std::atomic<int> maxCellPosY(-1);
+	std::atomic<int> maxCellPosZ(-1);
+
+	auto updateMin = [](std::atomic<int>& target, int value)
 	{
+		int previous = target.load(std::memory_order_relaxed);
+		while (value < previous && !target.compare_exchange_weak(previous, value, std::memory_order_relaxed))
+		{
+		}
+	};
+
+	auto updateMax = [](std::atomic<int>& target, int value)
+	{
+		int previous = target.load(std::memory_order_relaxed);
+		while (value > previous && !target.compare_exchange_weak(previous, value, std::memory_order_relaxed))
+		{
+		}
+	};
+
+	auto projectPoint = [&](unsigned i)
+	{
+		if (!m_buildInProgress)
+		{
+			return;
+		}
+
 		const CCVector3* P = m_theAssociatedCloud->getPoint(i);
 
 		//does the point fall inside the 'accepted' bounding-box?
@@ -384,49 +415,91 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 			cellPos.y = std::clamp(cellPos.y, 0, MAX_OCTREE_LENGTH - 1);
 			cellPos.z = std::clamp(cellPos.z, 0, MAX_OCTREE_LENGTH - 1);
 
-			it->theIndex = i;
-			it->theCode = GenerateTruncatedCellCode(cellPos, MAX_OCTREE_LEVEL);
+			m_thePointsAndTheirCellCodes[i] = {i, GenerateTruncatedCellCode(cellPos, MAX_OCTREE_LEVEL)};
 
-			if (m_numberOfProjectedPoints)
-			{
-				if (fillIndexesAtMaxLevel[0] > cellPos.x)
-					fillIndexesAtMaxLevel[0] = cellPos.x;
-				else if (fillIndexesAtMaxLevel[3] < cellPos.x)
-					fillIndexesAtMaxLevel[3] = cellPos.x;
-
-				if (fillIndexesAtMaxLevel[1] > cellPos.y)
-					fillIndexesAtMaxLevel[1] = cellPos.y;
-				else if (fillIndexesAtMaxLevel[4] < cellPos.y)
-					fillIndexesAtMaxLevel[4] = cellPos.y;
-
-				if (fillIndexesAtMaxLevel[2] > cellPos.z)
-					fillIndexesAtMaxLevel[2] = cellPos.z;
-				else if (fillIndexesAtMaxLevel[5] < cellPos.z)
-					fillIndexesAtMaxLevel[5] = cellPos.z;
-			}
-			else
-			{
-				fillIndexesAtMaxLevel[0] = fillIndexesAtMaxLevel[3] = cellPos.x;
-				fillIndexesAtMaxLevel[1] = fillIndexesAtMaxLevel[4] = cellPos.y;
-				fillIndexesAtMaxLevel[2] = fillIndexesAtMaxLevel[5] = cellPos.z;
-			}
-
-			++it;
-			++m_numberOfProjectedPoints;
+			updateMin(minCellPosX, cellPos.x);
+			updateMax(maxCellPosX, cellPos.x);
+			updateMin(minCellPosY, cellPos.y);
+			updateMax(maxCellPosY, cellPos.y);
+			updateMin(minCellPosZ, cellPos.z);
+			updateMax(maxCellPosZ, cellPos.z);
 		}
 
-		if ((i % 100) == 0 && !nprogress.oneStep() || !m_buildInProgress)
+		if ((i % progressStep) == 0 && !nprogress.oneStep())
 		{
 			m_buildInProgress = false;
-			m_thePointsAndTheirCellCodes.resize(0);
-			m_numberOfProjectedPoints = 0;
-			if (progressCb)
+		}
+	};
+
+	//for all points (projection only)
+#if defined(_MSC_VER) && (_MSC_VER >= 1800)
+	Concurrency::parallel_for(0u, pointCount, projectPoint);
+#elif defined(CC_CORE_LIB_USES_TBB)
+	tbb::parallel_for(tbb::blocked_range<unsigned>(0, pointCount),
+		[&](const tbb::blocked_range<unsigned>& r)
+		{
+			for (unsigned i = r.begin(); i < r.end(); ++i)
 			{
-				progressCb->stop();
+				projectPoint(i);
 			}
-			return 0;
+		});
+#else
+	for (unsigned i = 0; i < pointCount; ++i)
+	{
+		projectPoint(i);
+	}
+#endif
+
+	if (!m_buildInProgress)
+	{
+		m_thePointsAndTheirCellCodes.resize(0);
+		if (progressCb)
+		{
+			progressCb->stop();
+		}
+		return 0;
+	}
+
+	//compact projected points
+	{
+		auto*       itDest = m_thePointsAndTheirCellCodes.data();
+		const auto* itSrc  = m_thePointsAndTheirCellCodes.data();
+		for (unsigned i = 0; i < pointCount && m_buildInProgress; ++i, ++itSrc)
+		{
+			if (itSrc->theCode)
+			{
+				if (itSrc != itDest)
+				{
+					*itDest = *itSrc;
+				}
+				++itDest;
+				++m_numberOfProjectedPoints;
+			}
+		}
+
+		if (!m_buildInProgress)
+		{
+			m_numberOfProjectedPoints = 0;
 		}
 	}
+
+	m_thePointsAndTheirCellCodes.resize(m_numberOfProjectedPoints); //smaller --> should always be ok
+
+	if (m_numberOfProjectedPoints == 0)
+	{
+		if (progressCb)
+		{
+			progressCb->stop();
+		}
+		return 0;
+	}
+
+	fillIndexesAtMaxLevel[0] = minCellPosX.load(std::memory_order_relaxed);
+	fillIndexesAtMaxLevel[1] = minCellPosY.load(std::memory_order_relaxed);
+	fillIndexesAtMaxLevel[2] = minCellPosZ.load(std::memory_order_relaxed);
+	fillIndexesAtMaxLevel[3] = maxCellPosX.load(std::memory_order_relaxed);
+	fillIndexesAtMaxLevel[4] = maxCellPosY.load(std::memory_order_relaxed);
+	fillIndexesAtMaxLevel[5] = maxCellPosZ.load(std::memory_order_relaxed);
 
 	//we deduce the lower levels 'fill indexes' from the highest level
 	{
@@ -438,17 +511,6 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 				fillIndexes[dim] = (fillIndexes[dim+6] >> 1);
 			}
 		}
-	}
-
-	if (m_numberOfProjectedPoints < pointCount)
-	{
-		m_thePointsAndTheirCellCodes.resize(m_numberOfProjectedPoints); //smaller --> should always be ok
-	}
-
-	if (false == m_buildInProgress)
-	{
-		// build programmatically cancelled
-		return 0;
 	}
 
 	if (progressCb && progressCb->textCanBeEdited())
@@ -473,6 +535,11 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	catch (const std::exception&)
 	{
 		// build programmatically cancelled
+		m_thePointsAndTheirCellCodes.resize(0);
+		if (progressCb)
+		{
+			progressCb->stop();
+		}
 		return 0;
 	}
 
@@ -482,6 +549,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 	//end of process notification
 	if (progressCb)
 	{
+#if 0 // DGM: generally useless as the dialog is about to close itself!
 		if (progressCb->textCanBeEdited())
 		{
 			char buffer[80];
@@ -498,6 +566,7 @@ int DgmOctree::genericBuild(GenericProgressCallback* progressCb)
 			}
 			progressCb->setInfo(buffer);
 		}
+#endif
 
 		//DGM: the dialog may close itself once we set the progress to 100% (hiding the above information!)
 		progressCb->update(100.0f);
