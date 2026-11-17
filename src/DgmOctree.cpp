@@ -819,7 +819,9 @@ unsigned DgmOctree::getCellIndex(CellCode truncatedCellCode, unsigned char bitSh
 		{
 			//no more cell in-between?
 			if (middle == begin)
+			{
 				return m_numberOfProjectedPoints;
+			}
 
 			begin = middle;
 			beginCode = middleCode;
@@ -828,7 +830,9 @@ unsigned DgmOctree::getCellIndex(CellCode truncatedCellCode, unsigned char bitSh
 		{
 			//no more cell in-between?
 			if (middle == begin)
+			{
 				return m_numberOfProjectedPoints;
+			}
 
 			end = middle;
 			endCode = middleCode;
@@ -836,8 +840,10 @@ unsigned DgmOctree::getCellIndex(CellCode truncatedCellCode, unsigned char bitSh
 		else
 		{
 			//if the previous point doesn't correspond, then we have just found the first good one!
-			if ((m_thePointsAndTheirCellCodes[middle-1].theCode >> bitShift) != truncatedCellCode)
+			if ((m_thePointsAndTheirCellCodes[middle - 1].theCode >> bitShift) != truncatedCellCode)
+			{
 				return middle;
+			}
 			end = middle;
 			endCode = middleCode;
 		}
@@ -1357,8 +1363,10 @@ double DgmOctree::findTheNearestNeighborStartingFromCell(NearestNeighboursSearch
 					{
 						nNSS.theNearestPointIndex = p->theIndex;
 						minSquareDist = dist2;
-						if (dist2 == 0) //no need to process any further
+						if (dist2 == 0) // no need to process any further
+						{
 							break;
+						}
 					}
 					++m;
 					++p;
@@ -1436,7 +1444,7 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 		{
 			//we grab the points inside
 			cellsContainer::const_iterator p = m_thePointsAndTheirCellCodes.begin()+index;
-			while (p!=m_thePointsAndTheirCellCodes.end() && (p->theCode >> bitShift) == truncatedCellCode)
+			while (p != m_thePointsAndTheirCellCodes.end() && (p->theCode >> bitShift) == truncatedCellCode)
 			{
 				if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 				{
@@ -1526,8 +1534,10 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 
 		//we compute distances for the new points
 		NeighboursSet::iterator q;
-		for (q = nNSS.pointsInNeighbourhood.begin()+alreadyProcessedPoints; q != nNSS.pointsInNeighbourhood.end(); ++q)
+		for (q = nNSS.pointsInNeighbourhood.begin() + alreadyProcessedPoints; q != nNSS.pointsInNeighbourhood.end(); ++q)
+		{
 			q->squareDistd = (*q->point - nNSS.queryPoint).norm2d();
+		}
 		alreadyProcessedPoints = static_cast<unsigned>(nNSS.pointsInNeighbourhood.size());
 
 		//equivalent spherical neighbourhood radius (as we are actually looking to 'square' neighbourhoods,
@@ -1543,8 +1553,10 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 			//if the point is eligible
 			if (q->squareDistd <= squareEligibleDist)
 			{
-				if (eligiblePoints<j)
-					std::swap(nNSS.pointsInNeighbourhood[eligiblePoints],nNSS.pointsInNeighbourhood[j]);
+				if (eligiblePoints < j)
+				{
+					std::swap(nNSS.pointsInNeighbourhood[eligiblePoints], nNSS.pointsInNeighbourhood[j]);
+				}
 				++eligiblePoints;
 			}
 			//otherwise we track the nearest one
@@ -1556,7 +1568,9 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 
 		//Maybe we are already too far?
 		if (nNSS.maxSearchSquareDistd > 0 && squareEligibleDist >= nNSS.maxSearchSquareDistd)
+		{
 			break;
+		}
 
 		//default strategy: increase neighbourhood size of +1 (for next step)
 		++eligibleCellDistance;
@@ -1817,16 +1831,16 @@ std::size_t DgmOctree::getPointsInBoxNeighbourhood(BoxNeighbourhood& params) con
 
 						if (params.axes)
 						{
-							//project the point in the box C.S.
-							Q = CCVector3(	params.axes[0].dot(Q),
-									params.axes[1].dot(Q),
-									params.axes[2].dot(Q) );
+							// project the point in the box C.S.
+							Q = CCVector3(params.axes[0].dot(Q),
+							              params.axes[1].dot(Q),
+							              params.axes[2].dot(Q));
 						}
 
 						//we keep the points that fall inside the box
-						if (	std::abs(Q.x) <= boxHalfDimensions.x
-								&&	std::abs(Q.y) <= boxHalfDimensions.y
-								&&	std::abs(Q.z) <= boxHalfDimensions.z )
+						if (std::abs(Q.x) <= boxHalfDimensions.x
+						    && std::abs(Q.y) <= boxHalfDimensions.y
+						    && std::abs(Q.z) <= boxHalfDimensions.z)
 						{
 							params.neighbours.emplace_back(P, p->theIndex, 0);
 						}
@@ -2065,9 +2079,9 @@ std::size_t DgmOctree::getPointsInCylindricalNeighbourhoodProgressive(Progressiv
 				cellCenter.z = cellMin.z + halfCellSize;
 
 				//don't test already tested cells!
-				if (	cellPos.x < params.prevMinCornerPos.x || cellPos.x >= params.prevMaxCornerPos.x
-						||	cellPos.y < params.prevMinCornerPos.y || cellPos.y >= params.prevMaxCornerPos.y
-						||	cellPos.z < params.prevMinCornerPos.z || cellPos.z >= params.prevMaxCornerPos.z )
+				if (cellPos.x < params.prevMinCornerPos.x || cellPos.x >= params.prevMaxCornerPos.x
+				    || cellPos.y < params.prevMinCornerPos.y || cellPos.y >= params.prevMaxCornerPos.y
+				    || cellPos.z < params.prevMinCornerPos.z || cellPos.z >= params.prevMaxCornerPos.z)
 				{
 					//test this cell
 					//1st test: is it close enough to the cylinder axis?
@@ -2158,7 +2172,9 @@ int DgmOctree::findNeighborsInASphereStartingFromCell(NearestNeighboursSearchStr
 	{
 		//... let's look for the corresponding points
 		for (int i = nNSS.alreadyVisitedNeighbourhoodSize; i < minNeighbourhoodSize; ++i)
+		{
 			getPointsInNeighbourCellsAround(nNSS, i);
+		}
 
 		//don't forget to update the visited neighbourhood size!
 		nNSS.alreadyVisitedNeighbourhoodSize = minNeighbourhoodSize;
@@ -2440,7 +2456,9 @@ bool DgmOctree::getPointsInCellByCellIndex( ReferenceCloud* cloud,
 	while ((p != m_thePointsAndTheirCellCodes.end()) && ((p->theCode >> bitShift) == searchCode))
 	{
 		if (!cloud->addPointIndex(p->theIndex))
+		{
 			return false;
+		}
 		++p;
 	}
 
@@ -2470,20 +2488,28 @@ ReferenceCloud* DgmOctree::getPointsInCellsWithSortedCellCodes( cellCodesContain
 	{
 		//we skip codes while the searched code is below the current one
 		while (((toExtractCode = (*q >> bitShift2)) < currentCode) && (q != cellCodes.end()))
+		{
 			++q;
+		}
 
 		if (q == cellCodes.end())
+		{
 			break;
+		}
 
 		//now we skip current codes to catch the search one!
 		while ((ind_p < m_numberOfProjectedPoints) && (currentCode <= toExtractCode))
 		{
 			if (currentCode == toExtractCode)
+			{
 				subset->addPointIndex(p->theIndex);
+			}
 
 			++p;
 			if (++ind_p < m_numberOfProjectedPoints)
+			{
 				currentCode = p->theCode >> bitShift1;
+			}
 		}
 	}
 
@@ -2508,9 +2534,13 @@ bool DgmOctree::diff(const cellCodesContainer& codesA, const cellCodesContainer&
 		while (pA != codesA.end() && pB != codesB.end())
 		{
 			if (*pA < *pB)
+			{
 				diffA.push_back(*pA++);
+			}
 			else if (*pA > *pB)
+			{
 				diffB.push_back(*pB++);
+			}
 			else
 			{
 				++pA;
@@ -2519,9 +2549,13 @@ bool DgmOctree::diff(const cellCodesContainer& codesA, const cellCodesContainer&
 		}
 
 		while (pA != codesA.end())
+		{
 			diffA.push_back(*pA++);
+		}
 		while (pB != codesB.end())
+		{
 			diffB.push_back(*pB++);
+		}
 	}
 	catch (std::bad_alloc&)
 	{
@@ -2562,22 +2596,34 @@ bool DgmOctree::diff(unsigned char octreeLevel, const cellsContainer &codesA, co
 		{
 			++diffA;
 			++cellsA;
-			while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA)) ++pA;
+			while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA))
+			{
+				++pA;
+			}
 			predCodeA = currentCodeA;
 		}
 		else if (predCodeA > predCodeB)
 		{
 			++diffB;
 			++cellsB;
-			while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB)) ++pB;
+			while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB))
+			{
+				++pB;
+			}
 			predCodeB = currentCodeB;
 		}
 		else
 		{
-			while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA)) ++pA;
+			while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA))
+			{
+				++pA;
+			}
 			predCodeA = currentCodeA;
 			++cellsA;
-			while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB)) ++pB;
+			while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB))
+			{
+				++pB;
+			}
 			predCodeB = currentCodeB;
 			++cellsB;
 		}
@@ -2587,14 +2633,20 @@ bool DgmOctree::diff(unsigned char octreeLevel, const cellsContainer &codesA, co
 	{
 		++diffA;
 		++cellsA;
-		while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA)) ++pA;
+		while ((pA != codesA.end()) && ((currentCodeA = (pA->theCode >> bitShift)) == predCodeA))
+		{
+			++pA;
+		}
 		predCodeA = currentCodeA;
 	}
 	while (pB != codesB.end())
 	{
 		++diffB;
 		++cellsB;
-		while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB)) ++pB;
+		while ((pB != codesB.end()) && ((currentCodeB = (pB->theCode >> bitShift)) == predCodeB))
+		{
+			++pB;
+		}
 		predCodeB = currentCodeB;
 	}
 
@@ -2825,7 +2877,9 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 						assert(cellIndex + currentSliceNeighborsShifts[n] < sliceSize);
 						const int& neighborLabel = _slice[currentSliceNeighborsShifts[n]];
 						if (neighborLabel > 1)
+						{
 							neighboursVal.push_back(neighborLabel);
+						}
 					}
 				}
 
@@ -2837,7 +2891,9 @@ int DgmOctree::extractCCs(const cellCodesContainer& cellCodes, unsigned char lev
 						assert(cellIndex + precedingSliceNeighborsShifts[n] < sliceSize);
 						const int& neighborLabel = _oldSlice[precedingSliceNeighborsShifts[n]];
 						if (neighborLabel > 1)
+						{
 							neighboursVal.push_back(neighborLabel);
+						}
 					}
 				}
 
@@ -3789,7 +3845,9 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 
 						//we should stop point collection here
 						if (!keepGoing)
+						{
 							break;
+						}
 					}
 
 					//otherwise we 'add' the point to the cell descriptor
@@ -3807,7 +3865,9 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 						currentTruncatedCode >>= 3;
 						//this cell and the following share the same parent
 						if (cellTruncatedCode == currentTruncatedCode)
+						{
 							break;
+						}
 						++shallowSteps;
 					}
 
