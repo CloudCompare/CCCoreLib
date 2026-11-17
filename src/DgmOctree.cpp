@@ -1441,8 +1441,8 @@ unsigned DgmOctree::findNearestNeighborsStartingFromCell(	NearestNeighboursSearc
 				if (!getOnlyPointsWithValidScalar || ScalarField::ValidValue(m_theAssociatedCloud->getPointScalarValue(p->theIndex)))
 				{
 					nNSS.pointsInNeighbourhood.emplace_back(m_theAssociatedCloud->getPointPersistentPtr(p->theIndex), p->theIndex);
-					++p;
 				}
+				++p;
 			}
 
 			eligibleCellDistance = 1;
