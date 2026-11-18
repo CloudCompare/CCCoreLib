@@ -1229,7 +1229,7 @@ namespace CCCoreLib
 		struct MultiThreadingWrapper
 		{
 			octreeCellFunc cellFunc = nullptr;
-			bool cellFuncSuccess = true;
+			std::atomic_bool cellFuncSuccess = true;
 			DgmOctree* octree = nullptr;
 			GenericProgressCallback* progressCb = nullptr;
 			NormalizedProgress* normProgressCb = nullptr;

@@ -220,14 +220,17 @@ void DgmOctree::MultiThreadingWrapper::launchOctreeCellFunc(const octreeCellDesc
 			cell.points->addPointIndex(pointsAndCodes[i].theIndex);
 		}
 
-		cellFuncSuccess &= (*cellFunc)(cell, userParams, normProgressCb);
-
-#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
-		if (normProgressCb)
+		if (!(*cellFunc)(cell, userParams, normProgressCb))
 		{
-			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+			cellFuncSuccess = false;
 		}
-#endif
+
+//#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
+//		if (normProgressCb)
+//		{
+//			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+//		}
+//#endif
 	}
 	else
 	{
@@ -3369,11 +3372,11 @@ unsigned DgmOctree::executeFunctionForAllCellsAtLevel(	unsigned char level,
 			progressCb->update(0);
 			m_MT_wrapper.normProgressCb = new NormalizedProgress(progressCb, m_theAssociatedCloud->size());
 			progressCb->start();
-#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
-#ifndef __APPLE__
-			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
-#endif
-#endif
+//#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
+//#ifndef __APPLE__
+//			QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+//#endif
+//#endif
 		}
 
 #ifdef COMPUTE_NN_SEARCH_STATISTICS
@@ -3572,11 +3575,11 @@ unsigned DgmOctree::executeFunctionForAllCellsStartingAtLevel(unsigned char star
 			if (progressCb)
 			{
 				progressCb->update((100.0f * cell.index) / m_numberOfProjectedPoints);
-#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
-#ifndef __APPLE__
-				QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
-#endif
-#endif
+//#if defined(CC_CORE_LIB_USES_QT_CONCURRENT)
+//#ifndef __APPLE__
+//				QCoreApplication::processEvents(QEventLoop::EventLoopExec); // to allow the GUI to refresh itself
+//#endif
+//#endif
 				if (progressCb->isCancelRequested())
 				{
 					result = false;
