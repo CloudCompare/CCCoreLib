@@ -1039,7 +1039,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	Tuple3i startPos = s_multiThreadingWrapper.intersection_MT->toLocal(cellPos);
 
 	//octree cell size
-	const PointCoordinateType& cellLength = s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel);
+	PointCoordinateType cellLength = s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel);
 
 	//useful variables
 	std::vector<unsigned> trianglesToTest;

@@ -370,7 +370,7 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build(GenericProgressCallback* progressCb = nullptr);
+		virtual int build(GenericProgressCallback* progressCb = nullptr);
 
 		//! Builds the structure with constraints
 		/** Octree spatial limits must be specified. Also, if specified, points falling outside
@@ -378,16 +378,16 @@ namespace CCCoreLib
 			points will be taken into account. Octree 3D limits in space should be cubical.
 			\param octreeMin the lower limits for the octree cells along X, Y and Z
 			\param octreeMax the upper limits for the octree cells along X, Y and Z
-			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified)
-			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified)
+			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified pointsMaxFilter must also be defined)
+			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified pointsMinFilter must also be defined)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build(	const CCVector3& octreeMin,
-					const CCVector3& octreeMax,
-					const CCVector3* pointsMinFilter = nullptr,
-					const CCVector3* pointsMaxFilter = nullptr,
-					GenericProgressCallback* progressCb = nullptr);
+		virtual int build(const CCVector3&         octreeMin,
+		                  const CCVector3&         octreeMax,
+		                  const CCVector3*         pointsMinFilter = nullptr,
+		                  const CCVector3*         pointsMaxFilter = nullptr,
+		                  GenericProgressCallback* progressCb      = nullptr);
 
 		//! Returns whether a build is in progress
 		inline bool isBuildInProgress() const
@@ -448,7 +448,7 @@ namespace CCCoreLib
 			\param level the level of subdivision (up to MAX_OCTREE_LEVEL+1 for convenience)
 			\return the cell size
 		**/
-		inline const PointCoordinateType& getCellSize(unsigned char level) const { return m_cellSize[level]; }
+		inline PointCoordinateType getCellSize(unsigned char level) const { return m_cellSize[level]; }
 
 		//! Returns distance form a cell to the filled octree borders in all directions.
 		/** WARNING: distance values may be negative! (if cell is outside
@@ -738,11 +738,12 @@ namespace CCCoreLib
 		**/
 		inline void getTheCellPosWhichIncludesThePoint(const CCVector3* thePoint, Tuple3i& cellPos) const
 		{
-			const PointCoordinateType& cs = getCellSize(MAX_OCTREE_LEVEL);
-			//DGM: if we admit that cs >= 0, then the 'floor' operator is useless (int cast = truncation)
-			cellPos.x = static_cast<int>(/*floor*/(thePoint->x - m_dimMin.x) / cs);
-			cellPos.y = static_cast<int>(/*floor*/(thePoint->y - m_dimMin.y) / cs);
-			cellPos.z = static_cast<int>(/*floor*/(thePoint->z - m_dimMin.z) / cs);
+			PointCoordinateType cs        = getCellSize(MAX_OCTREE_LEVEL);
+			PointCoordinateType inverseCS = static_cast<PointCoordinateType>(1.0) / cs;
+			// DGM: if we admit that cs >= 0, then the 'floor' operator is useless (int cast = truncation)
+			cellPos.x = static_cast<int>((thePoint->x - m_dimMin.x) * inverseCS);
+			cellPos.y = static_cast<int>((thePoint->y - m_dimMin.y) * inverseCS);
+			cellPos.z = static_cast<int>((thePoint->z - m_dimMin.z) * inverseCS);
 		}
 
 		//! Returns the position for a given level of subdivision of the cell that includes a given point
@@ -819,7 +820,7 @@ namespace CCCoreLib
 		**/
 		inline void computeCellCenter(const Tuple3i& cellPos, unsigned char level, CCVector3& center) const
 		{
-			const PointCoordinateType& cs = getCellSize(level);
+			PointCoordinateType cs = getCellSize(level);
 			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
 			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
 			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
@@ -829,7 +830,7 @@ namespace CCCoreLib
 		//! Short version of computeCellCenter
 		inline void computeCellCenter(const Tuple3s& cellPos, unsigned char level, CCVector3& center) const
 		{
-			const PointCoordinateType& cs = getCellSize(level);
+			PointCoordinateType cs = getCellSize(level);
 			center.x = m_dimMin.x + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.x);
 			center.y = m_dimMin.y + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.y);
 			center.z = m_dimMin.z + cs * (static_cast<PointCoordinateType>(0.5) + cellPos.z);
@@ -1097,16 +1098,6 @@ namespace CCCoreLib
 
 	protected:
 
-		/******************************/
-		/**         METHODS          **/
-		/******************************/
-
-		//! Generic method to build the octree structure
-		/** \param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return the number of points projected in the octree
-		**/
-		int genericBuild(GenericProgressCallback* progressCb = nullptr);
-
 		//! Updates the tables containing the octree cells length for each level of subdivision
 		void updateCellSizeTable();
 
@@ -1198,11 +1189,6 @@ namespace CCCoreLib
 		//! Max coordinates of the octree bounding-box
 		CCVector3 m_dimMax;
 
-		//! Min coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMin;
-		//! Max coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMax;
-
 		//! Cell dimensions for all subdivision levels
 		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL + 2];
 		//! Min and max occupied cells indexes, for all dimensions and every subdivision level
@@ -1228,7 +1214,7 @@ namespace CCCoreLib
 		struct MultiThreadingWrapper
 		{
 			octreeCellFunc cellFunc = nullptr;
-			bool cellFuncSuccess = true;
+			std::atomic_bool cellFuncSuccess = true;
 			DgmOctree* octree = nullptr;
 			GenericProgressCallback* progressCb = nullptr;
 			NormalizedProgress* normProgressCb = nullptr;
