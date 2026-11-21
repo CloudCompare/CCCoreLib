@@ -370,7 +370,7 @@ namespace CCCoreLib
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build(GenericProgressCallback* progressCb = nullptr);
+		virtual int build(GenericProgressCallback* progressCb = nullptr);
 
 		//! Builds the structure with constraints
 		/** Octree spatial limits must be specified. Also, if specified, points falling outside
@@ -378,16 +378,16 @@ namespace CCCoreLib
 			points will be taken into account. Octree 3D limits in space should be cubical.
 			\param octreeMin the lower limits for the octree cells along X, Y and Z
 			\param octreeMax the upper limits for the octree cells along X, Y and Z
-			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified)
-			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified)
+			\param pointsMinFilter the lower limits for the projected points along X, Y and Z (if specified pointsMaxFilter must also be defined)
+			\param pointsMaxFilter the upper limits for the projected points along X, Y and Z (if specified pointsMinFilter must also be defined)
 			\param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
 			\return the number of points projected in the octree
 		**/
-		int build(	const CCVector3& octreeMin,
-					const CCVector3& octreeMax,
-					const CCVector3* pointsMinFilter = nullptr,
-					const CCVector3* pointsMaxFilter = nullptr,
-					GenericProgressCallback* progressCb = nullptr);
+		virtual int build(const CCVector3&         octreeMin,
+		                  const CCVector3&         octreeMax,
+		                  const CCVector3*         pointsMinFilter = nullptr,
+		                  const CCVector3*         pointsMaxFilter = nullptr,
+		                  GenericProgressCallback* progressCb      = nullptr);
 
 		//! Returns whether a build is in progress
 		inline bool isBuildInProgress() const
@@ -1098,16 +1098,6 @@ namespace CCCoreLib
 
 	protected:
 
-		/******************************/
-		/**         METHODS          **/
-		/******************************/
-
-		//! Generic method to build the octree structure
-		/** \param progressCb the client application can get some notification of the process progress through this callback mechanism (see GenericProgressCallback)
-			\return the number of points projected in the octree
-		**/
-		int genericBuild(GenericProgressCallback* progressCb = nullptr);
-
 		//! Updates the tables containing the octree cells length for each level of subdivision
 		void updateCellSizeTable();
 
@@ -1198,11 +1188,6 @@ namespace CCCoreLib
 		CCVector3 m_dimMin;
 		//! Max coordinates of the octree bounding-box
 		CCVector3 m_dimMax;
-
-		//! Min coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMin;
-		//! Max coordinates of the bounding-box of the set of points projected in the octree
-		CCVector3 m_pointsMax;
 
 		//! Cell dimensions for all subdivision levels
 		PointCoordinateType m_cellSize[MAX_OCTREE_LEVEL + 2];
