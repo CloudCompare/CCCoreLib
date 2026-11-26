@@ -1039,7 +1039,7 @@ static void CloudMeshDistCellFunc_MT(const DgmOctree::IndexAndCode& desc)
 	Tuple3i startPos = s_multiThreadingWrapper.intersection_MT->toLocal(cellPos);
 
 	//octree cell size
-	const PointCoordinateType& cellLength = s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel);
+	PointCoordinateType cellLength = s_multiThreadingWrapper.octree->getCellSize(s_multiThreadingWrapper.params_MT.octreeLevel);
 
 	//useful variables
 	std::vector<unsigned> trianglesToTest;
@@ -3088,7 +3088,7 @@ ScalarType DistanceComputationTools::computeCloud2PlaneDistanceRMS( GenericCloud
 	{
 		return NAN_VALUE;
 	}
-	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
+	assert(std::abs(norm2 - 1.0) < 1.0e-6);
 
 	//compute deviations
 	double dSumSq = 0.0;
@@ -3129,7 +3129,7 @@ ScalarType DistanceComputationTools::ComputeCloud2PlaneRobustMax(	GenericCloud* 
 	{
 		return NAN_VALUE;
 	}
-	assert(LessThanEpsilon(std::abs(norm2 - 1.0)));
+	assert(std::abs(norm2 - 1.0) < 1.0e-6);
 
 	//we search the max @ 'percent'% (to avoid outliers)
 	std::vector<PointCoordinateType> tail;
