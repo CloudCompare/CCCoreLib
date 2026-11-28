@@ -450,6 +450,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				if (!filteredData.cloud->reserve(pointCount)
 					|| (filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
 					|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
+					|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->enableScalarField()) //don't forget the scalar field with the nearest triangle index
 					|| (filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
 				{
 					//not enough memory
@@ -470,6 +471,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 						else if (filteredData.CPSetPlain)
 						{
 							filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+							//don't forget the scalar field with the nearest triangle index!
+							filteredData.CPSetPlain->addPointScalarValue(data.CPSetPlain->getPointScalarValue(i));
 						}
 						if (filteredData.weights)
 						{
