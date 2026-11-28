@@ -661,7 +661,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					else if (inputModelCloud)
 					{
 						assert(data.CPSetRef);
-						Nm = *inputModelCloud->getNormal(data.CPSetRef->getPointGlobalIndex(i));
+						//the CPSet indexes refer to the (potentially resampled) model cloud
+						Nm = *data.CPSetRef->getNormal(i);
 					}
 					else
 					{
