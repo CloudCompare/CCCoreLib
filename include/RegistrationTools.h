@@ -152,6 +152,37 @@ namespace CCCoreLib
 			DOUBLE_SIDED_NORMALS	= 3
 		};
 
+		//! Error metric minimized at each iteration
+		/** References:
+			- Y. Chen and G. Medioni, "Object modelling by registration of multiple range images",
+			  Image and Vision Computing, 10(3), pp. 145-155, 1992 (point-to-plane metric)
+			- K.-L. Low, "Linear Least-Squares Optimization for Point-to-Plane ICP Surface Registration",
+			  Technical Report TR04-004, University of North Carolina at Chapel Hill, 2004 (linearization of each step)
+		**/
+		enum ERROR_METRIC
+		{
+			POINT_TO_POINT	= 0,	//!< distances between the data points and their closest points on the model (Besl & McKay)
+			POINT_TO_PLANE	= 1,	//!< distances between the data points and the tangent planes at their closest points on the model (Chen & Medioni)
+		};
+
+		//! Robust weighting of the couples, depending on their residual (M-estimators)
+		/** The weights are updated at each iteration (iteratively reweighted least squares). They depend on the residuals
+			divided by a robust estimation of their scale (1.4826 x the median absolute residual), with the usual tuning
+			constants (95% efficiency for Gaussian noise): 1.345 (Huber), 2.3849 (Cauchy) and 4.685 (Tukey).
+			References:
+			- Z. Zhang, "Parameter estimation techniques: a tutorial with application to conic fitting",
+			  Image and Vision Computing, 15(1), pp. 59-76, 1997 (M-estimators, tuning constants, robust scale)
+			- P. Babin, P. Giguère and F. Pomerleau, "Analysis of Robust Functions for Registration Algorithms",
+			  IEEE International Conference on Robotics and Automation (ICRA), 2019 (robust functions for ICP)
+		**/
+		enum ROBUST_WEIGHTING
+		{
+			NO_ROBUST_WEIGHTING	= 0,
+			HUBER_WEIGHTING		= 1,	//!< mild: the weight decreases slowly for the largest residuals
+			CAUCHY_WEIGHTING	= 2,	//!< medium
+			TUKEY_WEIGHTING		= 3,	//!< strong: the couples with a large residual are ignored
+		};
+
 		//! ICP Parameters
 		struct Parameters
 		{
@@ -172,6 +203,8 @@ namespace CCCoreLib
 				, useC2MSignedDistances(false)
 				, robustC2MSignedDistances(true)
 				, normalsMatching(NO_NORMAL)
+				, errorMetric(POINT_TO_POINT)
+				, robustWeighting(NO_ROBUST_WEIGHTING)
 			{}
 
 			//! Convergence type
@@ -223,6 +256,23 @@ namespace CCCoreLib
 
 			//! Normals matching method
 			NORMALS_MATCHING normalsMatching;
+
+			//! Error metric minimized at each iteration
+			/** The point-to-plane metric converges in fewer iterations and more precisely on smooth surfaces,
+				as the points can slide along the surface. It needs normals on the model cloud (with a model mesh,
+				the normals of the triangles are used). It can't be combined with adjustScale.
+				The RMS is then computed with the point-to-plane distances.
+				See ERROR_METRIC for the references.
+			**/
+			ERROR_METRIC errorMetric;
+
+			//! Robust weighting of the couples
+			/** At each iteration, each couple is weighted depending on its residual (point-to-point or point-to-plane
+				distance) compared to the median residual, so that the outliers (noise, parts that don't overlap,
+				moving objects, etc.) have less influence on the registration.
+				See ROBUST_WEIGHTING for the method and the references.
+			**/
+			ROBUST_WEIGHTING robustWeighting;
 		};
 
 		//! Registers two clouds or a cloud and a mesh
@@ -248,7 +298,39 @@ namespace CCCoreLib
 										unsigned& finalPointCount,
 										GenericProgressCallback* progressCb = nullptr);
 
+	protected:
 
+		//! Point-to-plane registration procedure (one linearized step)
+		/** Determines the rigid transformation that minimizes the sum of the (weighted) squared distances
+			between the transformed data points P[i] and the planes going through X[i] with normal N[i].
+			The couples with an invalid normal, or a null or invalid weight, are ignored. The motions that
+			the couples can't determine (e.g. sliding along a plane) are left null.
+			\param[in]  P the cloud to register (data)
+			\param[in]  X the closest points on the reference (model)
+			\param[in]  N the unit normals of the reference at the closest points
+			\param[out] trans the resulting (rigid) transformation
+			\param[in]  coupleWeights weights for each (Pi,Xi) couple (optional)
+			\param[in]  transformationFilters constraints on the transformation (see RegistrationTools::TRANSFORMATION_FILTERS)
+			\return success
+			\warning may throw std::bad_alloc (caught by Register)
+		**/
+		static bool PointToPlaneRegistrationProcedure(	GenericIndexedCloud* P,
+														GenericIndexedCloud* X,
+														const std::vector<CCVector3>& N,
+														ScaledTransformation& trans,
+														const ScalarField* coupleWeights = nullptr,
+														int transformationFilters = SKIP_NONE);
+
+		//! Computes the robust weights of the couples from their residuals
+		/** \param[in]  residuals the residual of each couple (NaN if invalid)
+			\param[in]  method the robust weighting method
+			\param[out] weights the weight of each couple (0 if invalid)
+			\return the scale of the residuals (or 0 if it couldn't be determined, in which case all the valid couples get a weight of 1)
+			\warning may throw std::bad_alloc (caught by Register)
+		**/
+		static double ComputeRobustWeights(	const std::vector<ScalarType>& residuals,
+											ROBUST_WEIGHTING method,
+											std::vector<ScalarType>& weights);
 	};
 
 

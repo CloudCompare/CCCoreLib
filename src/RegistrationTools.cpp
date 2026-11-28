@@ -166,6 +166,14 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 	bool registerWithNormals = (params.normalsMatching != NO_NORMAL);
 
+	const bool pointToPlane = (params.errorMetric == POINT_TO_PLANE);
+	const bool robustWeighting = (params.robustWeighting != NO_ROBUST_WEIGHTING);
+	if (pointToPlane && params.adjustScale)
+	{
+		//the point-to-plane metric only handles rigid transformations
+		return ICP_ERROR_INVALID_INPUT;
+	}
+
 	//DATA CLOUD (will move)
 	DataCloud data;
 	{
@@ -271,7 +279,12 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		{
 			return ICP_ERROR_INVALID_INPUT;
 		}
-		else if (inputModelCloud->size() > params.samplingLimit)
+		if (pointToPlane && !inputModelCloud->normalsAvailable())
+		{
+			//the point-to-plane metric needs the normals of the model cloud
+			return ICP_ERROR_INVALID_INPUT;
+		}
+		if (inputModelCloud->size() > params.samplingLimit)
 		{
 			//we resample the cloud if it's too big (speed increase)
 			ReferenceCloud* subModelCloud = CloudSamplingTools::subsampleCloudRandomly(inputModelCloud, params.samplingLimit);
@@ -350,10 +363,16 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 	//per-point couple weights
 	ScalarField::Shared coupleWeights;
-	if (model.weights || data.weights || registerWithNormals)
+	if (model.weights || data.weights || registerWithNormals || robustWeighting)
 	{
 		coupleWeights = std::make_shared<ScalarField>("CoupleWeights");
 	}
+
+	//per-couple residuals (point-to-plane distances, or point-to-point distances for robust weighting),
+	//normals of the model at the closest points (point-to-plane) and robust weights
+	std::vector<ScalarType> residuals;
+	std::vector<CCVector3> closestPointNormals;
+	std::vector<ScalarType> robustWeights;
 
 	//we compute the initial distance between the two clouds (and the CPSet by the way)
 	//data.cloud->setPointScalarValues(CCCoreLib::NAN_VALUE); //DGM: done automatically in computeCloud2CloudDistances now
@@ -450,6 +469,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 				if (!filteredData.cloud->reserve(pointCount)
 					|| (filteredData.CPSetRef && !filteredData.CPSetRef->reserve(pointCount))
 					|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->reserve(pointCount))
+					|| (filteredData.CPSetPlain && !filteredData.CPSetPlain->enableScalarField()) //don't forget the scalar field with the nearest triangle index
 					|| (filteredData.weights && !filteredData.weights->reserveSafe(pointCount)))
 				{
 					//not enough memory
@@ -470,6 +490,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 						else if (filteredData.CPSetPlain)
 						{
 							filteredData.CPSetPlain->addPoint(*(data.CPSetPlain->getPoint(i)));
+							//don't forget the scalar field with the nearest triangle index!
+							filteredData.CPSetPlain->addPointScalarValue(data.CPSetPlain->getPointScalarValue(i));
 						}
 						if (filteredData.weights)
 						{
@@ -624,6 +646,89 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 			data = filteredData;
 		}
 
+		//compute the residuals (and the normals at the closest points) if necessary
+		if (pointToPlane || robustWeighting)
+		{
+			unsigned count = data.cloud->size();
+			try
+			{
+				residuals.resize(count);
+				if (pointToPlane)
+				{
+					closestPointNormals.resize(count);
+				}
+			}
+			catch (const std::bad_alloc&)
+			{
+				result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+				break;
+			}
+
+			for (unsigned i = 0; i < count; ++i)
+			{
+				if (!pointToPlane)
+				{
+					residuals[i] = data.cloud->getPointScalarValue(i);
+					continue;
+				}
+
+				CCVector3 Nm(0, 0, 0);
+				const CCVector3* Pm = nullptr;
+				if (inputModelMesh)
+				{
+					//normal of the nearest triangle (the closest point lies in its plane)
+					assert(data.CPSetPlain);
+					Pm = data.CPSetPlain->getPoint(i);
+					ScalarType triIndex = data.CPSetPlain->getPointScalarValue(i);
+					if (ScalarField::ValidValue(triIndex) && triIndex >= 0 && static_cast<unsigned>(triIndex) < inputModelMesh->size())
+					{
+						CCVector3 A;
+						CCVector3 B;
+						CCVector3 C;
+						inputModelMesh->getTriangleVertices(static_cast<unsigned>(triIndex), A, B, C);
+						Nm = (B - A).cross(C - A);
+					}
+				}
+				else
+				{
+					assert(data.CPSetRef);
+					Pm = data.CPSetRef->getPoint(i);
+					const CCVector3* N = data.CPSetRef->getNormal(i);
+					if (N)
+					{
+						Nm = *N;
+					}
+				}
+
+				PointCoordinateType norm = Nm.norm();
+				if (norm > ZERO_TOLERANCE_POINT_COORDINATE)
+				{
+					Nm /= norm;
+					residuals[i] = static_cast<ScalarType>((*data.cloud->getPoint(i) - *Pm).dot(Nm));
+				}
+				else
+				{
+					//no valid normal: the couple will be ignored
+					Nm = CCVector3(0, 0, 0);
+					residuals[i] = NAN_VALUE;
+				}
+				closestPointNormals[i] = Nm;
+			}
+
+			if (robustWeighting)
+			{
+				try
+				{
+					ComputeRobustWeights(residuals, params.robustWeighting, robustWeights);
+				}
+				catch (const std::bad_alloc&)
+				{
+					result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+					break;
+				}
+			}
+		}
+
 		//update couple weights (if any)
 		if (coupleWeights)
 		{
@@ -640,7 +745,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 			for (unsigned i = 0; i < count; ++i)
 			{
-				double w = 1.0;
+				double w = (robustWeighting ? robustWeights[i] : 1.0);
 				if (registerWithNormals)
 				{
 					//retrieve the data point normal
@@ -658,7 +763,8 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 					else if (inputModelCloud)
 					{
 						assert(data.CPSetRef);
-						Nm = *inputModelCloud->getNormal(data.CPSetRef->getPointGlobalIndex(i));
+						//the CPSet indexes refer to the (potentially resampled) model cloud
+						Nm = *data.CPSetRef->getNormal(i);
 					}
 					else
 					{
@@ -718,7 +824,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 
 			for (unsigned i = 0; i < data.cloud->size(); ++i)
 			{
-				ScalarType V = data.cloud->getPointScalarValue(i);
+				ScalarType V = (pointToPlane ? residuals[i] : data.cloud->getPointScalarValue(i));
 				if (ScalarField::ValidValue(V))
 				{
 					double wi = 1.0;
@@ -857,14 +963,38 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		//single iteration of the registration procedure
 		currentTrans = ScaledTransformation();
 		CCVector3 dataGravityCenter, modelGravityCenter;
-		if (!RegistrationTools::RegistrationProcedure(	data.cloud,
-														data.CPSetRef ? static_cast<GenericCloud*>(data.CPSetRef) : static_cast<GenericCloud*>(data.CPSetPlain),
-														currentTrans,
-														params.adjustScale,
-														coupleWeights.get(),
-														PC_ONE,
-														&dataGravityCenter,
-														&modelGravityCenter))
+		if (pointToPlane)
+		{
+			//the transformation filters are directly applied as constraints
+			bool success = false;
+			try
+			{
+				success = PointToPlaneRegistrationProcedure(data.cloud,
+															data.CPSetRef ? static_cast<GenericIndexedCloud*>(data.CPSetRef) : static_cast<GenericIndexedCloud*>(data.CPSetPlain),
+															closestPointNormals,
+															currentTrans,
+															coupleWeights.get(),
+															params.transformationFilters);
+			}
+			catch (const std::bad_alloc&)
+			{
+				result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+				break;
+			}
+			if (!success)
+			{
+				result = ICP_ERROR_REGISTRATION_STEP;
+				break;
+			}
+		}
+		else if (!RegistrationTools::RegistrationProcedure(	data.cloud,
+															data.CPSetRef ? static_cast<GenericCloud*>(data.CPSetRef) : static_cast<GenericCloud*>(data.CPSetPlain),
+															currentTrans,
+															params.adjustScale,
+															coupleWeights.get(),
+															PC_ONE,
+															&dataGravityCenter,
+															&modelGravityCenter))
 		{
 			result = ICP_ERROR_REGISTRATION_STEP;
 			break;
@@ -882,7 +1012,7 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		}
 
 		//shall we filter some components of the resulting transformation?
-		if (params.transformationFilters != SKIP_NONE)
+		if (params.transformationFilters != SKIP_NONE && !pointToPlane)
 		{
 			//filter translation (in place)
 			FilterTransformation(	currentTrans,
@@ -979,6 +1109,307 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 	}
 
 	return result;
+}
+
+double ICPRegistrationTools::ComputeRobustWeights(	const std::vector<ScalarType>& residuals,
+													ROBUST_WEIGHTING method,
+													std::vector<ScalarType>& weights)
+{
+	const std::size_t count = residuals.size();
+	weights.resize(count);
+
+	//the scale of the residuals is estimated with the median of their absolute values
+	//(the ideal residual being 0), which is not influenced by the outliers
+	std::vector<ScalarType> absResiduals;
+	absResiduals.reserve(count);
+	for (ScalarType r : residuals)
+	{
+		if (ScalarField::ValidValue(r))
+		{
+			absResiduals.push_back(std::abs(r));
+		}
+	}
+
+	double scale = 0.0;
+	if (!absResiduals.empty())
+	{
+		auto median = absResiduals.begin() + absResiduals.size() / 2;
+		std::nth_element(absResiduals.begin(), median, absResiduals.end());
+		scale = 1.4826 * *median; //consistent with the standard deviation for normally distributed residuals
+	}
+
+	if (method == NO_ROBUST_WEIGHTING || scale < ZERO_TOLERANCE_D)
+	{
+		//nothing to discriminate
+		for (std::size_t i = 0; i < count; ++i)
+		{
+			weights[i] = ScalarField::ValidValue(residuals[i]) ? 1.0f : 0.0f;
+		}
+		return 0.0;
+	}
+
+	//usual tuning constants (95% efficiency for normally distributed residuals)
+	double k = 1.0;
+	switch (method)
+	{
+	case HUBER_WEIGHTING:
+		k = 1.345;
+		break;
+	case CAUCHY_WEIGHTING:
+		k = 2.3849;
+		break;
+	case TUKEY_WEIGHTING:
+		k = 4.685;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	const double threshold = k * scale;
+
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		const ScalarType r = residuals[i];
+		if (!ScalarField::ValidValue(r))
+		{
+			weights[i] = 0.0f;
+			continue;
+		}
+
+		const double u = std::abs(r) / threshold;
+		double w = 1.0;
+		switch (method)
+		{
+		case HUBER_WEIGHTING:
+			w = (u <= 1.0 ? 1.0 : 1.0 / u);
+			break;
+		case CAUCHY_WEIGHTING:
+			w = 1.0 / (1.0 + u * u);
+			break;
+		case TUKEY_WEIGHTING:
+			w = (u < 1.0 ? (1.0 - u * u) * (1.0 - u * u) : 0.0);
+			break;
+		default:
+			break;
+		}
+		weights[i] = static_cast<ScalarType>(w);
+	}
+
+	return scale;
+}
+
+bool ICPRegistrationTools::PointToPlaneRegistrationProcedure(	GenericIndexedCloud* P, //data
+																GenericIndexedCloud* X, //model
+																const std::vector<CCVector3>& N,
+																ScaledTransformation& trans,
+																const ScalarField* coupleWeights/*=nullptr*/,
+																int transformationFilters/*=SKIP_NONE*/)
+{
+	//output transformation (R is invalid on initialization, T is (0,0,0) and s==1)
+	trans.R.invalidate();
+	trans.T = CCVector3d(0, 0, 0);
+	trans.s = 1.0;
+
+	if (P == nullptr || X == nullptr || P->size() != X->size() || N.size() != P->size())
+	{
+		return false;
+	}
+	const unsigned count = P->size();
+
+	auto coupleWeight = [&](unsigned i) -> double
+	{
+		if (!(N[i].norm2() > 0)) //also rejects NaN normals
+		{
+			return 0.0;
+		}
+		if (!coupleWeights)
+		{
+			return 1.0;
+		}
+		ScalarType w = coupleWeights->getValue(i);
+		return ScalarField::ValidValue(w) ? std::abs(w) : 0.0;
+	};
+
+	//the rotations are computed around the (weighted) gravity center of the data points, for a better
+	//numerical stability, and the coordinates are normalized by their spread so that the rotation and
+	//translation unknowns have the same order of magnitude
+	CCVector3d G(0, 0, 0);
+	double wSum = 0.0;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		double w = coupleWeight(i);
+		if (w > 0)
+		{
+			G += P->getPoint(i)->toDouble() * w;
+			wSum += w;
+		}
+	}
+	if (wSum < ZERO_TOLERANCE_D)
+	{
+		//no valid couple
+		return false;
+	}
+	G /= wSum;
+
+	double spread = 0.0;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		double w = coupleWeight(i);
+		if (w > 0)
+		{
+			spread += w * (P->getPoint(i)->toDouble() - G).norm2();
+		}
+	}
+	spread = std::sqrt(spread / wSum);
+	if (spread < ZERO_TOLERANCE_D)
+	{
+		spread = 1.0;
+	}
+
+	//we linearize the rotation (R ~ I + [a]x for small angles) and solve the normal equations
+	//A.x = b with x = (a * spread, t), for each couple: r = (P - X).N + a.(P x N) + t.N
+	double A[6][6] {};
+	double b[6] {};
+	for (unsigned i = 0; i < count; ++i)
+	{
+		double w = coupleWeight(i);
+		if (w <= 0)
+		{
+			continue;
+		}
+
+		const CCVector3d Pi = P->getPoint(i)->toDouble();
+		const CCVector3d Xi = X->getPoint(i)->toDouble();
+		const CCVector3d Ni = N[i].toDouble();
+
+		CCVector3d PxN = ((Pi - G) / spread).cross(Ni);
+		double J[6] { PxN.x, PxN.y, PxN.z, Ni.x, Ni.y, Ni.z };
+		double r = (Pi - Xi).dot(Ni);
+
+		for (unsigned j = 0; j < 6; ++j)
+		{
+			for (unsigned k = j; k < 6; ++k)
+			{
+				A[j][k] += w * J[j] * J[k];
+			}
+			b[j] -= w * J[j] * r;
+		}
+	}
+
+	//the filtered rotations and translations are removed from the unknowns
+	bool freeUnknown[6] { true, true, true, true, true, true };
+	switch (transformationFilters & SKIP_ROTATION)
+	{
+	case SKIP_NONE:
+		break;
+	case SKIP_RYZ: //rotation around X only
+		freeUnknown[1] = freeUnknown[2] = false;
+		break;
+	case SKIP_RXZ: //rotation around Y only
+		freeUnknown[0] = freeUnknown[2] = false;
+		break;
+	case SKIP_RXY: //rotation around Z only
+		freeUnknown[0] = freeUnknown[1] = false;
+		break;
+	default: //no rotation
+		freeUnknown[0] = freeUnknown[1] = freeUnknown[2] = false;
+		break;
+	}
+	freeUnknown[3] = !(transformationFilters & SKIP_TX);
+	freeUnknown[4] = !(transformationFilters & SKIP_TY);
+	freeUnknown[5] = !(transformationFilters & SKIP_TZ);
+
+	unsigned unknownIndexes[6];
+	unsigned unknownCount = 0;
+	for (unsigned j = 0; j < 6; ++j)
+	{
+		if (freeUnknown[j])
+		{
+			unknownIndexes[unknownCount++] = j;
+		}
+	}
+
+	double x[6] { 0, 0, 0, 0, 0, 0 };
+	if (unknownCount != 0)
+	{
+		SquareMatrixd reducedA(unknownCount);
+		if (!reducedA.isValid())
+		{
+			return false;
+		}
+		for (unsigned j = 0; j < unknownCount; ++j)
+		{
+			for (unsigned k = 0; k < unknownCount; ++k)
+			{
+				unsigned jj = std::min(unknownIndexes[j], unknownIndexes[k]);
+				unsigned kk = std::max(unknownIndexes[j], unknownIndexes[k]);
+				reducedA.setValue(j, k, A[jj][kk]); //only the upper part of A is filled
+			}
+		}
+
+		//we solve the system with the eigen decomposition of A, ignoring the (nearly) null eigenvalues:
+		//they correspond to motions that the couples can't determine (e.g. sliding along a plane or
+		//around a cylinder) and that must not move the cloud
+		SquareMatrixd eigVectors;
+		std::vector<double> eigValues;
+		if (!Jacobi<double>::ComputeEigenValuesAndVectors(reducedA, eigVectors, eigValues, false))
+		{
+			return false;
+		}
+
+		double maxEigValue = 0.0;
+		for (double lambda : eigValues)
+		{
+			maxEigValue = std::max(maxEigValue, lambda);
+		}
+		if (maxEigValue < ZERO_TOLERANCE_D)
+		{
+			return false;
+		}
+
+		static const double s_relativeEigenValueThreshold = 1.0e-6;
+		for (unsigned e = 0; e < unknownCount; ++e)
+		{
+			double lambda = eigValues[e];
+			if (lambda < s_relativeEigenValueThreshold * maxEigValue)
+			{
+				continue;
+			}
+
+			//x += (v.b / lambda) v
+			double vb = 0.0;
+			for (unsigned j = 0; j < unknownCount; ++j)
+			{
+				vb += eigVectors.getValue(j, e) * b[unknownIndexes[j]];
+			}
+			for (unsigned j = 0; j < unknownCount; ++j)
+			{
+				x[unknownIndexes[j]] += vb / lambda * eigVectors.getValue(j, e);
+			}
+		}
+	}
+
+	//rotation (from the axis-angle vector)
+	CCVector3d axis(x[0] / spread, x[1] / spread, x[2] / spread);
+	double angle_rad = axis.norm();
+	if (angle_rad > ZERO_TOLERANCE_D)
+	{
+		axis /= angle_rad;
+		double sin_half = std::sin(angle_rad / 2);
+		double q[4] { std::cos(angle_rad / 2), axis.x * sin_half, axis.y * sin_half, axis.z * sin_half };
+		trans.R.initFromQuaternion(q);
+	}
+	else
+	{
+		trans.R = SquareMatrixd(3);
+		trans.R.toIdentity();
+	}
+
+	//translation: P' = R.(P - G) + G + t
+	CCVector3d t(x[3], x[4], x[5]);
+	trans.T = G + t - trans.R * G;
+
+	return true;
 }
 
 bool HornRegistrationTools::FindAbsoluteOrientation(GenericCloud* toBeAlignedPoints,
