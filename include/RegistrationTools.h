@@ -153,6 +153,12 @@ namespace CCCoreLib
 		};
 
 		//! Error metric minimized at each iteration
+		/** References:
+			- Y. Chen and G. Medioni, "Object modelling by registration of multiple range images",
+			  Image and Vision Computing, 10(3), pp. 145-155, 1992 (point-to-plane metric)
+			- K.-L. Low, "Linear Least-Squares Optimization for Point-to-Plane ICP Surface Registration",
+			  Technical Report TR04-004, University of North Carolina at Chapel Hill, 2004 (linearization of each step)
+		**/
 		enum ERROR_METRIC
 		{
 			POINT_TO_POINT	= 0,	//!< distances between the data points and their closest points on the model (Besl & McKay)
@@ -160,6 +166,15 @@ namespace CCCoreLib
 		};
 
 		//! Robust weighting of the couples, depending on their residual (M-estimators)
+		/** The weights are updated at each iteration (iteratively reweighted least squares). They depend on the residuals
+			divided by a robust estimation of their scale (1.4826 x the median absolute residual), with the usual tuning
+			constants (95% efficiency for Gaussian noise): 1.345 (Huber), 2.3849 (Cauchy) and 4.685 (Tukey).
+			References:
+			- Z. Zhang, "Parameter estimation techniques: a tutorial with application to conic fitting",
+			  Image and Vision Computing, 15(1), pp. 59-76, 1997 (M-estimators, tuning constants, robust scale)
+			- P. Babin, P. Giguère and F. Pomerleau, "Analysis of Robust Functions for Registration Algorithms",
+			  IEEE International Conference on Robotics and Automation (ICRA), 2019 (robust functions for ICP)
+		**/
 		enum ROBUST_WEIGHTING
 		{
 			NO_ROBUST_WEIGHTING	= 0,
@@ -247,6 +262,7 @@ namespace CCCoreLib
 				as the points can slide along the surface. It needs normals on the model cloud (with a model mesh,
 				the normals of the triangles are used). It can't be combined with adjustScale.
 				The RMS is then computed with the point-to-plane distances.
+				See ERROR_METRIC for the references.
 			**/
 			ERROR_METRIC errorMetric;
 
@@ -254,6 +270,7 @@ namespace CCCoreLib
 			/** At each iteration, each couple is weighted depending on its residual (point-to-point or point-to-plane
 				distance) compared to the median residual, so that the outliers (noise, parts that don't overlap,
 				moving objects, etc.) have less influence on the registration.
+				See ROBUST_WEIGHTING for the method and the references.
 			**/
 			ROBUST_WEIGHTING robustWeighting;
 		};
