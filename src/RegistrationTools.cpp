@@ -966,12 +966,22 @@ ICPRegistrationTools::RESULT_TYPE ICPRegistrationTools::Register(	GenericIndexed
 		if (pointToPlane)
 		{
 			//the transformation filters are directly applied as constraints
-			if (!PointToPlaneRegistrationProcedure(	data.cloud,
-													data.CPSetRef ? static_cast<GenericIndexedCloud*>(data.CPSetRef) : static_cast<GenericIndexedCloud*>(data.CPSetPlain),
-													closestPointNormals,
-													currentTrans,
-													coupleWeights.get(),
-													params.transformationFilters))
+			bool success = false;
+			try
+			{
+				success = PointToPlaneRegistrationProcedure(data.cloud,
+															data.CPSetRef ? static_cast<GenericIndexedCloud*>(data.CPSetRef) : static_cast<GenericIndexedCloud*>(data.CPSetPlain),
+															closestPointNormals,
+															currentTrans,
+															coupleWeights.get(),
+															params.transformationFilters);
+			}
+			catch (const std::bad_alloc&)
+			{
+				result = ICP_ERROR_NOT_ENOUGH_MEMORY;
+				break;
+			}
+			if (!success)
 			{
 				result = ICP_ERROR_REGISTRATION_STEP;
 				break;

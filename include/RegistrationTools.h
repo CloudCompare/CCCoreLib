@@ -295,6 +295,7 @@ namespace CCCoreLib
 			\param[in]  coupleWeights weights for each (Pi,Xi) couple (optional)
 			\param[in]  transformationFilters constraints on the transformation (see RegistrationTools::TRANSFORMATION_FILTERS)
 			\return success
+			\warning may throw std::bad_alloc (caught by Register)
 		**/
 		static bool PointToPlaneRegistrationProcedure(	GenericIndexedCloud* P,
 														GenericIndexedCloud* X,
@@ -308,6 +309,7 @@ namespace CCCoreLib
 			\param[in]  method the robust weighting method
 			\param[out] weights the weight of each couple (0 if invalid)
 			\return the scale of the residuals (or 0 if it couldn't be determined, in which case all the valid couples get a weight of 1)
+			\warning may throw std::bad_alloc (caught by Register)
 		**/
 		static double ComputeRobustWeights(	const std::vector<ScalarType>& residuals,
 											ROBUST_WEIGHTING method,
